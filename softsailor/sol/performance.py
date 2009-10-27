@@ -1,0 +1,115 @@
+from bisect import bisect_left
+import math
+
+from softsailor.classes import PolarData
+from scipy import interpolate
+
+class Performance:
+    opt_angles = []
+    def __init__(self, polar_data):
+        self.polar_data = polar_data
+        self.calc_spline_coeffs()
+        self.calc_optimal_angles()
+
+    def get(self, relative_wind):
+        angles = self.polar_data.angles
+        speeds = self.polar_data.speeds
+        data = self.polar_data.data
+        coeffs = self.spline_coeffs
+
+        angle = abs(relative_wind[0])
+        speed = relative_wind[1]
+        angle_i = bisect_left(angles, angle)
+        angle_j = angle_i + 1
+        while angle_j >= len(angles):
+            angle_j -= 1
+            angle_i -= 1
+
+        speed_i = bisect_left(speeds, speed)
+        speed_j = speed_i + 1
+        while speed_j >= len(speeds):
+            speed_j -= 1
+            speed_i -= 1
+
+        angle_range = angles[angle_j] - angles[angle_i] 
+        angle_frac = (angle - angles[angle_i]) / float(angle_range)
+
+        speed_range = speeds[speed_j] - speeds[speed_i]
+        speed_frac0 = 1
+        speed_frac1 = (speed - speeds[speed_i]) / float(speed_range)
+        speed_frac2 = speed_frac1 * speed_frac1
+        speed_frac3 = speed_frac1 * speed_frac2
+
+        speedi = speed_frac0 * coeffs[angle_i][speed_i][0] + \
+                speed_frac1 * coeffs[angle_i][speed_i][1] + \
+                speed_frac2 * coeffs[angle_i][speed_i][2] + \
+                speed_frac3 * coeffs[angle_i][speed_i][3]
+        speedj = speed_frac0 * coeffs[angle_j][speed_i][0] + \
+                speed_frac1 * coeffs[angle_j][speed_i][1] + \
+                speed_frac2 * coeffs[angle_j][speed_i][2] + \
+                speed_frac3 * coeffs[angle_j][speed_i][3]
+
+        #print speedi
+        #print speedj
+        #print angle_frac
+        return speedi * (1 - angle_frac) + speedj * angle_frac
+
+    def optimal_angles(self, wind_speed):
+        opt_angles = [0, 0]
+        speeds = self.polar_data.speeds
+        speed_i = bisect_left(speeds, wind_speed)
+        speed_j = speed_i + 1
+        speed_range = speeds[speed_j] - speeds[speed_i]
+        speed_frac = (wind_speed - speeds[speed_i]) / speed_range
+
+        opt_angles[0] = self.opt_angles[speed_i][0] * (1 - speed_frac) + \
+                self.opt_angles[speed_j][0] * speed_frac
+        opt_angles[1] = self.opt_angles[speed_i][1] * (1 - speed_frac) + \
+                self.opt_angles[speed_j][1] * speed_frac
+        return opt_angles
+
+    def calc_optimal_angles(self):
+        self.opt_angles = []
+        for speed in self.polar_data.speeds:
+            opt_angles = [0, math.pi]
+            opt_vmgs = [0, 0]
+            for angle in self.polar_data.angles:
+                boat_speed = self.get((angle, speed))
+                vmg_upwind = math.cos(angle) * boat_speed
+                vmg_downwind = -math.cos(angle) * boat_speed
+                if vmg_upwind > opt_vmgs[0]:
+                    opt_angles[0] = angle
+                    opt_vmgs[0] = vmg_upwind 
+                if vmg_downwind > opt_vmgs[1]:
+                    opt_angles[1] = angle
+                    opt_vmgs[1] = vmg_downwind 
+            self.opt_angles.append(opt_angles)
+
+    def calc_spline_coeffs(self):
+        self.spline_coeffs = []
+        angles = self.polar_data.angles
+        speeds = self.polar_data.speeds
+        data = self.polar_data.data
+        for i, angle in enumerate(angles):
+            coeffs_list = []
+            speeds_list = list(enumerate(speeds))
+            for j, speed in speeds_list[:-1]:
+                if j == 0:
+                    a0 =  2 * data[i][j] - data[i][j + 1] 
+                else:
+                    a0 = data[i][j - 1]
+                a1 = data[i][j]
+                a2 = data[i][j + 1]
+                if j + 2 == len(speeds_list):
+                    a3 = 2 * data[i][j + 1] - data[i][j]
+                else:
+                    a3 = data[i][j + 2]
+                coeffs = []
+                coeffs.append(a1)
+                coeffs.append(-0.5 * a0 + 0.5 * a2)
+                coeffs.append(a0 - 2.5 * a1 + 2 * a2 - 0.5 * a3)
+                coeffs.append(-0.5 * a0 + 1.5 * a1 - 1.5 * a2 + 0.5 * a3)
+                coeffs_list.append(coeffs)
+            self.spline_coeffs.append(coeffs_list)
+
+

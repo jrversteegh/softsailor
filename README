@@ -1,0 +1,34 @@
+SoftSailor ReadMe
+=================
+
+Softsailor is a software toolbox for sailing.
+It contains a simulator, sailor, controller and optimizer.
+
+The simulator contains a model of a boat's performance.
+Provided with a sailor's input (heading, sailchoice) and
+environmental conditions (wind, current) it updates the
+boats speed and position over time.
+
+The sailor is entity that converts routing data into
+an actual input (heading, sails) for the boat.
+It can be ordered to follow a route according to
+certain rules, like sailing with an optimal vmg,
+avoiding land, not tacking within a specified
+amount of time after a previous tack, or staying 
+within a certain 'lane'.
+
+The controller is a generic interface to control a 
+sailing boat, whether it be a virtual, a model, or
+a real full scale sailing boat. Implementations for
+virtual sailboats are provided for Virtual Regatta 
+and SailOnLine. 
+
+The optimizer is a route planning tool that attempt
+to find an optimal route using the simulator with 
+predictions of environmental conditions. This part is
+the main purpose of this project and the main development
+goal. Eventually this can become very complex when
+e.g. risc management based on uncertainty of the 
+predicted environmental data is taken into account.
+The current code only attempts to find the fastest
+route assuming the predictions are 100% accurate.

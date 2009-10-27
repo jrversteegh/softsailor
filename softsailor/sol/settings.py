@@ -1,0 +1,60 @@
+from ConfigParser import ConfigParser
+
+from softsailor.utils import *
+from softsailor.classes import PolarData
+
+from xmlutil import *
+
+class SettingsNotFound(Exception):
+    pass
+
+class Settings:
+    token = ''
+    host = ''
+    race = 0
+    boat = ''
+    weather = ''
+    map = ''
+    def __init__(self):
+        self.polar_data = PolarData()
+        self.load_file()
+        self.load_race()
+
+    def load_file(self):
+        config = ConfigParser()
+        config_file = get_config_dir() + '/solconfig'
+        files_read = config.read(config_file)
+        if len(files_read) < 1:
+            raise SettingsNotFound(config_file)
+        
+        self.host = config.get('SOL', 'host')
+        self.token = config.get('SOL', 'token')
+        self.race = config.get('SOL', 'race')
+        
+    def load_race(self):
+        uri = self.race + '?token=' + self.token
+        dom = fetch_sol_document(self.host, uri)
+        root = dom.childNodes[0]
+        self.boat = get_child_text_value(root, 'boaturl')
+        self.weather = get_child_text_value(root, 'weatherurl')
+        self.map = get_child_text_value(root, 'mapurl')
+        self.load_polars(get_element(root, 'vpp'))
+
+    def load_polars(self, vpp):
+        speed_text = get_child_text_value(vpp, "tws_splined")
+        angle_text = get_child_text_value(vpp, "twa_splined")
+        boat_speed_text = get_child_text_value(vpp, "bs_splined")
+
+        self.polar_data.speeds = list(str_to_float(speed_text.split(' ')))
+        self.polar_data.angles = list(deg_to_rad(angle_text.split(' ')))
+        boat_speeds_per_angle = boat_speed_text.split(';')
+        
+        self.polar_data.data = []
+        for boat_speeds in boat_speeds_per_angle:
+            if boat_speeds.strip() != '':
+                self.polar_data.data.append( \
+                        list(knots_to_ms(boat_speeds.split(' '))))
+ 
+
+
+
