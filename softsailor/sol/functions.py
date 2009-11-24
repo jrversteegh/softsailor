@@ -1,11 +1,3 @@
-# /webclient/auth_raceinfo_164.xml?token=
-# /site_media/maps/xmlmaps/Canary_Brazil.xml?token=
-# /webclient/boat.xml?token=
-# /webclient/race_164.xml?token=
-# /webclient/weatherinfo_57.xml?token=
-# /webclient/traces_164.xml?token=
-
-
 from softsailor.utils import *
 from settings import Settings
 from xmlutil import *
