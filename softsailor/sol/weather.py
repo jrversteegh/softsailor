@@ -9,12 +9,16 @@ def two_float(str1, str2):
 class Weather:
     lat_min = 0
     lat_max = 0
+    lat_range = 0
     lat_n = 0
     lon_min = 0
     lon_max = 0
+    lon_range = 0
     lon_n = 0
     frames = []
     frame_times = []
+    start_time = 0
+    frame_time_offsets = []
     _url = ''
     _settings = None
     
@@ -28,14 +32,17 @@ class Weather:
     def load_data(self, url):
         self.frames = []
         self.frame_times = []
+        self.frames_start_time = 0
         dom = fetch_sol_document_from_url(url)
         root = dom.childNodes[0]
 
         self.lat_min = deg_to_rad(root.getAttribute('lat_min'))
         self.lat_max = deg_to_rad(root.getAttribute('lat_max'))
+        self.lat_range = self.lat_max - self.lat_min
         self.lat_n = int(root.getAttribute('lat_n_points'))
         self.lon_min = deg_to_rad(root.getAttribute('lon_min'))
         self.lon_max = deg_to_rad(root.getAttribute('lon_max'))
+        self.lon_range = self.lon_max - self.lon_min
         self.lon_n = int(root.getAttribute('lon_n_points'))
 
         frames_parent = get_element(root, 'frames')
@@ -48,6 +55,10 @@ class Weather:
         target_time_text = frame.getAttribute('target_time')
         target_time = datetime.strptime(target_time_text, '%Y/%m/%d %H:%M:%S')
         self.frame_times.append(target_time)
+        if self.start_time == 0:
+            self.start_time = target_time
+        self.frame_time_offsets.append(
+            timedelta_to_seconds(target_time - self.start_time))
         u_text = get_child_text_value(frame, 'U')
         v_text = get_child_text_value(frame, 'V')
         u_rows = u_text.split(';')

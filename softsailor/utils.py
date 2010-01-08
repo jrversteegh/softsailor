@@ -7,7 +7,7 @@ def get_config_dir():
     return config_path
 
 def timedelta_to_seconds(td):
-    return td.days * 86400 + td.seconds + td.microseconds / 1E6
+    return td.days * 86400 + td.seconds + td.microseconds * 1E-6
 
 def deg_to_rad(degs):
     try:
