@@ -20,7 +20,14 @@ class FakeWeather:
     def __init__(self):
         self.frames = []
         self.frame_times = []
+
+        self.lat_range = self.lat_max - self.lat_min
+        self.lat_step = self.lat_range / (self.lat_n - 1)
+        self.lon_range = self.lon_max - self.lon_min
+        self.lon_step = self.lon_range / (self.lon_n - 1)
+
         now = datetime.utcnow()
+        self.start_time = now - timedelta(hours = 1)
         self.frame_times.append(now - timedelta(hours = 1))
         self.frame_times.append(now + timedelta(hours = 5))
         self.frame_times.append(now + timedelta(hours = 11))
@@ -32,8 +39,8 @@ class FakeWeather:
                  [(4,-1), (4,-2), (4, -3), (4, -4), (5, 4)]])
         self.frames.append( \
                 [[(3,1), (4,2), (5, 3), (6, 4), (5, 4)], \
-                 [(4,1), (4,2), (4, 3), (4, 4), (5, 4)], \
-                 [(5,-1), (5,-2), (5, -3), (5, -4), (5, 4)], \
+                 [(4,1), (4,2), (4, 3), (5, 4), (5, 4)], \
+                 [(5,-1), (5,-2), (6, -3), (7, -4), (5, 4)], \
                  [(5,-1), (5,-2), (5, -3), (5, -4), (5, 4)]])
         self.frames.append( \
                 [[(4,1), (5,2), (6, 3), (7, 4), (5, 4)], \
@@ -46,7 +53,14 @@ class FakeWeather:
                  [(6,-1), (6,-2), (6, -3), (6, -4), (5, 4)], \
                  [(6,-1), (6,-2), (6, -3), (6, -4), (5, 4)]])
 
-    def verify_up_to_date(self):
+        self.time_min = 0
+        self.time_max = \
+            timedelta_to_seconds(self.frame_times[-1] - self.frame_times[0])
+        self.time_range = self.time_max
+        self.time_n = len(self.frame_times)
+        self.time_step = self.time_range / (self.time_n - 1)
+
+    def update_when_required(self):
         pass
 
 class TestWind(unittest.TestCase):
@@ -58,54 +72,55 @@ class TestWind(unittest.TestCase):
         self.wind = None
         self.weather = None
 
-    def testGetWind(self):
+    def testGetIndices(self):
+        indices = self.wind.get_indices(0.4, 0.12, 36000)
+        self.assertEqual(1, indices[0])
+        self.assertEqual(2, indices[1])
+        self.assertEqual(1, indices[2])
+
+    def testUpdateSlices(self):
+        self.wind.update_slices(0.4, 0.12, 10800)
+        self.assertEqual(0.25, self.wind.grid_slice[0, 0, 0, 0])
+        self.assertEqual(0.50, self.wind.grid_slice[0, 1, 0, 0])
+        self.assertEqual(0.1, self.wind.grid_slice[1, 0, 0, 0])
+        self.assertEqual(0.0, self.wind.grid_slice[2, 0, 0, 0])
+
+        self.assertEqual(3, self.wind.u_slice[0, 0, 0])
+        self.assertEqual(4, self.wind.u_slice[1, 1, 0])
+
+        self.assertEqual(5, self.wind.u_slice[0, 1, 1])
+        self.assertEqual(6, self.wind.u_slice[1, 0, 1])
+        self.assertEqual(7, self.wind.u_slice[1, 1, 1])
+
+        self.assertEqual(3, self.wind.v_slice[0, 0, 0])
+        self.assertEqual(-3, self.wind.v_slice[1, 0, 0])
+
+    def testGetFracs(self):
+        fracs = self.wind.get_fracs(0.4, 0.12, 32400) 
+        self.assertAlmostEqual(0.6, fracs[0], 8)
+        self.assertAlmostEqual(0.2, fracs[1], 8)
+        self.assertAlmostEqual(0.5, fracs[2], 8)
+
+    def testEvaluate(self):
+        self.wind.update_slices(0.375, 0.15, 10800)
+        self.wind.u_slice = np.array([[[1, 0],[0, 0]],[[0, 0],[0, 0]]])
+        self.wind.du_slice = np.array([[[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
+                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
+                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
+        self.assertAlmostEqual(0.125, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
+        self.assertAlmostEqual(1.0, self.wind.evaluate(0, 0, 0)[0], 8)
+        self.wind.u_slice = np.array([[[0, 0],[0, 0]],[[0, 0],[0, 0]]])
+        self.wind.du_slice = np.array([[[[1, 0],[0, 0]],[[0, 0],[0, 0]]],
+                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
+                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
+        self.assertAlmostEqual(0.03125, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
+
+    def testGet(self):
         t = datetime.utcnow() + timedelta(hours = 8)
-        wind = self.wind.get_bilinear((0.375, 0.1), t)
-        self.assertAlmostEqual(3.1415927, wind[0], 5)
-        self.assertAlmostEqual(5, wind[1], 5)
+        wind = self.wind.get((0.375, 0.1), t)
+        self.assertAlmostEqual(3.01, wind[0], 2)
+        self.assertAlmostEqual(5.55, wind[1], 2)
 
-    def testGetSplined(self):
-        t = datetime.utcnow() + timedelta(hours = 11)
-        wind = self.wind.get_splined((0.5, 0.1), t)
-        expected_wind = rectangular_to_polar((-6, 3))
-        self.assertAlmostEqual(expected_wind[0], wind[0], 4)
-        self.assertAlmostEqual(expected_wind[1], wind[1], 4)
-
-    def testGetSplinedEdge(self):
-        t = datetime.utcnow() - timedelta(hours = 1)
-        wind = self.wind.get_splined((0, -0.1), t)
-        expected_wind = rectangular_to_polar((-2, -1))
-        self.assertAlmostEqual(expected_wind[0], wind[0], 5)
-        self.assertAlmostEqual(expected_wind[1], wind[1], 5)
-
-    def testBilinearVersusSplined(self):
-        t = datetime.utcnow() + timedelta(hours = 7)
-        bilinear_wind = self.wind.get_bilinear((0.366, 0.05), t)
-        splined_wind = self.wind.get_splined((0.366, 0.05), t)
-        self.assertAlmostEqual(bilinear_wind[0], splined_wind[0], 2)
-        self.assertAlmostEqual(bilinear_wind[1], splined_wind[1], 1)
-        
-
-    def testBilinearVersusSplinedReal(self):
-        settings = Settings()
-        weather = Weather()
-        weather.load(settings)
-        wind = Wind(weather)
-        lat_step = (weather.lat_max - weather.lat_min) / (weather.lat_n - 1)
-        lon_step = (weather.lon_max - weather.lon_min) / (weather.lon_n - 1)
-        print "lats, lons: ", lat_step, lon_step
-        print "latmi, lonmi: ", weather.lat_min, weather.lon_min
-        print "latma, lonma: ", weather.lat_max, weather.lon_max
-        lat = weather.lat_min + 8 * lat_step 
-        lon = weather.lon_min + 15 * lon_step 
-        print "lat, lon: ", lat, lon
-        t = wind.start_time + 2 * \
-                        (weather.frame_times[1] - weather.frame_times[0])
-        print "t: ", t
-        bilinear_wind = wind.get_bilinear((lat, lon), t)
-        splined_wind = wind.get_splined((lat, lon), t)
-        self.assertAlmostEqual(bilinear_wind[0], splined_wind[0], 3)
-        self.assertAlmostEqual(bilinear_wind[1], splined_wind[1], 3)
 
 if __name__ == '__main__':
     unittest.main()

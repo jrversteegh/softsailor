@@ -1,93 +1,109 @@
 from datetime import datetime, timedelta
 import math
+import numpy as np
 
 from softsailor.utils import *
 
 class Wind:
-    frame_i = 0
-    frame_j = 0
-    lat_range = 1.0
-    lon_range = 1.0
-    t_range = None
     def __init__(self, weather):
         self.weather = weather
         self._last_verification = datetime.utcnow()
-        self.build_splines()
+        self.update_grid()
 
     def get(self, position, time):
-        self.update(time)
-        
-    def locate_frame(self, time):
-        self.frame_j = 0
-        try:
-            while self.weather.frame_times[self.frame_j] < time:
-                self.frame_j += 1
-        except IndexError:
-            pass
-        self.frame_i = self.frame_j - 1
-        if self.frame_j >= len(self.weather.frame_times):
-            self.frame_j -= 1
-            self.t_range = timedelta(hours = 1)
-        else:
-            self.t_range = self.weather.frame_times[self.frame_j] \
-                    - self.weather.frame_times[self.frame_i]
-        if self.frame_i < 0:
-            self.frame_i = 0
-        self.lat_range = self.weather.lat_max - self.weather.lat_min 
-        self.lon_range = self.weather.lon_max - self.weather.lon_min 
+        self.update_weather()
+        time = timedelta_to_seconds(time - self.weather.start_time)
+        fracs = self.get_fracs(position[0], position[1], time)
+        uv = self.evaluate(*fracs)
+        d, s = rectangular_to_polar(uv)
+        # Wind direction points opposite to wind speed vector, so add pi
+        return normalize_angle_2pi(d + math.pi), s
 
-    def verify_up_to_date(self):
+    def base_funcs(self, laf, lof, tif, i, j, k):
+        laf = laf + (1 - 2 * laf) * i
+        lof = lof + (1 - 2 * lof) * j
+        tif = tif + (1 - 2 * tif) * k
+        lab = 1 - 3 * laf**2 + 2 * laf**3
+        lob = 1 - 3 * lof**2 + 2 * lof**3
+        tib = 1 - 3 * tif**2 + 2 * tif**3
+        la = laf * (1 - laf)**2 * (1 - lof) * (1 - tif)
+        lo = lof * (1 - lof)**2 * (1 - laf) * (1 - tif)
+        ti = tif * (1 - tif)**2 * (1 - laf) * (1 - lof)
+        return lab * lob * tib, la, lo, ti
+
+    def evaluate(self, laf, lof, tif):
+        u = 0
+        v = 0
+        for i in range(2):
+            for j in range(2):
+                for k in range(2):
+                    base = self.base_funcs(laf, lof, tif, i, j, k)
+                    u += self.u_slice[i, j, k] * base[0]
+                    for dim in range(3):
+                        u += self.du_slice[dim, i, j, k] * base[dim + 1]
+                    v += self.v_slice[i, j, k] * base[0]
+                    for dim in range(3):
+                        v += self.dv_slice[dim, i, j, k] * base[dim + 1]
+        return u, v
+
+    def update_weather(self):
         now = datetime.utcnow() 
         if now - self._last_verification > timedelta(minutes = 2):
-            self.weather.verify_up_to_date()
+            if self.weather.update_when_required():
+                self.update_grid()
             self._last_verification = now
 
-    def update(self, time):
-        self.verify_up_to_date()
+    def get_indices(self, lat, lon, time):
+        lat_i = int((lat - self.weather.lat_min) / self.weather.lat_step)
+        lon_i = int((lon - self.weather.lon_min) / self.weather.lon_step)
+        time_i = int((time - self.weather.time_min) / self.weather.time_step)
+        return (lat_i, lon_i, time_i)
 
-        if time < self.weather.frame_times[self.frame_i] \
-               or time >= self.weather.frame_times[self.frame_j]:
-            self.locate_frame(time)
+    def update_slices(self, lat, lon, time):
+        la, lo, ti = self.get_indices(lat, lon, time)
+        lap, lop, tip = la + 2, lo + 2, ti + 2 
+        self.grid_slice = self.grid[:, la:lap, lo:lop, ti:tip]
+        self.u_slice = self.u[la:lap, lo:lop, ti:tip]
+        self.du_slice = self.du[:, la:lap, lo:lop, ti:tip]
+        self.v_slice = self.v[la:lap, lo:lop, ti:tip]
+        self.dv_slice = self.dv[:, la:lap, lo:lop, ti:tip]
 
+    def get_fracs(self, lat, lon, time):
+        if self.grid_slice == None:
+            self.update_slices(lat, lon, time)
+            
+        lat_frac = (lat - self.grid_slice[0,0,0,0]) / self.weather.lat_step
+        lon_frac = (lon - self.grid_slice[1,0,0,0]) / self.weather.lon_step
+        time_frac = (time - self.grid_slice[2,0,0,0]) / self.weather.time_step
 
-    def get_indices(self, position):
-        lat_frac = (position[0] - self.weather.lat_min) / float(self.lat_range)
-        lat_frac *= self.weather.lat_n - 1
-        lat_i = int(math.floor(lat_frac))
-        lat_frac -= lat_i
+        if lat_frac < 0 or lat_frac > 1 or \
+                lon_frac < 0 or lon_frac > 1 or \
+                time_frac < 0 or time_frac > 1:
+            self.update_slices(lat, lon, time)
+            return self.get_fracs(lat, lon, time)
+        else:
+            return lat_frac, lon_frac, time_frac
 
-        lon_frac = (position[1] - self.weather.lon_min) / float(self.lon_range)
-        lon_frac *= self.weather.lon_n - 1
-        lon_i = int(math.floor(lon_frac))
-        lon_frac -= lon_i
-        return lat_i, lon_i, lat_frac, lon_frac
+    def update_grid(self):
+        self.grid_slice = None
+        weather = self.weather
+        self.grid = np.mgrid[weather.lat_min: weather.lat_max: weather.lat_n * 1j,
+                                   weather.lon_min: weather.lon_max: weather.lon_n * 1j,
+                                   weather.time_min: weather.time_max: weather.time_n * 1j]
 
-    def build_splines(self):
-        self.frame_times = None
-        self.splined_frames = None
-        self.start_time = None
-        w = self.weather
-        if w.lat_n < 4 or w.lon_n < 4:
-            return
-        self.frame_times = []
-        self.splined_frames = []
-        self.start_time = self.weather.frame_times[0]
-        for frame_time in self.weather.frame_times:
-            self.frame_times.append(timedelta_to_seconds( \
-                    frame_time - self.start_time))
-        for frame in w.frames:
-            x,y = np.mgrid[w.lat_min:w.lat_max:w.lat_n * 1j, \
-                           w.lon_min:w.lon_max:w.lon_n * 1j]
+        self.u = np.zeros_like(self.grid[0])
+        self.du = np.zeros_like(self.grid)
+
+        self.v = np.zeros_like(self.grid[0])
+        self.dv = np.zeros_like(self.grid)
+
+        for i, frame in enumerate(weather.frames):
             a = np.array(frame)
             u = a[:,:,0]
             v = a[:,:,1]
-            splined_frame = []
-            for i, frame_row in enumerate(frame[0:-3]):
-                splined_row = []
-                for j, wind in enumerate(frame_row[0:-3]):
-                    u_spline = bisplrep(x[i:i+4,j:j+4], y[i:i+4,j:j+4], u[i:i+4,j:j+4])
-                    v_spline = bisplrep(x[i:i+4,j:j+4], y[i:i+4,j:j+4], v[i:i+4,j:j+4])
-                    splined_row.append((u_spline, v_spline))
-                splined_frame.append(splined_row)
-            self.splined_frames.append(splined_frame)
+            self.u[:,:,i] = u
+            self.v[:,:,i] = v
+        
+        self.du[:,:,:,:] = np.gradient(self.u)
+        self.dv[:,:,:,:] = np.gradient(self.v)
 
