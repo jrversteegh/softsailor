@@ -19,7 +19,8 @@ class FakeWeather:
 
     def __init__(self):
         self.frames = []
-        self.frame_times = []
+        self.datetimes = []
+        self.reltimes = []
 
         self.lat_range = self.lat_max - self.lat_min
         self.lat_step = self.lat_range / (self.lat_n - 1)
@@ -27,11 +28,15 @@ class FakeWeather:
         self.lon_step = self.lon_range / (self.lon_n - 1)
 
         now = datetime.utcnow()
-        self.start_time = now - timedelta(hours = 1)
-        self.frame_times.append(now - timedelta(hours = 1))
-        self.frame_times.append(now + timedelta(hours = 5))
-        self.frame_times.append(now + timedelta(hours = 11))
-        self.frame_times.append(now + timedelta(hours = 17))
+        self.start_datetime = now - timedelta(hours = 1)
+        self.datetimes.append(now - timedelta(hours = 1))
+        self.datetimes.append(now + timedelta(hours = 5))
+        self.datetimes.append(now + timedelta(hours = 11))
+        self.datetimes.append(now + timedelta(hours = 17))
+        self.reltimes.append(0)
+        self.reltimes.append(21600)
+        self.reltimes.append(43200)
+        self.reltimes.append(64800)
         self.frames.append( \
                 [[(2,1), (3,2), (4, 3), (5, 4), (5, 4)], \
                  [(3,1), (3,2), (3, 3), (3, 4), (5, 4)], \
@@ -53,12 +58,8 @@ class FakeWeather:
                  [(6,-1), (6,-2), (6, -3), (6, -4), (5, 4)], \
                  [(6,-1), (6,-2), (6, -3), (6, -4), (5, 4)]])
 
-        self.time_min = 0
-        self.time_max = \
-            timedelta_to_seconds(self.frame_times[-1] - self.frame_times[0])
-        self.time_range = self.time_max
-        self.time_n = len(self.frame_times)
-        self.time_step = self.time_range / (self.time_n - 1)
+        self.reltime_range = self.reltimes[-1]
+        self.reltime_n = len(self.reltimes)
 
     def update_when_required(self):
         pass

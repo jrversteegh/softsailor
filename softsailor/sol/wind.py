@@ -12,8 +12,8 @@ class Wind:
 
     def get(self, position, time):
         self.update_weather()
-        time = timedelta_to_seconds(time - self.weather.start_time)
-        fracs = self.get_fracs(position[0], position[1], time)
+        reltime = timedelta_to_seconds(time - self.weather.start_datetime)
+        fracs = self.get_fracs(position[0], position[1], reltime)
         uv = self.evaluate(*fracs)
         d, s = rectangular_to_polar(uv)
         # Wind direction points opposite to wind speed vector, so add pi
@@ -53,14 +53,16 @@ class Wind:
                 self.update_grid()
             self._last_verification = now
 
-    def get_indices(self, lat, lon, time):
+    def get_indices(self, lat, lon, reltime):
         lat_i = int((lat - self.weather.lat_min) / self.weather.lat_step)
         lon_i = int((lon - self.weather.lon_min) / self.weather.lon_step)
-        time_i = int((time - self.weather.time_min) / self.weather.time_step)
+        for i in range(self.weather.reltime_n):
+            if reltime >= self.weather.reltimes[i]:
+                time_i = i
         return (lat_i, lon_i, time_i)
 
-    def update_slices(self, lat, lon, time):
-        la, lo, ti = self.get_indices(lat, lon, time)
+    def update_slices(self, lat, lon, reltime):
+        la, lo, ti = self.get_indices(lat, lon, reltime)
         lap, lop, tip = la + 2, lo + 2, ti + 2 
         self.grid_slice = self.grid[:, la:lap, lo:lop, ti:tip]
         self.u_slice = self.u[la:lap, lo:lop, ti:tip]
@@ -68,19 +70,20 @@ class Wind:
         self.v_slice = self.v[la:lap, lo:lop, ti:tip]
         self.dv_slice = self.dv[:, la:lap, lo:lop, ti:tip]
 
-    def get_fracs(self, lat, lon, time):
+    def get_fracs(self, lat, lon, reltime):
         if self.grid_slice == None:
-            self.update_slices(lat, lon, time)
+            self.update_slices(lat, lon, reltime)
             
         lat_frac = (lat - self.grid_slice[0,0,0,0]) / self.weather.lat_step
         lon_frac = (lon - self.grid_slice[1,0,0,0]) / self.weather.lon_step
-        time_frac = (time - self.grid_slice[2,0,0,0]) / self.weather.time_step
+        time_frac = (reltime - self.grid_slice[2,0,0,0]) / \
+               (self.grid_slice[2,0,0,1] - self.grid_slice[2,0,0,0])
 
         if lat_frac < 0 or lat_frac > 1 or \
                 lon_frac < 0 or lon_frac > 1 or \
                 time_frac < 0 or time_frac > 1:
-            self.update_slices(lat, lon, time)
-            return self.get_fracs(lat, lon, time)
+            self.update_slices(lat, lon, reltime)
+            return self.get_fracs(lat, lon, reltime)
         else:
             return lat_frac, lon_frac, time_frac
 
@@ -89,13 +92,20 @@ class Wind:
         weather = self.weather
         self.grid = np.mgrid[weather.lat_min: weather.lat_max: weather.lat_n * 1j,
                                    weather.lon_min: weather.lon_max: weather.lon_n * 1j,
-                                   weather.time_min: weather.time_max: weather.time_n * 1j]
+                                   0: weather.reltime_n]
+        grid = self.grid
+        # Fix up relative time values
+        for i,lat in enumerate(grid[2,:,0,0]):
+            for j, lon in enumerate(grid[2,i,:,0]):
+                for k, tim in enumerate(grid[2,i,j,:]):
+                    assert(k == tim)
+                    grid[2,i,j,k] = weather.reltimes[k]
 
-        self.u = np.zeros_like(self.grid[0])
-        self.du = np.zeros_like(self.grid)
+        self.u = np.zeros_like(grid[0])
+        self.du = np.zeros_like(grid)
 
-        self.v = np.zeros_like(self.grid[0])
-        self.dv = np.zeros_like(self.grid)
+        self.v = np.zeros_like(grid[1])
+        self.dv = np.zeros_like(grid)
 
         for i, frame in enumerate(weather.frames):
             a = np.array(frame)

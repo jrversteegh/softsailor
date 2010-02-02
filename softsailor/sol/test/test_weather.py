@@ -8,7 +8,7 @@ class TestWeather(unittest.TestCase):
         settings = Settings()
         weather = Weather()
         weather.load(settings)
-        self.assertEqual(len(weather.frame_times), len(weather.frames))
+        self.assertEqual(len(weather.reltimes), len(weather.frames))
         self.assertTrue(weather.lat_n > 0)
         self.assertEqual(weather.lat_n, len(weather.frames[0]))
         self.assertTrue(weather.lon_n > 0)

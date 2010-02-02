@@ -2,6 +2,7 @@ from xmlutil import *
 from settings import *
 
 from datetime import datetime, timedelta
+import datetime as dt
 
 def two_float(str1, str2):
     return (float(str1), float(str2))
@@ -20,13 +21,8 @@ class Weather:
         self.lon_n = 0
         self.lon_step = 0
 
-        self.time_range = 0
-        self.time_n = 0
-        self.time_step = 0
-        
-        self.tim_min = 0
-        self.tim_max = 0
-        self.tim_n = 0
+        self.reltime_range = 0
+        self.reltime_n = 0
 
         self.clear_frames()
 
@@ -35,8 +31,9 @@ class Weather:
 
     def clear_frames(self):
         self.frames = []
-        self.frame_times = []
-        self.start_time = datetime(datetime.MAXYEAR, 1, 1)
+        self.reltimes = []
+        self.datetimes = []
+        self.start_datetime = datetime(dt.MAXYEAR, 1, 1)
     
     def get_url(self, settings):
         uri = settings.weather + '?token=' + settings.token
@@ -70,19 +67,17 @@ class Weather:
         for frame in frames:
             self.add_frame(frame)
 
-        self.time_min = 0
-        self.time_max = \
-            timedelta_to_seconds(self.frame_times[-1] - self.frame_times[0])
-        self.time_range = self.time_max
-        self.time_n = len(self.frame_times)
-        self.time_step = self.time_range / (self.time_n - 1)
+        self.reltime_range = self.reltimes[-1]
+        self.reltime_n = len(self.reltimes)
 
     def add_frame(self, frame):
         target_time_text = frame.getAttribute('target_time')
         target_time = datetime.strptime(target_time_text, '%Y/%m/%d %H:%M:%S')
-        self.frame_times.append(target_time)
-        if target_time < self.start_time:
-            self.start_time = target_time
+        self.datetimes.append(target_time)
+        if target_time < self.start_datetime:
+            self.start_datetime = target_time
+        self.reltimes.append(
+                 timedelta_to_seconds(target_time - self.start_datetime))
         u_text = get_child_text_value(frame, 'U')
         v_text = get_child_text_value(frame, 'V')
         u_rows = u_text.split(';')
