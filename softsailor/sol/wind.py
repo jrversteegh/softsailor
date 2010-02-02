@@ -4,11 +4,36 @@ import numpy as np
 
 from softsailor.utils import *
 
+def base_funcs_linear(laf, lof, tif, i, j, k):
+    laf = laf + (1 - 2 * laf) * i
+    lof = lof + (1 - 2 * lof) * j
+    tif = tif + (1 - 2 * tif) * k
+    lab = 1 - laf
+    lob = 1 - lof
+    tib = 1 - tif
+    la = 0
+    lo = 0
+    ti = 0
+    return lab * lob * tib, la, lo, ti
+
+def base_funcs_cubic(laf, lof, tif, i, j, k):
+    laf = laf + (1 - 2 * laf) * i
+    lof = lof + (1 - 2 * lof) * j
+    tif = tif + (1 - 2 * tif) * k
+    lab = 1 - 3 * laf**2 + 2 * laf**3
+    lob = 1 - 3 * lof**2 + 2 * lof**3
+    tib = 1 - 3 * tif**2 + 2 * tif**3
+    la = laf * (1 - laf)**2 * (1 - lof) * (1 - tif)
+    lo = lof * (1 - lof)**2 * (1 - laf) * (1 - tif)
+    ti = tif * (1 - tif)**2 * (1 - laf) * (1 - lof)
+    return lab * lob * tib, la, lo, ti
+
 class Wind:
-    def __init__(self, weather):
+    def __init__(self, weather, base_funcs = base_funcs_linear):
         self.weather = weather
         self._last_verification = datetime.utcnow()
         self.update_grid()
+        self.base_funcs = base_funcs
 
     def get(self, position, time):
         self.update_weather()
@@ -18,18 +43,6 @@ class Wind:
         d, s = rectangular_to_polar(uv)
         # Wind direction points opposite to wind speed vector, so add pi
         return normalize_angle_2pi(d + math.pi), s
-
-    def base_funcs(self, laf, lof, tif, i, j, k):
-        laf = laf + (1 - 2 * laf) * i
-        lof = lof + (1 - 2 * lof) * j
-        tif = tif + (1 - 2 * tif) * k
-        lab = 1 - 3 * laf**2 + 2 * laf**3
-        lob = 1 - 3 * lof**2 + 2 * lof**3
-        tib = 1 - 3 * tif**2 + 2 * tif**3
-        la = laf * (1 - laf)**2 * (1 - lof) * (1 - tif)
-        lo = lof * (1 - lof)**2 * (1 - laf) * (1 - tif)
-        ti = tif * (1 - tif)**2 * (1 - laf) * (1 - lof)
-        return lab * lob * tib, la, lo, ti
 
     def evaluate(self, laf, lof, tif):
         u = 0

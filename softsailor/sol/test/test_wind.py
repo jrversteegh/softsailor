@@ -102,8 +102,9 @@ class TestWind(unittest.TestCase):
         self.assertAlmostEqual(0.2, fracs[1], 8)
         self.assertAlmostEqual(0.5, fracs[2], 8)
 
-    def testEvaluate(self):
+    def testEvaluateCubic(self):
         self.wind.update_slices(0.375, 0.15, 10800)
+        self.wind.base_funcs = base_funcs_cubic
         self.wind.u_slice = np.array([[[1, 0],[0, 0]],[[0, 0],[0, 0]]])
         self.wind.du_slice = np.array([[[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
                                        [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
@@ -116,11 +117,25 @@ class TestWind(unittest.TestCase):
                                        [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
         self.assertAlmostEqual(0.03125, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
 
+    def testEvaluateLinear(self):
+        self.wind.update_slices(0.375, 0.15, 10800)
+        self.wind.u_slice = np.array([[[1, 0],[0, 0]],[[0, 0],[0, 0]]])
+        self.wind.du_slice = np.array([[[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
+                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
+                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
+        self.assertAlmostEqual(0.125, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
+        self.assertAlmostEqual(1.0, self.wind.evaluate(0, 0, 0)[0], 8)
+        self.wind.u_slice = np.array([[[0, 0],[0, 0]],[[0, 0],[0, 0]]])
+        self.wind.du_slice = np.array([[[[1, 0],[0, 0]],[[0, 0],[0, 0]]],
+                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
+                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
+        self.assertAlmostEqual(0.0, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
+
     def testGet(self):
         t = datetime.utcnow() + timedelta(hours = 8)
         wind = self.wind.get((0.375, 0.1), t)
-        self.assertAlmostEqual(3.01, wind[0], 2)
-        self.assertAlmostEqual(5.55, wind[1], 2)
+        self.assertAlmostEqual(3.1415, wind[0], 2)
+        self.assertAlmostEqual(5.25, wind[1], 2)
 
 
 if __name__ == '__main__':
