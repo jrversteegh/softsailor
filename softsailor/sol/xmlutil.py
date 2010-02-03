@@ -27,6 +27,10 @@ def get_element(parent, name):
     children = parent.getElementsByTagName(name)
     return children[0]
 
+def get_elements(parent, name):
+    children = parent.getElementsByTagName(name)
+    return children
+
 def get_child_text_value(parent, name):
     return get_element(parent, name).childNodes[0].nodeValue
 
