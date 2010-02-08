@@ -13,5 +13,11 @@ class TestBoatWind(unittest.TestCase):
         performance = Performance(settings.polar_data)
 
         speed = performance.get(boat.relative_wind)
-        self.assertAlmostEqual(boat.speed, speed, 1)
+        bs = ms_to_knots(boat.speed)
+        cs = ms_to_knots(speed)
+        msg = 'Boat speed: ' + str(bs) + \
+              'Calc speed: ' + str(cs)
+        
+        # Test boat performance accuracy. Should be within 0.2 knots
+        self.failIf(abs(bs - cs) > 0.2, msg)
     
