@@ -1,10 +1,11 @@
 import math
+import numpy as np
 
 def dxy_dpos(latitude, longitude):
     """Simple earth model"""
     return 6367311.8, 6378134.3 * math.cos(latitude)
 
-class Vector:
+class Vector(object):
     @property
     def ar(self):
         return self.a, self.r
@@ -51,14 +52,38 @@ class Vector:
         return self
 
     def __imul__(self, scalar):
-        self.r *= vector[1]
+        self.r *= scalar
         return self
+
+    def __add__(self, vector):
+        result = PolarVector(vector)
+        result.x = result.x + self.x
+        result.y = result.y + self.y
+        return result
+
+    def __sub__(self, vector):
+        result = CartesianVector(self.xy)
+        result.x -= vector.x
+        result.y -= vector.y
+        return result
+
+    def __mul__(self, scalar):
+        result = PolarVector(self)
+        result.r *= scalar
+        return result
+
+    def __str__(self):
+        return '(' + str(rad_to_deg(self.a)) + ', ' + str(self.r) + ')-(' + str(self.x) + \
+                ', ' + str(self.y) + ')'
 
     def dot(self, vector):
         return self.x * vector.x + self.y * vector.y
 
     def cross(self, vector):
         return self.x * vector.y - self.y * vector.x 
+
+    def equals(self, vector):
+        return np.allclose(self.a, vector[0]) and np.allclose(self.r, vector[1])
     
 
 class PolarVector(Vector):
@@ -77,7 +102,7 @@ class PolarVector(Vector):
     def x(self, value):
         y = self.y
         self.a = math.atan2(y, value)
-        self.r = sqrt(value * value + y * y)
+        self.r = math.sqrt(value * value + y * y)
 
     @property
     def y(self):
@@ -87,13 +112,13 @@ class PolarVector(Vector):
     def y(self, value):
         x = self.x
         self.a = math.atan2(value, x)
-        self.r = sqrt(x * x + value * value)
+        self.r = math.sqrt(x * x + value * value)
 
     # Performance property setter overload
     @Vector.xy.setter
     def xy(self, value):
         self.x = math.atan2(value[1], value[0])
-        self.y = sqrt(value[0] * value[0] + value[1] * value[1])
+        self.y = math.sqrt(value[0] * value[0] + value[1] * value[1])
 
 class CartesianVector(Vector):
     def __init__(self, x_or_vector, y = None):
@@ -110,18 +135,18 @@ class CartesianVector(Vector):
     @a.setter
     def a(self, value):
         r = self.r
-        self.x = r * cos(value)
-        self.y = r * sin(value)
+        self.x = r * math.cos(value)
+        self.y = r * math.sin(value)
 
     @property
     def r(self):
-        return sqrt(self.x * self.x + self.y * self.y)
+        return math.sqrt(self.x * self.x + self.y * self.y)
 
     @r.setter
     def r(self, value):
         a = self.a
-        self.x = value * cos(a)
-        self.y = value * sin(a)
+        self.x = value * math.cos(a)
+        self.y = value * math.sin(a)
 
     # Performance property setter overload
     @Vector.ar.setter
@@ -129,7 +154,7 @@ class CartesianVector(Vector):
         self.x = value[1] * cos(value[0])
         self.y = value[1] * sin(value[0])
 
-class Position:
+class Position(object):
     def __init__(self, latitude_or_vector, longitude = None):
         if longitude == None:
             self.latitude = latitude_or_vector[0]
@@ -193,6 +218,10 @@ class Position:
             result = Position(self)
             result -= vector_or_position
         return result
+
+    def __str__(self):
+        return '(' + str(rad_to_deg(self.latitude)) + ', ' + \
+                         str(rad_to_deg(self.longitude)) + ')'
 
 
 class PolarData:

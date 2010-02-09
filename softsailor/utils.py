@@ -11,16 +11,24 @@ def timedelta_to_seconds(td):
 
 def deg_to_rad(degs):
     try:
-        return math.pi * float(degs) / 180
+        return math.radians(float(degs))
     except TypeError:
         it = iter(degs)
         result = []
         for value in it:
-            result.append(math.pi * float(value) / 180)
+            result.append(math.radians(float(value)))
         return result
 
 def rad_to_deg(rads):
-    return 180 * rads / math.pi
+    try:
+        return math.degrees(float(rads))
+    except TypeError:
+        it = iter(rads)
+        result = []
+        for value in it:
+            result.append(math.degrees(float(value)))
+        return result
+    return math.degrees(rads)
 
 def knots_to_ms(knots):
     try:
