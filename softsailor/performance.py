@@ -2,9 +2,13 @@ import math
 
 from classes import PolarData
 
-class Performance:
-    def __init__(self, polar_data):
-        self.polar_data = polar_data
+class Performance(object):
+    def __init__(self, *args, **kwargs):
+        super(Performance, self).__init__(*args, **kwargs)
+        if len(args) > 0:
+            self.polar_data = args[0]
+        else:
+            self.polar_data = kw_args['polar_data']
 
     def get(self, relative_wind):
         return 0

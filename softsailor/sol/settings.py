@@ -12,6 +12,7 @@ class Settings:
     token = ''
     host = ''
     race = 0
+    race_url = ''
     boat = ''
     weather = ''
     map = ''
@@ -30,9 +31,10 @@ class Settings:
         self.host = config.get('SOL', 'host')
         self.token = config.get('SOL', 'token')
         self.race = config.get('SOL', 'race')
+        self.race_url = '/webclient/auth_raceinfo_' + str(self.race) + '.xml'
         
     def load_race(self):
-        uri = self.race + '?token=' + self.token
+        uri = self.race_url + '?token=' + self.token
         dom = fetch_sol_document(self.host, uri)
         root = dom.childNodes[0]
         self.boat = get_child_text_value(root, 'boaturl')

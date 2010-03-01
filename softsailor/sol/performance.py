@@ -49,9 +49,6 @@ class Performance:
                 speed_frac2 * coeffs[angle_j][speed_i][2] + \
                 speed_frac3 * coeffs[angle_j][speed_i][3]
 
-        #print speedi
-        #print speedj
-        #print angle_frac
         return speedi * (1 - angle_frac) + speedj * angle_frac
 
     def optimal_angles(self, wind_speed):
