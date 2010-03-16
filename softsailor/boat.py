@@ -20,17 +20,12 @@ class Boat(object):
         self.motion = Motion()
         self.condition = Condition((0,0), (0, 0))
 
-    def steer(self, heading):
-        self.situation.heading = heading
-
 class Sails(object):
     main_sail = 0
     head_sail = 0
     spinnaker = 0
 
 class SailBoat(Boat):
-    drift = 0
-    wind = [0, 0]
     def __init__(self, *args, **kwargs):
         super(SailBoat, self).__init__(*args, **kwargs)
         self.sails = Sails()

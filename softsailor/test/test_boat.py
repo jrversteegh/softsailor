@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import unittest
 
 from softsailor.boat import Boat, SailBoat, Situation, Motion, Sails
@@ -31,10 +33,6 @@ class TestBoat(unittest.TestCase):
     def testHasMotion(self):
         self.assertTrue(hasattr(self.boat, 'motion'))
 
-    def testSteeringSetsHeading(self):
-        self.boat.steer(88)
-        self.assertEqual(88, self.boat.situation.heading)
-
 
 class TestSails(unittest.TestCase):
     def setUp(self):
@@ -57,13 +55,6 @@ class TestSailBoat(TestBoat):
 
     def testHasSails(self):
         self.assertTrue(hasattr(self.boat, 'sails'))
-
-    def testHasWind(self):
-        self.assertTrue(hasattr(self.boat, 'wind'))
-        try:
-            it = iter(self.boat.wind)
-        except TypeError:
-            self.fail('Wind iterable check')
 
     def testWindAngle(self):
         self.assertEqual(0, self.boat.wind_angle)

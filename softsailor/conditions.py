@@ -13,13 +13,13 @@ class Condition(object):
             self.wind = kwargs['wind']
 
 class Conditions(object):
-    def get_wind(position):
+    def get_wind(self, lat, lon):
         return (0, 0)
 
-    def get_current(position):
+    def get_current(self, lat, lon):
         return (0, 0)
 
-    def get_condition(position):
-        return Condition(get_wind(position), get_current(position))
+    def get_condition(self, lat, lon):
+        return Condition(self.get_wind(lat, lon), self.get_current(lat, lon))
         
 
