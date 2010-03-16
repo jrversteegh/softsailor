@@ -4,10 +4,14 @@ import math
 from softsailor.classes import PolarData
 from scipy import interpolate
 
-class Performance:
+class Performance(object):
     opt_angles = []
-    def __init__(self, polar_data):
-        self.polar_data = polar_data
+    def __init__(self, *args, **kwargs):
+        #super(Performance, self).__init__(*args, **kwargs)
+        if len(args) > 0:
+            self.polar_data = args[0]
+        else:
+            self.polar_data = kwargs['polar_data']
         self.calc_spline_coeffs()
         self.calc_optimal_angles()
 

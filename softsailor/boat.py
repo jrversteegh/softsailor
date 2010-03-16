@@ -20,6 +20,20 @@ class Boat(object):
         self.motion = Motion()
         self.condition = Condition((0,0), (0, 0))
 
+    @property
+    def position(self):
+        return self.situation.position
+    @position.setter
+    def position(self, value):
+        self.situation.position = value
+
+    @property
+    def heading(self):
+        return self.situation.heading
+    @heading.setter
+    def heading(self, value):
+        self.situation.heading = value
+
 class Sails(object):
     main_sail = 0
     head_sail = 0

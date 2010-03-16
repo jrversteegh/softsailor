@@ -3,6 +3,7 @@ import unittest
 from softsailor.sol.functions import *
 from softsailor.sol.settings import *
 from softsailor.sol.performance import *
+
 from softsailor.boat import *
 
 class TestBoatWind(unittest.TestCase):
@@ -10,7 +11,7 @@ class TestBoatWind(unittest.TestCase):
         boat = SailBoat()
         get_boat(boat)
         settings = Settings()
-        performance = Performance(settings.polar_data)
+        performance = Performance(polar_data=settings.polar_data)
 
         speed = performance.get(boat.relative_wind)
         bs = ms_to_knots(boat.speed)

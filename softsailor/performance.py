@@ -4,14 +4,15 @@ from classes import PolarData
 
 class Performance(object):
     def __init__(self, *args, **kwargs):
-        super(Performance, self).__init__(*args, **kwargs)
+        #super(Performance, self).__init__(*args, **kwargs)
         if len(args) > 0:
             self.polar_data = args[0]
         else:
-            self.polar_data = kw_args['polar_data']
+            self.polar_data = kwargs['polar_data']
+        print "Initing base performance"
 
     def get(self, relative_wind):
-        return 0
+        return 0.0
 
     def optimal_angles(self, wind_speed):
-        return (0, math.pi)
+        return (0.0, math.pi)

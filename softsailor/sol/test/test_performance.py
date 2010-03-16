@@ -9,7 +9,7 @@ from softsailor.sol.performance import Performance
 class TestPerformance(unittest.TestCase):
     def setUp(self):
         settings = Settings()
-        self.perf = Performance(settings.polar_data)
+        self.perf = Performance(polar_data=settings.polar_data)
         
     def testOptimalAngles(self):
         angles = self.perf.optimal_angles(8.8)
