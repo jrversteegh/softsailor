@@ -1,11 +1,12 @@
 import unittest
 
-from softsailor.sol.functions import *
-from softsailor.sol.weather import *
-from softsailor.sol.settings import *
-from softsailor.sol.wind import *
 from softsailor.boat import *
 from softsailor.utils import *
+
+from softsailor.sol.sol_functions import *
+from softsailor.sol.sol_weather import *
+from softsailor.sol.sol_settings import *
+from softsailor.sol.sol_wind import *
 
 class TestBoatWind(unittest.TestCase):
     def testBoatWindVersusWeather(self):
@@ -21,7 +22,7 @@ class TestBoatWind(unittest.TestCase):
 
         boatwind = wind.get(boat.position, time)
 
-        bw = rad_to_deg(boat.wind[0]), ms_to_knots(boat.wind[1])
+        bw = rad_to_deg(boat.condition.wind[0]), ms_to_knots(boat.condition.wind[1])
         cw = rad_to_deg(boatwind[0]), ms_to_knots(boatwind[1])
 
         msg = 'Boat wind: ' + str(bw[0]) +  ', ' + str(bw[1]) + \

@@ -1,7 +1,8 @@
 import unittest
 import test_utils
+
 from softsailor.boat import SailBoat 
-from softsailor.sol.functions import *
+from softsailor.sol.sol_functions import *
 
 class TestSol(unittest.TestCase):
     def testGetBoat(self):

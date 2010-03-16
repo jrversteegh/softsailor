@@ -1,7 +1,7 @@
 import unittest
 
-from softsailor.sol.weather import Weather
-from softsailor.sol.settings import Settings
+from softsailor.sol.sol_weather import Weather
+from softsailor.sol.sol_settings import Settings
 
 class TestWeather(unittest.TestCase):
     def testLoad(self):

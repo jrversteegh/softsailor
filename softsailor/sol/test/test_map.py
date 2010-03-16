@@ -2,8 +2,9 @@ import unittest
 import test_utils
 
 from softsailor.classes import *
-from softsailor.sol.map import Map
-from softsailor.sol.settings import Settings
+
+from softsailor.sol.sol_map import Map
+from softsailor.sol.sol_settings import Settings
 
 class TestMap(unittest.TestCase):
     def setUp(self):

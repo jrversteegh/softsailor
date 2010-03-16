@@ -1,8 +1,8 @@
-from xmlutil import *
-from settings import *
-
-from datetime import datetime, timedelta
 import datetime as dt
+from datetime import datetime, timedelta
+
+from sol_xmlutil import *
+from sol_settings import *
 
 def two_float(str1, str2):
     return (float(str1), float(str2))

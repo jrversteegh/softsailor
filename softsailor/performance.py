@@ -9,7 +9,6 @@ class Performance(object):
             self.polar_data = args[0]
         else:
             self.polar_data = kwargs['polar_data']
-        print "Initing base performance"
 
     def get(self, relative_wind):
         return 0.0

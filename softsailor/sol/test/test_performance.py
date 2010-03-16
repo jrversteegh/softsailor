@@ -3,8 +3,8 @@ import math
 
 from softsailor.classes import PolarData
 
-from softsailor.sol.settings import Settings
-from softsailor.sol.performance import Performance
+from softsailor.sol.sol_settings import Settings
+from softsailor.sol.sol_performance import Performance
 
 class TestPerformance(unittest.TestCase):
     def setUp(self):

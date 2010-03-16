@@ -4,7 +4,7 @@ from bisect import bisect
 from softsailor.utils import *
 from softsailor.classes import *
 
-from softsailor.sol.xmlutil import *
+from sol_xmlutil import *
 
 def poly_intersect(poly, segment):
     for poly_segment in poly:

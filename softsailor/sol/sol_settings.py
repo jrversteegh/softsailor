@@ -3,7 +3,7 @@ from ConfigParser import ConfigParser
 from softsailor.utils import *
 from softsailor.classes import PolarData
 
-from xmlutil import *
+from sol_xmlutil import *
 
 class SettingsNotFound(Exception):
     pass

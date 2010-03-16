@@ -1,6 +1,6 @@
 import unittest
 
-from softsailor.sol.settings import *
+from softsailor.sol.sol_settings import *
 
 import os
 

@@ -1,10 +1,13 @@
+#!/usr/bin/env python
+
 import unittest
 import test_utils
 
-from softsailor.sol.wind import *
 from softsailor.utils import *
-from softsailor.sol.weather import *
-from softsailor.sol.settings import *
+
+from softsailor.sol.sol_wind import *
+from softsailor.sol.sol_weather import *
+from softsailor.sol.sol_settings import *
 
 from datetime import datetime, timedelta
 

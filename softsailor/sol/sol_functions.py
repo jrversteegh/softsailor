@@ -1,8 +1,9 @@
 from softsailor.utils import *
-from settings import Settings
-from xmlutil import *
-from wind import *
-from weather import *
+
+from sol_settings import Settings
+from sol_xmlutil import *
+from sol_wind import *
+from sol_weather import *
 
 # Some global singletons required by the functions
 __sol_settings_instance = Settings()
@@ -16,14 +17,16 @@ def get_boat(boat):
     dom = fetch_sol_document(settings.host, uri)
     root = dom.childNodes[0]
     boat_element = get_element(root, "boat")
-    boat.course = get_child_float_value(boat_element, "cog")
-    # No currents in sol
-    boat.heading = boat.course
-    boat.position[0] = deg_to_rad(get_child_float_value(boat_element, "lat"))
-    boat.position[1] = deg_to_rad(get_child_float_value(boat_element, "lon"))
-    boat.speed = knots_to_ms(get_child_float_value(boat_element, "sog"))
-    boat.wind = (get_child_float_value(boat_element, "twd"), \
-                 get_child_float_value(boat_element, "tws"))
+    situation = boat.situation
+    motion = boat.motion
+    motion.course = get_child_float_value(boat_element, "cog")
+    # No currents or drift in sol
+    situation.heading = motion.course
+    situation.position[0] = deg_to_rad(get_child_float_value(boat_element, "lat"))
+    situation.position[1] = deg_to_rad(get_child_float_value(boat_element, "lon"))
+    motion.speed = knots_to_ms(get_child_float_value(boat_element, "sog"))
+    boat.condition.wind = (get_child_float_value(boat_element, "twd"), \
+                           get_child_float_value(boat_element, "tws"))
     dom.unlink()
 
 def get_wind(position, time):
