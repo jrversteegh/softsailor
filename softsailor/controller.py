@@ -1,3 +1,4 @@
+from boat import Boat
 
 class Controller(object):
     def __init__(self, *args, **kwargs):

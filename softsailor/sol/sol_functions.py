@@ -22,8 +22,10 @@ def get_boat(boat):
     motion.course = get_child_float_value(boat_element, "cog")
     # No currents or drift in sol
     situation.heading = motion.course
-    situation.position[0] = deg_to_rad(get_child_float_value(boat_element, "lat"))
-    situation.position[1] = deg_to_rad(get_child_float_value(boat_element, "lon"))
+    situation.position[0] = deg_to_rad(get_child_float_value(boat_element, \
+        "lat"))
+    situation.position[1] = deg_to_rad(get_child_float_value(boat_element, \
+        "lon"))
     motion.speed = knots_to_ms(get_child_float_value(boat_element, "sog"))
     boat.condition.wind = (get_child_float_value(boat_element, "twd"), \
                            get_child_float_value(boat_element, "tws"))
