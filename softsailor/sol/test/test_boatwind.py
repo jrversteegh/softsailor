@@ -28,8 +28,8 @@ class TestBoatWind(unittest.TestCase):
         msg = 'Boat wind: ' + str(bw[0]) +  ', ' + str(bw[1]) + \
             '  Calc wind: ' + str(cw[0]) +  ', ' + str(cw[1])
 
-        # Expect error of less than a degree
-        self.failIf(abs(bw[0] - cw[0]) > 1, msg)
+        # Expect error of less than two degrees
+        self.failIf(abs(bw[0] - cw[0]) > 2, msg)
 
         # Expect error of less than a quarter of a knot
         self.failIf(abs(bw[1] - cw[1]) > 0.25, msg)

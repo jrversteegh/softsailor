@@ -1,3 +1,9 @@
+"""
+This module contains functions for interfacing with the sailonline.org
+online game status.
+
+Author: Jaap Versteegh <j.r.versteegh@gmail.com>
+"""
 from softsailor.utils import *
 
 from sol_settings import Settings
@@ -12,6 +18,7 @@ __sol_weather_instance.load(__sol_settings_instance)
 __sol_wind_instance = Wind(__sol_weather_instance)
 
 def get_boat(boat):
+    """Fetches the online data for boat"""
     settings = __sol_settings_instance
     uri = '/webclient/boat.xml?token=' + settings.token
     dom = fetch_sol_document(settings.host, uri)
@@ -20,7 +27,7 @@ def get_boat(boat):
     situation = boat.situation
     motion = boat.motion
     motion.course = get_child_float_value(boat_element, "cog")
-    # No currents or drift in sol
+    # No currents or drift in sol -> heading = course
     situation.heading = motion.course
     situation.position[0] = deg_to_rad(get_child_float_value(boat_element, \
         "lat"))
@@ -32,9 +39,11 @@ def get_boat(boat):
     dom.unlink()
 
 def get_wind(position, time):
+    """Fetch locally interpolated value of online wind at position and time"""
     return __sol_wind_instance.get(position, time)
 
 def do_steer(heading):
+    """Set heading for online boat"""
     settings = __sol_settings_instance
     post_str = 'command=cc&delay=0&value=' + str(heading)
     uri = '/webclient/command/post/?token=' + settings.token

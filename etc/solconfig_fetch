@@ -21,10 +21,11 @@ while [ "X$token" = "X" ] && [ "X$race" = "X" ]; do
   echo -n '.'
   now=`date +%s`
   diff=`expr $now - $start`
-  if [ $diff -gt 60 ]; then
+  if [ $diff -gt 120 ]; then
     echo
     echo "**** solconfig_fetch: no token found."
-    echo "Listened for 60 seconds. Race update should have been captured"
+    echo "Listened for 120 seconds. Race update should have been captured, but if you're sure" \
+      "you're listening on the right interface, you could try simply running the script again."
     exit 1
   fi
 done

@@ -20,6 +20,6 @@ class TestBoatWind(unittest.TestCase):
         msg = 'Boat speed: ' + str(bs) + \
               '  Calc speed: ' + str(cs)
         
-        # Test boat performance accuracy. Should be within 0.2 knots
-        self.failIf(abs(bs - cs) > 0.2, msg)
+        # Test boat performance accuracy. Should be within quarter knot.
+        self.failIf(abs(bs - cs) > 0.25, msg)
     

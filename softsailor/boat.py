@@ -27,6 +27,13 @@ class Boat(object):
     def heading(self, value):
         self.situation.heading = value
 
+    @property
+    def speed(self):
+        return self.motion.speed
+    @speed.setter
+    def speed(self, value):
+        self.motion.speed = value
+
 class Sails(object):
     main_sail = 0
     head_sail = 0
@@ -45,4 +52,8 @@ class SailBoat(Boat):
     @property
     def relative_wind(self):
         return (self.wind_angle, self.condition.wind[1])
+
+    @property
+    def apparent_wind(self):
+        return PolarVector(self.relative_wind) + PolarVector(0, self.motion.speed)
 
