@@ -15,7 +15,7 @@ race=""
 start=`date +%s`
 while [ "X$token" = "X" ] && [ "X$race" = "X" ]; do
   # Need to be su on my system to capture packets
-  line=`sudo tcpdump -c 10 -A -s 4096 $arg 2>solconfig_fetch.err | grep "race_.*token" | awk 'NR == 1'`
+  line=`sudo tcpdump -c 10 -A -s 4096 $arg 2>solconfig_fetch.log | grep "race_.*token" | awk 'NR == 1'`
   token=`echo $line | sed 's/^.*token=\([0-9a-f]*\).*$/\1/'`
   race=`echo $line | sed 's/^.*race_\([0-9]*\).*$/\1/'`
   echo -n '.'
