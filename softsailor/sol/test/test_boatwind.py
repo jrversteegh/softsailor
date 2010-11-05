@@ -31,8 +31,8 @@ class TestBoatWind(unittest.TestCase):
         # Expect error of less than a degree
         self.failIf(abs(bw[0] - cw[0]) > 1, msg)
 
-        # Expect error of less than two tenths of a knot
-        self.failIf(abs(bw[1] - cw[1]) > 0.2, msg)
+        # Expect error of less than a quarter of a knot
+        self.failIf(abs(bw[1] - cw[1]) > 0.25, msg)
     
 
 if __name__ == '__main__':

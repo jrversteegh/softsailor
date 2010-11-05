@@ -12,7 +12,7 @@ class TestController(unittest.TestCase):
         self.controller.steer_heading(3.14)
 
     def TestSteerWindAngle(self):
-        self.controller.steer_windangle(1.57)
+        self.controller.steer_wind_angle(1.57)
 
 
 if __name__ == '__main__':

@@ -1,1 +1,40 @@
-tcpdump -A -s 4096 | grep token
+#!/bin/sh
+
+echo "Open the desired SOL race in your browser."
+
+echo "You may want to specify a network interface on the commandline of this script."
+if [ "X$1" != "X" ]; then
+  arg="-i $1"
+else
+  arg=""
+fi
+
+echo -n "Attempting to find SOL token in network traffic"
+token=""
+race=""
+start=`date +%s`
+while [ "X$token" = "X" ] && [ "X$race" = "X" ]; do
+  # Need to be su on my system to capture packets
+  line=`sudo tcpdump -c 10 -A -s 4096 $arg 2>solconfig_fetch.err | grep "race_.*token" | awk 'NR == 1'`
+  token=`echo $line | sed 's/^.*token=\([0-9a-f]*\).*$/\1/'`
+  race=`echo $line | sed 's/^.*race_\([0-9]*\).*$/\1/'`
+  echo -n '.'
+  now=`date +%s`
+  diff=`expr $now - $start`
+  if [ $diff -gt 60 ]; then
+    echo
+    echo "**** solconfig_fetch: no token found."
+    echo "Listened for 60 seconds. Race update should have been captured"
+    exit 1
+  fi
+done
+
+echo
+echo -n "Token found: "
+echo $token
+echo -n "For race: "
+echo $race
+
+echo "Writing token and race to solconfig"
+sed "s/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/$token/" solconfig.sample | sed "s/ddd/$race/" > solconfig
+echo "Done!"
