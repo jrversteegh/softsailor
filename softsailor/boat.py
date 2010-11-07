@@ -34,6 +34,22 @@ class Boat(object):
     def speed(self, value):
         self.motion.speed = value
 
+    @property
+    def velocity_over_ground(self):
+        return PolarVector(self.motion.velocity) \
+                + PolarVector(self.condition.current)
+    @velocity_over_ground.setter
+    def velocity_over_ground(self, value):
+        self.motion.velocity = PolarVector(value) \
+                - PolarVector(self.condition.current)
+
+    @property 
+    def drift(self):
+        return normalize_angle_pipi(self.motion.course - self.heading)
+    @drift.setter
+    def drift(self, value):
+        self.motion.course = normalize_angle_2pi(self.heading + value)
+
 class Sails(object):
     main_sail = 0
     head_sail = 0
@@ -47,7 +63,7 @@ class SailBoat(Boat):
     @property
     def wind_angle(self):
         return normalize_angle_pipi(self.condition.wind[0] \
-            - self.situation.heading)
+            - self.heading)
 
     @property
     def relative_wind(self):

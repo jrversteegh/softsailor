@@ -8,14 +8,12 @@ class TestCondition(unittest.TestCase):
         self.condition = Condition((0, 0), (0, 0))
 
     def testHasWind(self):
-        self.assertTrue(hasattr(self.condition, 'wind'))
         try:
             it = iter(self.condition.wind)
         except TypeError:
             self.fail('Wind iterable check')
 
     def testHasCurrent(self):
-        self.assertTrue(hasattr(self.condition, 'current'))
         try:
             it = iter(self.condition.current)
         except TypeError:

@@ -4,19 +4,6 @@ import unittest
 
 from softsailor.boat import Boat, SailBoat, Situation, Motion, Sails
 
-class TestSituation(unittest.TestCase):
-    def setUp(self):
-        self.situation = Situation()
-
-    def testHasHeading(self):
-        self.assertTrue(hasattr(self.situation, 'heading'))
-
-    def testHasPosition(self):
-        self.assertTrue(hasattr(self.situation, 'position'))
-        try:
-            it = iter(self.situation.position)
-        except TypeError:
-            self.fail('Position iterable check')
     
 
 class TestBoat(unittest.TestCase):
@@ -32,6 +19,15 @@ class TestBoat(unittest.TestCase):
 
     def testHasMotion(self):
         self.assertTrue(hasattr(self.boat, 'motion'))
+
+    def testHasHeading(self):
+        self.assertTrue(hasattr(self.boat, 'heading'))
+
+    def testHasSpeed(self):
+        self.assertTrue(hasattr(self.boat, 'speed'))
+
+    def testHasDrift(self):
+        self.assertTrue(hasattr(self.boat, 'drift'))
 
 
 class TestSails(unittest.TestCase):
@@ -56,8 +52,29 @@ class TestSailBoat(TestBoat):
     def testHasSails(self):
         self.assertTrue(hasattr(self.boat, 'sails'))
 
-    def testWindAngle(self):
-        self.assertEqual(0, self.boat.wind_angle)
+    def testHasWindAngle(self):
+        self.assertTrue(hasattr(self.boat, 'wind_angle'))
+
+    def testHasRelativeWind(self):
+        self.assertTrue(hasattr(self.boat, 'relative_wind'))
+        try:
+            it = iter(self.boat.relative_wind)
+        except TypeError:
+            self.fail('Relative wind iterable check')
+
+    def testHasApparentWind(self):
+        self.assertTrue(hasattr(self.boat, 'apparent_wind'))
+        try:
+            it = iter(self.boat.apparent_wind)
+        except TypeError:
+            self.fail('Apparent wind iterable check')
+
+    def testHasVelocityOverGround(self):
+        self.assertTrue(hasattr(self.boat, 'velocity_over_ground'))
+        try:
+            it = iter(self.boat.velocity_over_ground)
+        except TypeError:
+            self.fail('Velocity over ground iterable check')
 
 if __name__ == '__main__':
     unittest.main()

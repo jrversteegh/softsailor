@@ -2,7 +2,14 @@
 class Motion(object):
     speed = 0
     course = 0
-    drift = 0
+
+    def __init__(self, *args, **kwargs):
+        if len(args) > 1:
+            course = args[0]
+            speed = args[1]
+        elif len(args) > 0:
+            course = args[0][0]
+            speed = args[0][1]
 
     @property
     def velocity(self):

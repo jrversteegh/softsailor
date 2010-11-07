@@ -6,7 +6,7 @@ from motion import Motion
 
 class Controller(object):
     def __init__(self, *args, **kwargs):
-        super(Controller, self).__init__(*args, **kwargs)
+        super(Controller, self).__init__()
         
     def steer_heading(self, heading):
         pass
@@ -14,7 +14,17 @@ class Controller(object):
     def steer_wind_angle(self, wind_angle):
         pass
 
+    def stop(self):
+        pass
 
+    def set_main_sail(self, main_sail_no):
+        pass
+
+    def set_head_sail(self, head_sail_no):
+        pass
+
+    def set_spinnaker(self, spinnaker_no):
+        pass
 
 
 class BoatController(Controller):
@@ -32,3 +42,15 @@ class BoatController(Controller):
         heading = self.boat.condition.wind[0] - wind_angle 
         self.steer_heading(heading)
 
+    def stop(self):
+        self.steer_wind_angle(0)
+        self.boat.speed = 0
+
+    def set_main_sail(self, main_sail_no):
+        self.boat.sails.main_sail = main_sail_no
+
+    def set_head_sail(self, head_sail_no):
+        self.boat.sails.head_sail = head_sail_no
+
+    def set_spinnaker(self, spinnaker_no):
+        self.boat.sails.spinnaker = spinnaker_no

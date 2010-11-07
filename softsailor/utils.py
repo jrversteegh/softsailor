@@ -9,51 +9,54 @@ def get_config_dir():
 def timedelta_to_seconds(td):
     return td.days * 86400 + td.seconds + td.microseconds * 1E-6
 
+def array_func(func):
+    def decorated(*args):
+        if len(args) > 1:
+            return list(map(func, args))
+        else:
+            arg = args[0]
+            try:
+                it = iter(arg)
+                return type(arg)(map(func, arg))
+            except TypeError:
+                return func(arg)
+    return decorated
+
+def vec_func(func):
+    def decorated(*args):
+        if len(args) > 1:
+            return func((args[0], args[1]))
+        else:
+            return func(args[0])
+    return decorated
+
+def vec_meth(func):
+    def decorated(self, *args):
+        if len(args) > 1:
+            return func(self, (args[0], args[1]))
+        else:
+            return func(self, args[0])
+    return decorated
+
+@array_func
 def deg_to_rad(degs):
-    try:
-        return math.radians(float(degs))
-    except TypeError:
-        it = iter(degs)
-        result = []
-        for value in it:
-            result.append(math.radians(float(value)))
-        return result
+    return math.radians(float(degs))
 
-def rad_to_deg(rads):
-    try:
-        return math.degrees(float(rads))
-    except TypeError:
-        it = iter(rads)
-        result = []
-        for value in it:
-            result.append(math.degrees(float(value)))
-        return result
-    return math.degrees(rads)
+@array_func
+def rad_to_deg(value):
+    return math.degrees(float(rads))
 
+@array_func
 def knots_to_ms(knots):
-    try:
-        return float(knots) * 1852 / 3600
-    except TypeError:
-        it = iter(knots)
-        result = []
-        for value in it:
-            if value != '':
-                result.append(float(value) * 1852 / 3600)
-        return result
+    return float(knots) * 1852 / 3600
 
-def str_to_float(value):
-    try:
-        return float(value)
-    except TypeError:
-        it = iter(value)
-        result = []
-        for val in it:
-            if val != '':
-                result.append(float(val))
-        return result
-
+@array_func
 def ms_to_knots(ms):
     return ms * 3600 / 1852
+
+@array_func
+def str_to_float(value):
+    return float(value)
 
 def create_kml_document(name):
     impl = getDOMImplementation()

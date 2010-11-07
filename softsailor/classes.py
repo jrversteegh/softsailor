@@ -1,6 +1,8 @@
 import math
 import numpy as np
 
+from utils import *
+
 def dxy_dpos(latitude, longitude):
     """Simple earth model"""
     return 6367311.8, 6378134.3 * math.cos(latitude)
@@ -169,6 +171,7 @@ class Position(object):
     def dxy(self):
         return self.dxy_dpos(self.latitude, self.longitude) 
 
+    @vec_meth
     def bearing(self, position):
         dxy1 = self.dxy
         dxy2 = self.dxy_dpos(*position)

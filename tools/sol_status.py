@@ -8,7 +8,7 @@ Author: Jaap Versteegh <j.r.versteegh@gmail.com>
 
 import sys, os
 # Add softsailor to the python path
-sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.utils import *
 from softsailor.boat import SailBoat
