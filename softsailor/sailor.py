@@ -25,7 +25,7 @@ class Sailor(object):
     def get_heading(self):
         bearing, distance = self.router.get_bearing()
         heading = bearing_to_heading(bearing, \
-                self.boat.speed, self.boat.conditions.current) 
+                self.boat.speed, self.boat.condition.current) 
         heading, wind_angle = self.adjust_heading_for_wind(heading)
 
     def adjust_heading_for_wind(self, heading):
@@ -45,3 +45,9 @@ class Sailor(object):
         else:
             return heading, wind_angle
         return normalize_angle_2pi(new_wind_angle + wind[0]), new_wind_angle
+
+    def prevent_tacking(self, heading, wind_angle):
+        return 0, 0
+
+    def prevent_beaching(self, heading, wind_angle):
+        return 0, 0
