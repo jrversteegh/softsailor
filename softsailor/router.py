@@ -8,7 +8,7 @@ class Router(object):
     """Object that determines which way to steer to follow a route"""
     def __init__(self, *args, **kwargs):
         super(Router, self).__init__()
-        if len(args) > 1:
+        if len(args) > 0:
             self.route = args[0]
             self.boat = args[1]
         else:
@@ -24,7 +24,7 @@ class Router(object):
             try:
                 sg = segments.next()
                 tr = sg[0]
-                br = sg[1].bearing(self.boat.position)
+                br = sg[1].get_bearing_from(self.boat.position)
                 # We're looking for a waypoint that has a bearing
                 # along the track
                 if cos(tr[0] - br[0]) > 0.7:
@@ -34,15 +34,6 @@ class Router(object):
 
     def __next(self):
         self.__active_index += 1
-
-    def bearing(self):
-        if self.is_complete:
-            return PolarVector(0.0, 0.0)
-        result = self.active_waypoint.bearing(self.boat.position)
-        if result.r < self.active_waypoint.range:
-            self.__next()
-            return self.bearing()
-        return result
 
     @property
     def active_index(self):
@@ -59,4 +50,26 @@ class Router(object):
     def is_complete(self):
         return self.__active_index >= len(self.route)
 
+    def get_bearing(self):
+        if self.is_complete:
+            return PolarVector(0.0, 0.0)
+        result = self.active_waypoint.get_bearing_from(self.boat.position)
+        if result.r < self.active_waypoint.range:
+            self.__next()
+            return self.get_bearing()
+        return result
+
+    def get_active_segment(self):
+        if self.active_index > 0 \
+                and self.active_index < len(self.route):
+            wp = self.route[self.__active_index]
+            return wp.get_bearing_from(self.route[self.__active_index - 1]), wp
+        else:
+            return PolarVector(0, 0), Waypoint(0, 0)
+
+    def get_cross_track(self):
+        sg = self.get_active_segment()
+        tr = sg[0]
+        br = self.get_bearing()
+        return br[1] * math.sin(tr[0] - br[0])
 

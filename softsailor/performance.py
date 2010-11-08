@@ -11,7 +11,7 @@ class Performance(object):
             self.polar_data = kwargs['polar_data']
 
     def get(self, relative_wind):
-        return 0.0
+        return 3 * math.sqrt(relative_wind[1]) * abs(math.sin(relative_wind[0] * 1.2))
 
-    def optimal_angles(self, wind_speed):
-        return (0.0, math.pi)
+    def get_optimal_angles(self, wind_speed):
+        return (0.25 * math.pi, 0.75 * math.pi)

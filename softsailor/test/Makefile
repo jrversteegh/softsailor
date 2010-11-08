@@ -1,5 +1,7 @@
+all: test
+
 test:
-	nosetests
+	nosetests test_*.py
 
 classes:
 	python test_classes.py

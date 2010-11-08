@@ -52,7 +52,7 @@ class Route(object):
         wp_from = wp.next()
         while True:
             wp_to = wp.next()
-            yield wp_to.bearing(wp_from), wp_to
+            yield wp_to.get_bearing_from(wp_from), wp_to
             wp_from = wp_to
 
     @property

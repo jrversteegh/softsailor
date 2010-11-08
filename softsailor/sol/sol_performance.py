@@ -76,7 +76,7 @@ class Performance(object):
 
         return speedi * (1 - angle_frac) + speedj * angle_frac
 
-    def optimal_angles(self, wind_speed):
+    def get_optimal_angles(self, wind_speed):
         """Return wind angles for min and max VMG at wind_speed"""
         opt_angles = [0, 0]
         speeds = self.polar_data.speeds

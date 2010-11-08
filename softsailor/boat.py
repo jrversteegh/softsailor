@@ -8,17 +8,20 @@ from situation import *
 
 class Boat(object):
     def __init__(self, *args, **kwargs):
-        super(Boat, self).__init__(*args, **kwargs)
+        super(Boat, self).__init__()
         self.situation = Situation()
         self.motion = Motion()
         self.condition = Condition((0, 0), (0, 0))
+        for key in kwargs:
+            if key == 'position':
+                self.position = kwargs[key]
 
     @property
     def position(self):
         return self.situation.position
     @position.setter
     def position(self, value):
-        self.situation.position = value
+        self.situation.position = Position(value)
 
     @property
     def heading(self):

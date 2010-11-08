@@ -10,7 +10,7 @@ class TestWaypoint(unittest.TestCase):
         self.waypoint = Waypoint(1, 1)
     
     def testBearing(self):
-        self.assertAlmostEqual(math.pi, self.waypoint.bearing(1.1, 1)[0])
+        self.assertAlmostEqual(math.pi, self.waypoint.get_bearing_from(1.1, 1)[0])
 
 class TestRoute(unittest.TestCase):
     def setUp(self):

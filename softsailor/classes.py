@@ -8,6 +8,11 @@ def dxy_dpos(latitude, longitude):
     return 6367311.8, 6378134.3 * math.cos(latitude)
 
 class Vector(object):
+    def __init__(self, *args, **kwargs):
+        super(Vector, self).__init__()
+        if type(self) == Vector:
+            raise TypeError('Construct a PolarVector or CartesianVector instead')
+
     @property
     def ar(self):
         return self.a, self.r
@@ -58,9 +63,9 @@ class Vector(object):
         return self
 
     def __add__(self, vector):
-        result = PolarVector(vector)
-        result.x = result.x + self.x
-        result.y = result.y + self.y
+        result = CartesianVector(self.xy)
+        result.x += vector.x
+        result.y += vector.y
         return result
 
     def __sub__(self, vector):
@@ -74,9 +79,28 @@ class Vector(object):
         result.r *= scalar
         return result
 
+    def __neg__(self):
+        return CartesianVector(-self.x, -self.y)
+
     def __str__(self):
         return '(' + str(rad_to_deg(self.a)) + ', ' + str(self.r) + ')-(' + str(self.x) + \
                 ', ' + str(self.y) + ')'
+
+    def __eq__(self, vector):
+        return np.allclose(self.a, normalize_angle_2pi(vector[0])) \
+                and np.allclose(self.r, vector[1])
+    
+    def __lt__(self, vector):
+        return self.r < vector[1]
+
+    def __gt__(self, vector):
+        return self.r > vector[1]
+
+    def __le__(self, vector):
+        return self.r <= vector[1]
+
+    def __ge__(self, vector):
+        return self.r >= vector[1]
 
     def dot(self, vector):
         return self.x * vector.x + self.y * vector.y
@@ -84,8 +108,6 @@ class Vector(object):
     def cross(self, vector):
         return self.x * vector.y - self.y * vector.x 
 
-    def equals(self, vector):
-        return np.allclose(self.a, vector[0]) and np.allclose(self.r, vector[1])
     
 
 class PolarVector(Vector):
@@ -104,6 +126,8 @@ class PolarVector(Vector):
     def x(self, value):
         y = self.y
         self.a = math.atan2(y, value)
+        if y < 0:
+            self.a += two_pi
         self.r = math.sqrt(value * value + y * y)
 
     @property
@@ -114,13 +138,24 @@ class PolarVector(Vector):
     def y(self, value):
         x = self.x
         self.a = math.atan2(value, x)
+        if value < 0:
+            self.a += two_pi
         self.r = math.sqrt(x * x + value * value)
 
-    # Performance property setter overload
+    # Performance overloads
+    def __neg__(self):
+        result = PolarVector(self)
+        result.a -= math.pi
+        if result.a < 0:
+            result.a += two_pi
+        return result
+
     @Vector.xy.setter
     def xy(self, value):
-        self.x = math.atan2(value[1], value[0])
-        self.y = math.sqrt(value[0] * value[0] + value[1] * value[1])
+        self.a = math.atan2(value[1], value[0])
+        if self.a < 0:
+            self.a += two_pi
+        self.r = math.sqrt(value[0] * value[0] + value[1] * value[1])
 
 class CartesianVector(Vector):
     def __init__(self, x_or_vector, y = None):
@@ -132,7 +167,10 @@ class CartesianVector(Vector):
 
     @property
     def a(self):
-        return math.atan2(self.y, self.x)
+        a = math.atan2(self.y, self.x)
+        if a < 0:
+            a += two_pi
+        return a
 
     @a.setter
     def a(self, value):
@@ -150,7 +188,12 @@ class CartesianVector(Vector):
         self.x = value * math.cos(a)
         self.y = value * math.sin(a)
 
-    # Performance property setter overload
+    # Performance overloads
+    def __imul__(self, scalar):
+        self.x *= scalar
+        self.y *= scalar
+        return self
+
     @Vector.ar.setter
     def ar(self, value):
         self.x = value[1] * cos(value[0])
@@ -172,14 +215,22 @@ class Position(object):
         return self.dxy_dpos(self.latitude, self.longitude) 
 
     @vec_meth
-    def bearing(self, position):
+    def get_bearing_from(self, position):
         dxy1 = self.dxy
         dxy2 = self.dxy_dpos(*position)
         dx = 0.5 * (dxy1[0] + dxy2[0])
         dy = 0.5 * (dxy1[1] + dxy2[1])
         x = dx * (self.latitude - position[0])
         y = dy * (self.longitude - position[1])
-        return CartesianVector(x, y)
+        result = PolarVector(0, 0)
+        result.xy = (x, y)
+        return result
+
+    @vec_meth
+    def get_bearing_to(self, position):
+        result = self.get_bearing_from(position)
+        result = -result
+        return result
 
     def __getitem__(self, index):
         if index == 0:
@@ -216,7 +267,7 @@ class Position(object):
 
     def __sub__(self, vector_or_position):
         if isinstance(vector_or_position, Position):
-            result = self.bearing(vector_or_position)
+            result = self.get_bearing_from(vector_or_position)
         else:
             result = Position(self)
             result -= vector_or_position

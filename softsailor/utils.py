@@ -15,11 +15,15 @@ def array_func(func):
             return list(map(func, args))
         else:
             arg = args[0]
-            try:
-                it = iter(arg)
-                return type(arg)(map(func, arg))
-            except TypeError:
+            t = type(arg)
+            if t == str or t == unicode:
                 return func(arg)
+            else:
+                try:
+                    it = iter(arg)
+                    return type(arg)(map(func, arg))
+                except TypeError:
+                    return func(arg)
     return decorated
 
 def vec_func(func):
@@ -43,7 +47,7 @@ def deg_to_rad(degs):
     return math.radians(float(degs))
 
 @array_func
-def rad_to_deg(value):
+def rad_to_deg(rads):
     return math.degrees(float(rads))
 
 @array_func
@@ -77,20 +81,22 @@ def save_kml_document(dom, filename):
     f.close()
     dom.unlink()
 
+two_pi = 2 * math.pi
+
 def normalize_angle_pipi(angle):
     # Normalize angle in -180 <= angle < 180 range
     while angle >= math.pi:
-        angle -= 2 * math.pi
+        angle -= two_pi
     while angle < -math.pi:
-        angle += 2 * math.pi 
+        angle += two_pi
     return angle
 
 def normalize_angle_2pi(angle):
     # Normalize angle in 0 <= angle < 360 range
-    while angle >= 2 * math.pi:
-        angle -= 2 * math.pi
+    while angle >= two_pi:
+        angle -= two_pi
     while angle < 0:
-        angle += 2 * math.pi
+        angle += two_pi
     return angle
 
 def rectangular_to_polar(vector):
@@ -99,3 +105,12 @@ def rectangular_to_polar(vector):
 
 def polar_to_rectangular(vector):
     return (vector[1] * cos(vector[0]), vector[1] * sin(vector[0]))
+
+def bearing_to_heading(bearing, speed, current):
+    result = bearing
+    if speed != 0 and current[1] != 0:
+        result += math.asin(current[1] * math.sin(bearing + current[0]) / speed)
+        normalize_angle_2pi(result)
+    return result
+        
+

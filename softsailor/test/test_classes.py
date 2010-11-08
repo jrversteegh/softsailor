@@ -29,29 +29,29 @@ class BaseTestVector:
         self.assertAlmostEqual(math.sqrt(32), self.vector.r)
 
     def testEquality(self):
-        self.assertTrue(self.vector.equals(CartesianVector(3, 4)))
+        self.assertEquals(self.vector, CartesianVector(3, 4))
 
     def testAddition(self):
         vector = self.vector + CartesianVector(1, -1)
-        self.assertTrue(vector.equals(CartesianVector(4,3)))
+        self.assertEquals(vector, CartesianVector(4, 3))
 
         self.vector += CartesianVector(1, -1)
-        self.assertTrue(self.vector.equals(CartesianVector(4,3)))
-        self.assertTrue(self.vector.equals((math.atan(3.0/4.0), 5)))
+        self.assertTrue(self.vector == (CartesianVector(4, 3)))
+        self.assertTrue(self.vector == ((math.atan(3.0/4.0), 5)))
 
     def testSubtraction(self):
         vector = self.vector - CartesianVector(1, -1)
-        self.assertTrue(vector.equals(CartesianVector(2,5)))
+        self.assertTrue(vector == CartesianVector(2,5))
 
         self.vector -= CartesianVector(1, -1)
-        self.assertTrue(self.vector.equals(CartesianVector(2,5)))
+        self.assertTrue(self.vector == CartesianVector(2, 5))
 
     def testMultiplication(self):
         vector = self.vector * 2
-        self.assertTrue(vector.equals(CartesianVector(6,8)))
+        self.assertTrue(vector == CartesianVector(6,8))
 
         self.vector *= 2
-        self.assertTrue(self.vector.equals(CartesianVector(6,8)))
+        self.assertTrue(self.vector == CartesianVector(6,8))
 
 class TestPolarVector(unittest.TestCase, BaseTestVector):
     def setUp(self):
@@ -61,6 +61,27 @@ class TestCartesianVector(unittest.TestCase, BaseTestVector):
     def setUp(self):
         self.vector = CartesianVector(3, 4)
 
+class TestPosition(unittest.TestCase):
+    def setUp(self):
+        self.position_1 = Position((1.0, 1.0))
+        self.position_2 = Position(0.9, 1.0)
+        self.position_3 = Position(1.0, 0.9)
+
+    def testHasGetBearingFrom(self):
+        self.assertTrue(hasattr(self.position_1, 'get_bearing_from'))
+        self.assertTrue(hasattr(self.position_1.get_bearing_from, '__call__'))
+
+    def testHasGetBearingTo(self):
+        self.assertTrue(hasattr(self.position_1, 'get_bearing_to'))
+        self.assertTrue(hasattr(self.position_1.get_bearing_to, '__call__'))
+
+    def testGetBearingFrom(self):
+        br = self.position_3.get_bearing_from(self.position_1)
+        self.assertAlmostEqual(math.pi * 3/2, br[0])
+
+    def testGetBearingTo(self):
+        br = self.position_1.get_bearing_to(self.position_2)
+        self.assertAlmostEqual(math.pi, br[0])
 
 if __name__ == '__main__':
     unittest.main()

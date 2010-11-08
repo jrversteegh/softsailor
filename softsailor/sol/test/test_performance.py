@@ -11,8 +11,8 @@ class TestPerformance(unittest.TestCase):
         settings = Settings()
         self.perf = Performance(polar_data=settings.polar_data)
         
-    def testOptimalAngles(self):
-        angles = self.perf.optimal_angles(8.8)
+    def testGetOptimalAngles(self):
+        angles = self.perf.get_optimal_angles(8.8)
         self.assertTrue(angles[0] > 0)
         self.assertTrue(angles[0] < math.pi * 0.333)
         self.assertTrue(angles[1] > math.pi * 0.666)

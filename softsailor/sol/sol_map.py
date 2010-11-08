@@ -10,8 +10,8 @@ def poly_intersect(poly, segment):
     for poly_segment in poly:
         # I know there is a good optimization in here somewhere
         # I just can't figure it out now...
-        bearing1 = segment[2].bearing(poly_segment[0])
-        bearing2 = segment[2].bearing(poly_segment[2]) 
+        bearing1 = segment[2].get_bearing_from(poly_segment[0])
+        bearing2 = segment[2].get_bearing_from(poly_segment[2]) 
         phi1 = normalize_angle_pipi(segment[1][0] - bearing1[0])
         phi2 = normalize_angle_pipi(segment[1][0] - bearing2[0])
         # When the angles have a different sign, the points lie
@@ -20,7 +20,7 @@ def poly_intersect(poly, segment):
         if (phi1 > 0 and phi2 <= 0) or (phi1 <= 0 and phi2 > 0):
             # Now check if the two points of the course segment lie on different 
             # sides of the poly segment. 
-            bearing2 = segment[0].bearing(poly_segment[0])
+            bearing2 = segment[0].get_bearing_from(poly_segment[0])
             phi1 = normalize_angle_pipi(poly_segment[1][0] - bearing1[0])
             phi2 = normalize_angle_pipi(poly_segment[1][0] - bearing2[0])
             if (phi1 > 0 and phi2 <= 0) or (phi1 <= 0 and phi2 > 0):
