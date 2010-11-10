@@ -77,6 +77,8 @@ while sailor.sail():
     print "Wind speed    : ", ms_to_knots(boat.condition.wind[1])
     print "Apparent angle: ", rad_to_deg(boat.apparent_wind[0])
     print "Apparent speed: ", ms_to_knots(boat.apparent_wind[1])
+    print "---"
+    sailor.print_log()
     print "==="
     if datetime.utcnow() - logged > timedelta(minutes=10):
         updater.save_log("track_log")

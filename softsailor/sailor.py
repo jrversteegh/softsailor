@@ -1,3 +1,5 @@
+import sys
+import traceback
 from utils import *
 from classes import *
 from controller import ControllerError
@@ -32,21 +34,39 @@ class Sailor(object):
             f.write(str(record[0]) + " " + record[1] + "\n")
         f.close()
 
+    def print_log(self):
+        for record in self.__log_data[-5:]:
+            print str(record[0]) + " " + record[1]
+
     def sail(self):
-        self.updater.update()
-        if self.router.is_complete:
-            return False
-        new_heading = self.get_heading()
-        if abs(new_heading - self.boat.heading) > 0.004:
-            try: 
-                self.__log("Steering %.2f" % rad_to_deg(new_heading))
-                self.controller.steer_heading(new_heading)
-            except ControllerError:
-                self.__log("Failed to steer boat")
+        try:
+            self.updater.update()
+            if self.router.is_complete:
+                return False
+            new_heading, is_direct = self.get_heading()
+            if abs(new_heading - self.boat.heading) > 0.002:
+                try: 
+                    if is_direct:
+                        self.__log("Steering %.2f" % rad_to_deg(new_heading))
+                        self.controller.steer_heading(new_heading)
+                    else:
+                        wind_angle = normalize_angle_pipi( \
+                                self.boat.condition.wind[0] - new_heading)
+                        self.__log("Steering wind angle %.2f" % rad_to_deg(wind_angle))
+                        self.controller.steer_wind_angle(wind_angle)
+
+                except ControllerError:
+                    self.__log("Failed to steer boat")
+        except:
+            self.__log("General failure while sailing")
+            self.__log(traceback.format_exc())
                 
         return True
         
     def get_heading(self):
+        """Returns new heading and whether this heading is aiming straight
+           for the waypoint
+        """
         bearing = self.router.get_bearing()
         if self.router.is_complete:
             return self.boat.heading
@@ -58,7 +78,9 @@ class Sailor(object):
             # waypoint
             changed, heading = self.handle_tacking_and_gybing(heading, bearing)
             changed, heading = self.prevent_beaching(heading)
-        return heading
+            return heading, False
+        else:
+            return heading, True
 
     def adjust_heading_for_wind(self, heading):
         wind = self.boat.condition.wind
@@ -93,9 +115,14 @@ class Sailor(object):
             heading = normalize_angle_2pi(heading + 2 * wind_angle)
 
         # If we're not too far off track, we'll have to tack/gybe
-        allowed_off_track = waypoint.range + 25 * math.sqrt(bearing[1])
+        # --> Lane width as square root of distance to waypoint
+        allowed_off_track = waypoint.range + 50 * math.sqrt(bearing[1])
+        # --> Less than 45 degrees approach angle 
+        # (required for safely rounding marks)
+        cs = math.cos(track[0] - bearing[0]) 
+
         off_track = self.router.get_cross_track()
-        if abs(off_track) > allowed_off_track:
+        if abs(off_track) > allowed_off_track or cs < 0.72:
             # ... in which case we'll make sure we steer on a
             # converging tack/reach
             track_angle = normalize_angle_pipi(heading - track[0])
@@ -127,17 +154,22 @@ class Sailor(object):
             return True, normalize_angle_2pi(heading + 2 * wind_angle)
 
         # Also, we want to keep a clear line of sight to the waypoint
-        waypoint = self.router.active_waypoint
+        track, waypoint = self.router.get_active_segment()
         bearing = waypoint.get_bearing_from(self.boat.position)
         view_line = (self.boat.position, bearing, waypoint)
         if self.map.hit(view_line):
             # The only way, we could have gotten something in the view
             # line is that we were reaching or tacking away from the
             # track. Tack or gybe now to get back.
-            wind = self.boat.condition.wind
-            wind_angle = normalize_angle_pipi(wind[0] - heading)
-            self.__log("Tacked/gybed to avoid land getting in line of sight")
-            return True, normalize_angle_2pi(heading + 2 * wind_angle)
+            track_angle = normalize_angle_pipi(heading - track[0])
+            off_track = self.router.get_cross_track()
+            # Check if heading and track line converge...
+            if (off_track > 0) == (track_angle > 0):
+                # ...or tack/gybe when they don't
+                wind = self.boat.condition.wind
+                wind_angle = normalize_angle_pipi(wind[0] - heading)
+                self.__log("Tacked/gybed to avoid land getting in line of sight")
+                return True, normalize_angle_2pi(heading + 2 * wind_angle)
 
         # Nothing needed to be done. Return the originally suggested heading
         return False, heading

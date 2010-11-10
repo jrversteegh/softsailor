@@ -1,4 +1,4 @@
-from math import cos
+import math
 from classes import *
 from boat import *
 from route import *
@@ -27,7 +27,7 @@ class Router(object):
                 br = sg[1].get_bearing_from(self.boat.position)
                 # We're looking for a waypoint that has a bearing
                 # along the track
-                cs = cos(tr[0] - br[0]) 
+                cs = math.cos(tr[0] - br[0]) 
                 if cs > 0.7:
                     break
             except StopIteration:

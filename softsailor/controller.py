@@ -41,7 +41,7 @@ class BoatController(Controller):
         self.boat.situation.heading = normalize_angle_2pi(heading)
 
     def steer_wind_angle(self, wind_angle):
-        heading = self.boat.condition.wind[0] - wind_angle 
+        heading = normalize_angle_2pi(self.boat.condition.wind[0] - wind_angle)
         self.steer_heading(heading)
 
     def stop(self):

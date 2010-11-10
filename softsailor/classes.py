@@ -196,8 +196,8 @@ class CartesianVector(Vector):
 
     @Vector.ar.setter
     def ar(self, value):
-        self.x = value[1] * cos(value[0])
-        self.y = value[1] * sin(value[0])
+        self.x = value[1] * math.cos(value[0])
+        self.y = value[1] * math.sin(value[0])
 
 class Position(object):
     def __init__(self, latitude_or_vector, longitude = None):

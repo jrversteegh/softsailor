@@ -117,7 +117,7 @@ def rectangular_to_polar(vector):
             math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]))
 
 def polar_to_rectangular(vector):
-    return (vector[1] * cos(vector[0]), vector[1] * sin(vector[0]))
+    return (vector[1] * math.cos(vector[0]), vector[1] * math.sin(vector[0]))
 
 def bearing_to_heading(bearing, speed, current):
     result = bearing[0]
