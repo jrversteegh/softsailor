@@ -10,7 +10,7 @@ from softsailor.sol.sol_performance import *
 class TestBoatWind(unittest.TestCase):
     def testBoatSpeedVersusPerformance(self):
         boat = SailBoat()
-        get_boat(boat)
+        fetch_boat(boat)
         settings = Settings()
         performance = Performance(polar_data=settings.polar_data)
 

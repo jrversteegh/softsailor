@@ -47,7 +47,7 @@ class Settings:
         angle_text = get_child_text_value(vpp, "twa_splined")
         boat_speed_text = get_child_text_value(vpp, "bs_splined")
 
-        self.polar_data.speeds = list(str_to_float(speed_text.split(' ')))
+        self.polar_data.speeds = list(to_float(speed_text.split(' ')))
         self.polar_data.angles = list(deg_to_rad(angle_text.split(' ')))
         boat_speeds_per_angle = boat_speed_text.split(';')
         

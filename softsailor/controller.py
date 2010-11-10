@@ -4,6 +4,8 @@ from conditions import Condition
 from situation import Situation
 from motion import Motion
 
+class ControllerError(Exception):
+    pass
 class Controller(object):
     def __init__(self, *args, **kwargs):
         super(Controller, self).__init__()

@@ -13,11 +13,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.utils import *
 from softsailor.boat import SailBoat
-from softsailor.sol.sol_functions import get_boat, do_steer_wind
+from softsailor.sol.sol_functions import fetch_boat, do_steer_wind
 
 
 boat = SailBoat()
-get_boat(boat)
+fetch_boat(boat)
 
 print "Boat latitude  : ", rad_to_deg(boat.position[0])
 print "Boat longitude : ", rad_to_deg(boat.position[1])
@@ -39,7 +39,7 @@ if (boat.efficiency < 0.98) or (boat.condition.wind[1] > 8):
         sys.stdout.write(".")
         sys.stdout.flush()
         time.sleep(1)
-        get_boat(boat)
+        fetch_boat(boat)
     print " Done."
     print "Boat efficiency : ", boat.efficiency
     print "Waiting for 100% efficiency",
@@ -48,7 +48,7 @@ if (boat.efficiency < 0.98) or (boat.condition.wind[1] > 8):
         sys.stdout.write(".")
         sys.stdout.flush()
         time.sleep(1)
-        get_boat(boat)
+        fetch_boat(boat)
     print " Done."
  
 def steer(a):
@@ -59,8 +59,8 @@ def steer(a):
         sys.stdout.write(".")
         sys.stdout.flush()
         time.sleep(1)
-        get_boat(boat)
+        fetch_boat(boat)
     print " Done."
-    sleep(10)
+    time.sleep(10)
 
 steer(awa * mult)

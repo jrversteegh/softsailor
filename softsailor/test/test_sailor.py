@@ -27,18 +27,16 @@ class TestSailor(unittest.TestCase):
 
     def testAdjustHeadingForWind(self):
         h = 3
-        h, a = self.sailor.adjust_heading_for_wind(h)
+        c, h = self.sailor.adjust_heading_for_wind(h)
 
-    def testPreventTacking(self):
+    def testHandleTackingAndGybing(self):
         h = 3
-        a = 1
-        h, a = self.sailor.prevent_tacking(h, a)
+        b = (3, 3)
+        c, h = self.sailor.handle_tacking_and_gybing(h, b)
 
     def testPreventBeaching(self):
         h = 3
-        a = 1
-        h, a = self.sailor.prevent_beaching(h, a)
-
+        c, h = self.sailor.prevent_beaching(h)
 
     def testGetHeading(self):
         h = self.sailor.get_heading()

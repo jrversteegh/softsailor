@@ -16,7 +16,7 @@ class TestBoatWind(unittest.TestCase):
         wind = Wind(weather)
 
         boat = SailBoat()
-        get_boat(boat)
+        fetch_boat(boat)
 
         time = datetime.utcnow() # - timedelta(minutes = 30)
 

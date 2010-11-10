@@ -1,5 +1,10 @@
 import os
 import math
+from xml.dom.minidom import parseString, getDOMImplementation
+# These are from libkml. You may need to install these
+import kmlbase
+import kmldom
+import kmlengine
 
 def get_config_dir():
     script_path = os.path.dirname(os.path.realpath(__file__))
@@ -59,27 +64,35 @@ def ms_to_knots(ms):
     return ms * 3600 / 1852
 
 @array_func
-def str_to_float(value):
+def to_float(value):
     return float(value)
 
-def create_kml_document(name):
-    impl = getDOMImplementation()
-    dom = impl.createDocument(None, 'kml', None)
-    root = dom.documentElement
-    root.setAttribute('xmlns', 'http://www.opengis.net/kml/2.2')
-    doc = dom.createElement('Document')
-    root.appendChild(doc)
-    doc_name = dom.createElement('name')
-    doc.appendChild(doc_name)
-    doc_name_text = dom.createTextNode(name)
-    doc_name.appendChild(doc_name_text)
-    return (dom, doc)
+@array_func
+def to_string(value):
+    return str(value)
 
-def save_kml_document(dom, filename):
+def add_element_with_text(dom, parent, name, text):
+    """Adds an xml element with 'name' and containing 'text' to a existing
+       element 'parent'
+    """
+    element = dom.createElement(name)
+    parent.appendChild(element)
+    text_node = dom.createTextNode(text)
+    element.appendChild(text_node)
+    return element
+
+def create_kml_document(name):
+    factory = kmldom.KmlFactory_GetFactory()
+    doc = factory.CreateDocument()
+    doc.set_name(name)
+    kml = factory.CreateKml()
+    kml.set_feature(doc)
+    return (factory, kml)
+
+def save_kml_document(kml, filename):
     f = open(filename, 'w')
-    dom.writexml(f, encoding="UTF8")
+    f.write(kmldom.SerializePretty(kml))
     f.close()
-    dom.unlink()
 
 two_pi = 2 * math.pi
 
@@ -107,9 +120,9 @@ def polar_to_rectangular(vector):
     return (vector[1] * cos(vector[0]), vector[1] * sin(vector[0]))
 
 def bearing_to_heading(bearing, speed, current):
-    result = bearing
+    result = bearing[0]
     if speed != 0 and current[1] != 0:
-        result += math.asin(current[1] * math.sin(bearing + current[0]) / speed)
+        result += math.asin(current[1] * math.sin(bearing[0] + current[0]) / speed)
         normalize_angle_2pi(result)
     return result
         

@@ -1,28 +1,29 @@
 import math
 from bisect import bisect
+import numpy as np
 
 from softsailor.utils import *
 from softsailor.classes import *
 
 from sol_xmlutil import *
 
-def poly_intersect(poly, segment):
-    for poly_segment in poly:
+def poly_intersect(poly, line):
+    for poly_part in poly:
         # I know there is a good optimization in here somewhere
         # I just can't figure it out now...
-        bearing1 = segment[2].get_bearing_from(poly_segment[0])
-        bearing2 = segment[2].get_bearing_from(poly_segment[2]) 
-        phi1 = normalize_angle_pipi(segment[1][0] - bearing1[0])
-        phi2 = normalize_angle_pipi(segment[1][0] - bearing2[0])
+        bearing1 = line[2].get_bearing_from(poly_part[0])
+        bearing2 = line[2].get_bearing_from(poly_part[2]) 
+        phi1 = normalize_angle_pipi(line[1][0] - bearing1[0])
+        phi2 = normalize_angle_pipi(line[1][0] - bearing2[0])
         # When the angles have a different sign, the points lie
         # each on different sides of the course line.
         # Further investigation required
         if (phi1 > 0 and phi2 <= 0) or (phi1 <= 0 and phi2 > 0):
             # Now check if the two points of the course segment lie on different 
             # sides of the poly segment. 
-            bearing2 = segment[0].get_bearing_from(poly_segment[0])
-            phi1 = normalize_angle_pipi(poly_segment[1][0] - bearing1[0])
-            phi2 = normalize_angle_pipi(poly_segment[1][0] - bearing2[0])
+            bearing2 = line[0].get_bearing_from(poly_part[0])
+            phi1 = normalize_angle_pipi(poly_part[1][0] - bearing1[0])
+            phi2 = normalize_angle_pipi(poly_part[1][0] - bearing2[0])
             if (phi1 > 0 and phi2 <= 0) or (phi1 <= 0 and phi2 > 0):
                 return True
     return False
@@ -58,18 +59,34 @@ class Map:
                     lon = float(point.getAttribute('lon'))
                     pos1 = Position(deg_to_rad(lat), deg_to_rad(lon))
                     if pos2 != None:
-                      pl.append((pos1, pos2 - pos1, pos2))
+                        # Avoid adding grid lines
+                        looks_like_grid = False
+                        if pos1[0] == pos2[0]: 
+                            # This line is horizontal
+                            rounded = round(pos1[0] / self.cellsize)
+                            rounded *= self.cellsize
+                            if np.allclose(pos1[0], rounded):
+                                looks_like_grid = True
+                        if pos1[1] == pos2[1]: 
+                            # This line is vertical
+                            rounded = round(pos1[1] / self.cellsize)
+                            rounded *= self.cellsize
+                            if np.allclose(pos1[1], rounded):
+                                looks_like_grid = True
+                        if not looks_like_grid:
+                            pl.append((pos1, pos2 - pos1, pos2))
                     pos2 = pos1
-                self.cells[lat_i][lon_i].append(pl)
+                if len(pl) > 0:
+                    self.cells[lat_i][lon_i].append(pl)
 
         dom.unlink()
 
 
-    def hit(self, segment):
-        lat_i = int(math.floor((segment[2][0] - self.minlat) / self.cellsize))
-        lon_i = int(math.floor((segment[2][1] - self.minlon) / self.cellsize))
+    def hit(self, line):
+        lat_i = int(math.floor((line[2][0] - self.minlat) / self.cellsize))
+        lon_i = int(math.floor((line[2][1] - self.minlon) / self.cellsize))
         for pl in self.cells[lat_i][lon_i]:
-            if poly_intersect(pl, segment):
+            if poly_intersect(pl, line):
                 return True
         return False
 

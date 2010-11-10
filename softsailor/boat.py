@@ -16,6 +16,13 @@ class Boat(object):
             if key == 'position':
                 self.position = kwargs[key]
 
+    @property 
+    def time(self):
+        return self.situation.time
+    @time.setter
+    def time(self, value):
+        self.situation.time = value
+
     @property
     def position(self):
         return self.situation.position
@@ -62,6 +69,7 @@ class SailBoat(Boat):
     def __init__(self, *args, **kwargs):
         super(SailBoat, self).__init__(*args, **kwargs)
         self.sails = Sails()
+        self.performance = Performance()
 
     @property
     def wind_angle(self):

@@ -4,11 +4,14 @@ from classes import PolarData
 
 class Performance(object):
     def __init__(self, *args, **kwargs):
-        #super(Performance, self).__init__(*args, **kwargs)
+        super(Performance, self).__init__()
         if len(args) > 0:
             self.polar_data = args[0]
         else:
-            self.polar_data = kwargs['polar_data']
+            try:
+                self.polar_data = kwargs['polar_data']
+            except KeyError:
+                pass
 
     def get(self, relative_wind):
         return 3 * math.sqrt(relative_wind[1]) * abs(math.sin(relative_wind[0] * 1.2))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-This scripts sets a new online heading (CC) for configured sol boat
+This script sets a new online heading (CC) for configured sol boat
 
 Author: Jaap Versteegh <j.r.versteegh@gmail.com>
 """
@@ -13,11 +13,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.utils import *
 from softsailor.boat import SailBoat
-from softsailor.sol.sol_functions import get_boat, do_steer
+from softsailor.sol.sol_functions import fetch_boat, do_steer
 
 
 boat = SailBoat()
-get_boat(boat)
+fetch_boat(boat)
 
 print "Boat latitude : ", rad_to_deg(boat.position[0])
 print "Boat longitude: ", rad_to_deg(boat.position[1])
@@ -34,5 +34,5 @@ else:
     do_steer(rad_heading)
     # Sleep 10s so sailonline can process the request
     time.sleep(10)
-    get_boat(boat)
+    fetch_boat(boat)
     print "New heading   : ", rad_to_deg(boat.heading)

@@ -14,10 +14,10 @@ class Router(object):
         else:
             self.route = kwargs['route']
             self.boat = kwargs['boat']
-        self.__initiate()
+        self.initialize()
 
-    def __initiate(self):
-        # Select the waypoint to sail to initially
+    def initialize(self):
+        """Select the waypoint to sail to initially"""
         segments = self.route.segments
         while True:
             self.__next()
@@ -27,7 +27,8 @@ class Router(object):
                 br = sg[1].get_bearing_from(self.boat.position)
                 # We're looking for a waypoint that has a bearing
                 # along the track
-                if cos(tr[0] - br[0]) > 0.7:
+                cs = cos(tr[0] - br[0]) 
+                if cs > 0.7:
                     break
             except StopIteration:
                 break
@@ -53,11 +54,15 @@ class Router(object):
     def get_bearing(self):
         if self.is_complete:
             return PolarVector(0.0, 0.0)
-        result = self.active_waypoint.get_bearing_from(self.boat.position)
-        if result.r < self.active_waypoint.range:
+        segment, waypoint = self.get_active_segment()
+        bearing = waypoint.get_bearing_from(self.boat.position)
+        # If if waypoint has been reached or has been 'overshot'...
+        if waypoint.is_reached(self.boat.position) \
+                or math.cos(segment[0] - bearing[0]) < 0.0:
+            # ... go to the next waypoint
             self.__next()
             return self.get_bearing()
-        return result
+        return bearing
 
     def get_active_segment(self):
         if self.active_index > 0 \

@@ -4,7 +4,8 @@ from datetime import datetime
 class Situation(object):
     __position = Position([0, 0])
     heading = 0
-    time = datetime.now()
+    def __init__(self, *args, **kwargs):
+      self.time = datetime.utcnow()
     
     @property 
     def position(self):

@@ -15,12 +15,12 @@ class TestUtils(unittest.TestCase):
         self.assertAlmostEqual(-math.pi / 2, rads[1])
 
     def testBearingToHeading(self):
-        bearing = math.pi / 4
+        bearing = (math.pi / 4, 1)
         speed = 5
         current = (0, 1)
         heading = bearing_to_heading(bearing, speed, current)
         self.assertAlmostEqual(math.atan(4.0/3.0), heading)
-        bearing = math.atan(4.0/2.0)
+        bearing = (math.atan(4.0/2.0), 1)
         current = (math.pi, 1)
         heading = bearing_to_heading(bearing, speed, current)
         self.assertAlmostEqual(math.atan(4.0/3.0), heading)

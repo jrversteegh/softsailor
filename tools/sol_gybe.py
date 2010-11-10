@@ -13,11 +13,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.utils import *
 from softsailor.boat import SailBoat
-from softsailor.sol.sol_functions import get_boat, do_steer_wind
+from softsailor.sol.sol_functions import fetch_boat, do_steer_wind
 
 
 boat = SailBoat()
-get_boat(boat)
+fetch_boat(boat)
 
 print "Boat latitude  : ", rad_to_deg(boat.position[0])
 print "Boat longitude : ", rad_to_deg(boat.position[1])
@@ -38,7 +38,7 @@ def steer(a):
         sys.stdout.write(".")
         sys.stdout.flush()
         time.sleep(1)
-        get_boat(boat)
+        fetch_boat(boat)
     print " Done."
     time.sleep(10)
 

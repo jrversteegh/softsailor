@@ -12,10 +12,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.utils import *
 from softsailor.boat import SailBoat
-from softsailor.sol.sol_functions import get_boat
+from softsailor.sol.sol_functions import fetch_boat, get_settings
 
 boat = SailBoat()
-get_boat(boat)
+fetch_boat(boat)
+
+print "Map           : ", get_settings().map
+print "Weather       : ", get_settings().weather
 
 print "Boat latitude : ", rad_to_deg(boat.position[0])
 print "Boat longitude: ", rad_to_deg(boat.position[1])

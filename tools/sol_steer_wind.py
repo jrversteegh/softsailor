@@ -13,11 +13,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.utils import *
 from softsailor.boat import SailBoat
-from softsailor.sol.sol_functions import get_boat, do_steer_wind
+from softsailor.sol.sol_functions import fetch_boat, do_steer_wind
 
 
 boat = SailBoat()
-get_boat(boat)
+fetch_boat(boat)
 
 print "Boat latitude  : ", rad_to_deg(boat.position[0])
 print "Boat longitude : ", rad_to_deg(boat.position[1])
@@ -32,7 +32,7 @@ def steer(a):
         sys.stdout.write(".")
         sys.stdout.flush()
         time.sleep(1)
-        get_boat(boat)
+        fetch_boat(boat)
     print " Done."
     time.sleep(10)
 
@@ -46,7 +46,7 @@ elif len(args) < 2:
     do_steer_wind(rad_wind_angle)
     # Sleep 10s so sailonline can process the request
     time.sleep(10)
-    get_boat(boat)
+    fetch_boat(boat)
     print "New wind angle : ", rad_to_deg(boat.wind_angle)
 else:
     new_wind_angle = deg_to_rad(float(args[0]))
