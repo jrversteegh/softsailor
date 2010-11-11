@@ -83,10 +83,18 @@ class Map:
 
 
     def hit(self, line):
-        lat_i = int(math.floor((line[2][0] - self.minlat) / self.cellsize))
-        lon_i = int(math.floor((line[2][1] - self.minlon) / self.cellsize))
-        for pl in self.cells[lat_i][lon_i]:
-            if poly_intersect(pl, line):
-                return True
+        i1 = int(math.floor((line[0][0] - self.minlat) / self.cellsize))
+        j1 = int(math.floor((line[0][1] - self.minlon) / self.cellsize))
+        i2 = int(math.floor((line[2][0] - self.minlat) / self.cellsize))
+        j2 = int(math.floor((line[2][1] - self.minlon) / self.cellsize))
+        min_i = min(i1, i2)
+        max_i = max(i1, i2)
+        min_j = min(j1, j2)
+        max_j = max(j1, j2)
+        for i in range(min_i, max_i + 1):
+            for j in range(min_j, max_j + 1):   
+                for pl in self.cells[i][j]:
+                    if poly_intersect(pl, line):
+                        return True
         return False
 
