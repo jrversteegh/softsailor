@@ -5,7 +5,7 @@ Author: Jaap Versteegh <j.r.versteegh@gmail.com>
 """
 import time
 from softsailor.utils import *
-from softsailor.controller import BoatController
+from softsailor.controller import BoatController, ControllerError
 from softsailor.boat import SailBoat
 from sol_functions import do_steer, do_steer_wind, fetch_boat
 
