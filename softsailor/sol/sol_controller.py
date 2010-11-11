@@ -19,7 +19,7 @@ class Controller(BoatController):
         boat = self.boat
         if (wind_angle * boat.wind_angle) < 0:
             # Wind angle changed sign: either tack or gybe
-            if abs(wind_angle) < 1.5 or boat.effiency < 0.96: 
+            if abs(wind_angle) < 1.5 or boat.efficiency < 0.96: 
                 # It was either a tack or the boat performance was already down
                 self.stop()
 

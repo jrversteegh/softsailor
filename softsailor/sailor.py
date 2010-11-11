@@ -102,17 +102,17 @@ class Sailor(object):
             # Heading indicated a sailable course
             return False, heading
         # ...and return a heading resulting from this wind angle
-        return True, normalize_angle_2pi(new_wind_angle + wind[0])
+        return True, normalize_angle_2pi(wind[0] - new_wind_angle)
 
     def handle_tacking_and_gybing(self, heading, bearing):
-        wind = self.boat.condition.wind
-        wind_angle = normalize_angle_pipi(wind[0] - heading)
+        wind_angle = normalize_angle_pipi(self.boat.condition.wind[0] - heading)
         track, waypoint = self.router.get_active_segment()
 
         if (wind_angle < 0) != (self.boat.wind_angle < 0):
             # A tack or gybe is apparently suggested...
             # ...revert it in order to prevent excessive tacking/gybing
             heading = normalize_angle_2pi(heading + 2 * wind_angle)
+            wind_angle = -wind_angle
 
         # If we're not too far off track, we'll have to tack/gybe
         # --> Lane width as square root of distance to waypoint
