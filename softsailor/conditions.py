@@ -1,3 +1,6 @@
+from classes import *
+from datetime import datetime
+
 class Condition(object):
     __wind = [0, 0]
     __current = [0, 0]
@@ -17,23 +20,26 @@ class Condition(object):
         return self.__wind
     @wind.setter
     def wind(self, value):
-        self.__wind = list(value)
+        self.__wind = PolarVector(value)
 
     @property
     def current(self):
         return self.__current
     @current.setter
     def current(self, value):
-        self.__current = list(value)
+        self.__current = PolarVector(value)
 
 class Conditions(object):
-    def get_wind(self, lat, lon):
+    def get_wind(self, lat, lon, time = None):
         return (0, 0)
 
-    def get_current(self, lat, lon):
+    def get_current(self, lat, lon, time = None):
         return (0, 0)
 
-    def get_condition(self, lat, lon):
-        return Condition(self.get_wind(lat, lon), self.get_current(lat, lon))
+    def get_condition(self, lat, lon, time = None):
+        if time == None:
+            time = datetime.utcnow()
+        return Condition(self.get_wind(lat, lon, time), \
+                         self.get_current(lat, lon, time))
         
 

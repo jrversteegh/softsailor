@@ -4,7 +4,6 @@ from utils import *
 from classes import *
 import kmlbase
 import kmldom
-import kmlengine
 
 class Waypoint(Position):
     range = 100  # Default range for waypoint: 100m
@@ -79,6 +78,15 @@ class Route(object):
             wp_from = wp_to
 
     @property
+    def lines(self):
+        wp = iter(self.__waypoints)
+        wp_from = wp.next()
+        while True:
+            wp_to = wp.next()
+            yield wp_from, wp_to
+            wp_from = wp_to
+
+    @property
     def length(self):
         l = 0
         for segment in self.segments:
@@ -112,54 +120,34 @@ class Route(object):
         filedir, file = os.path.split(filename)
         filebase, fileext = os.path.splitext(file)
 
-        factory, kml = create_kml_document('Route: ' + filebase)
+        kml, doc = create_kml_document('Route: ' + filebase)
+
+        factory = kmldom.KmlFactory_GetFactory()
         
-        route = factory.CreatePlacemark()
-        route.set_name('Route')
+        waypoints = factory.CreateFolder()
+        waypoints.set_name('Waypoints')
+        for i, wp in enumerate(self.waypoints):
+            waypoint = create_point_placemark('Waypoint ' + str(i), \
+                    rad_to_deg(wp[0]), rad_to_deg(wp[1]))
+            waypoint.set_description(wp.comment)
+            waypoint.set_styleurl('#default')
+            waypoints.add_feature(waypoint)
 
-#        style_elem = dom.createElement('Style')
-#        style_elem.setAttribute('id', 'default')
-#        doc.appendChild(style_elem)
-#        iconstyle_elem = dom.createElement('IconStyle')
-#        style_elem.appendChild(iconstyle_elem)
-#        add_element_with_text(dom, iconstyle_elem, 'scale', '0.64')
-#        icon_elem = dom.createElement('Icon')
-#        iconstyle_elem.appendChild(icon_elem)
-#        add_element_with_text(dom, icon_elem, \
-        #                'href', 'http://maps.google.com/mapfiles/kml/paddle/blu-circle.png')
+        lines = factory.CreateFolder()
+        lines.set_name('Track')
+        for i, ln in enumerate(self.lines):
+            vec = ln[1].get_bearing_from(ln[0])
+            line = create_line_placemark('Track ' + str(i), ln)
+            lines.add_feature(line)
+            description = u'Bearing: ' + u"%.2f\u00B0" % rad_to_deg(vec[0]) \
+                    + u'  Length: ' + u"%.2f nm" % (vec[1] / 1852)
+            line.set_description(description.encode("utf-8"))
 
-#        route_elem = dom.createElement('Placemark')
-#        doc.appendChild(route_elem)
-#        waypoints_elem = dom.createElement('Folder')
-#        add_element_with_text(dom, waypoints_elem, 'name', 'Waypoints')
-#        doc.appendChild(waypoints_elem)
-#        add_element_with_text(dom, route_elem, 'name', 'Route')
-
-#        description = 'UTC: ' + str(datetime.datetime.utcnow())
-#        description += ' Length: ' + str(int(self.length / 1852)) + ' nm'
-#        add_element_with_text(dom, route_elem, 'description', description)
-#        line = dom.createElement('LineString')
-#        route_elem.appendChild(line)
-        #add_element_with_text(dom, line, 'extrude', '1')
-        #        add_element_with_text(dom, line, 'tesselate', '1')
-        #add_element_with_text(dom, line, 'altitudeMode', 'absolute')
-        #        coordinates = dom.createElement('coordinates')
-#        line.appendChild(coordinates)
-#        coordinates_string = ''
-#        for i, waypoint in enumerate(self.waypoints):
-    #          coords = rad_to_deg(waypoint)
-    #          coordinate_string = str(coords[1]) + ',' + str(coords[0]) + ',30 '
-    #      coordinates_string += coordinate_string
-    #      waypoint_elem = dom.createElement('Placemark')
-    #      add_element_with_text(dom, waypoint_elem, 'styleUrl', '#default')
-    #      waypoints_elem.appendChild(waypoint_elem)
-    #      add_element_with_text(dom, waypoint_elem, 'name', 'Waypoint ' + str(i))
-    #      point_elem = dom.createElement('Point')
-    #      waypoint_elem.appendChild(point_elem)
-    #      add_element_with_text(dom, point_elem, 'coordinates', coordinate_string)
-    #      add_element_with_text(dom, point_elem, 'description', waypoint.comment)
-
-    #    coordinates_text = dom.createTextNode(coordinates_string)
-    #    coordinates.appendChild(coordinates_text)
+        description = 'UTC: ' + str(datetime.datetime.utcnow())
+        description += ' Length: ' + str(int(self.length / 1852)) + ' nm'
+        doc.set_description(description)
+        doc.add_feature(waypoints)
+        doc.add_feature(lines)
+        
         save_kml_document(kml, filename)
 

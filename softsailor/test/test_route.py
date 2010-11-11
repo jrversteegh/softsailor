@@ -1,5 +1,6 @@
 import unittest
 import math
+import tempfile
 
 import test_helper
 from softsailor.classes import *
@@ -17,6 +18,7 @@ class TestRoute(unittest.TestCase):
         self.route = Route()
         self.route.add(1, 2)
         self.route.add(0.9, 2)
+        self.route[0].comment = "Test"
 
     def testIsSubsriptable(self):
         wp = self.route[0]
@@ -41,6 +43,9 @@ class TestRoute(unittest.TestCase):
 
     def testLength(self):
         self.assertAlmostEqual(dxy_dpos(1.05, 0)[0] * 0.1, self.route.length)
+
+    def testSaveToKml(self):
+        self.route.save_to_kml(tempfile.gettempdir() + '/test.kml')
 
     def testLen(self):
         self.assertEquals(2, len(self.route))
