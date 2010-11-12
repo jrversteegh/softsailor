@@ -22,20 +22,46 @@ class BoatUpdater(Updater):
 
     def log(self):
         boat = self.boat
-        pos = rad_to_deg(boat.position)
-        record = (boat.time, pos[0], pos[1], \
-                  rad_to_deg(boat.heading), ms_to_knots(boat.speed))
+        pos = boat.position
+        record = (boat.time, pos[0], pos[1], boat.heading, boat.speed)
         self.__log.append(record)
+
+    def update(self):
+        self.log()
 
     def save_log(self, filename):
         """Save the stored tracklog to filename in txt and kml format"""
         f = open(filename + '.txt', "w")
         for record in self.__log:
+            lat, lon, heading = rad_to_deg(record[1:4])
+            record = (record[0].strftime(time_format), \
+                      lat, lon, heading, ms_to_knots(record[4]))
             record_str = to_string(record)
             f.write(", ".join(record_str) + "\n")
         f.close()
-        factory, kml = create_kml_document(filename)
-        # TODO insert actual kml coding here
+
+        kml, doc = create_kml_document(filename)
+        factory = kmldom.KmlFactory_GetFactory()
+        func = []
+        for record in self.__log:
+            # function point has format lat,lon,value (speed here)
+            lat, lon = rad_to_deg(record[1], record[2])
+            func.append((lat, lon, record[4]))
+        track = create_func_placemark('Track', func, 3600 / 18.52)
+        doc.add_feature(track)
+
+        for i, record in enumerate(self.__log[::60]):
+            lat, lon = rad_to_deg(record[1], record[2])
+            pm = create_point_placemark(str(i), lat, lon)
+            pm.set_styleurl('#sailboat')
+            ts = factory.CreateTimeStamp()
+            ts.set_when(record[0].isoformat())
+            pm.set_timeprimitive(ts)
+            descr = u'Heading: ' + u"%.2f\u00B0\n" % rad_to_deg(record[3]) \
+                    + u'Speed: ' + u"%.2f kn" % ms_to_knots(record[4])
+            pm.set_description(descr.encode('utf-8'))
+            doc.add_feature(pm)
+
         save_kml_document(kml, filename + '.kml')
 
 class AdjustUpdater(BoatUpdater):

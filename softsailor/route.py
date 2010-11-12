@@ -137,11 +137,12 @@ class Route(object):
         lines.set_name('Track')
         for i, ln in enumerate(self.lines):
             vec = ln[1].get_bearing_from(ln[0])
+            ln = (rad_to_deg(ln[0]), rad_to_deg(ln[1]))
             line = create_line_placemark('Track ' + str(i), ln)
-            lines.add_feature(line)
             description = u'Bearing: ' + u"%.2f\u00B0" % rad_to_deg(vec[0]) \
                     + u'  Length: ' + u"%.2f nm" % (vec[1] / 1852)
             line.set_description(description.encode("utf-8"))
+            lines.add_feature(line)
 
         description = 'UTC: ' + str(datetime.datetime.utcnow())
         description += ' Length: ' + str(int(self.length / 1852)) + ' nm'

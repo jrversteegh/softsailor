@@ -87,6 +87,7 @@ def create_kml_document(name):
     icon = factory.CreateIconStyleIcon()
     icon.set_href('http://maps.google.com/mapfiles/kml/paddle/blu-circle.png')
 
+
     icon_style = factory.CreateIconStyle()
     icon_style.set_scale(0.64)
     icon_style.set_icon(icon)
@@ -95,9 +96,33 @@ def create_kml_document(name):
     style.set_id('default')
     style.set_iconstyle(icon_style)
 
+    icon = factory.CreateIconStyleIcon()
+    icon.set_href('http://maps.gstatic.com/intl/en_ALL/mapfiles/' \
+                  + 'ms/micons/sailing.white.png')
+
+    icon_style = factory.CreateIconStyle()
+    icon_style.set_scale(0.5)
+    icon_style.set_icon(icon)
+
+    style_sail = factory.CreateStyle()
+    style_sail.set_id('sailboat')
+    style_sail.set_iconstyle(icon_style)
+
+    func_line_style = factory.CreateLineStyle()
+    func_line_style.set_color(kmlbase.Color32(0xFFCC6666))
+    func_line_style.set_width(2)
+    func_poly_style = factory.CreatePolyStyle()
+    func_poly_style.set_color(kmlbase.Color32(0x9FCC6666))
+    style_func = factory.CreateStyle()
+    style_func.set_id('func')
+    style_func.set_linestyle(func_line_style)
+    style_func.set_polystyle(func_poly_style)
+
     doc = factory.CreateDocument()
     doc.set_name(name)
     doc.add_styleselector(style)
+    doc.add_styleselector(style_func)
+    doc.add_styleselector(style_sail)
 
     kml = factory.CreateKml()
     kml.set_feature(doc)
@@ -121,8 +146,7 @@ def create_line_placemark(name, coords):
     factory = kmldom.KmlFactory_GetFactory()
 
     cs = factory.CreateCoordinates()
-    for coord in coords:
-        lat, lon = rad_to_deg(coord)
+    for lat, lon in coords:
         cs.add_latlng(lat, lon)
 
     ls = factory.CreateLineString()
@@ -134,6 +158,26 @@ def create_line_placemark(name, coords):
     pm.set_name(name)
     return pm
 
+def create_func_placemark(name, func, scale = 1):
+    factory = kmldom.KmlFactory_GetFactory()
+
+    cs = factory.CreateCoordinates()
+    for lat, lon, val in func:
+        val *= scale
+        cs.add_latlngalt(lat, lon, val)
+
+    ls = factory.CreateLineString()
+    ls.set_tessellate(True)
+    ls.set_extrude(True)
+    ls.set_coordinates(cs)
+    ls.set_altitudemode(kmldom.ALTITUDEMODE_ABSOLUTE)
+
+    pm = factory.CreatePlacemark()
+    pm.set_geometry(ls)
+    pm.set_name(name)
+    pm.set_styleurl('#func')
+    return pm
+
 def save_kml_document(kml, filename):
     f = open(filename, 'w')
     kml_file = kmlengine.KmlFile.CreateFromImport(kml)
@@ -142,6 +186,7 @@ def save_kml_document(kml, filename):
     f.close()
 
 two_pi = 2 * math.pi
+time_format = "%Y-%m-%d %H:%M:%S"
 
 def normalize_angle_pipi(angle):
     # Normalize angle in -180 <= angle < 180 range
