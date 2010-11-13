@@ -109,10 +109,10 @@ def create_kml_document(name):
     style_sail.set_iconstyle(icon_style)
 
     func_line_style = factory.CreateLineStyle()
-    func_line_style.set_color(kmlbase.Color32(0xFFCC6666))
+    func_line_style.set_color(kmlbase.Color32(0xFF66CC66))
     func_line_style.set_width(2)
     func_poly_style = factory.CreatePolyStyle()
-    func_poly_style.set_color(kmlbase.Color32(0x9FCC6666))
+    func_poly_style.set_color(kmlbase.Color32(0x9F66CC66))
     style_func = factory.CreateStyle()
     style_func.set_id('func')
     style_func.set_linestyle(func_line_style)

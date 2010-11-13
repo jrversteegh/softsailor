@@ -23,7 +23,9 @@ class BoatUpdater(Updater):
     def log(self):
         boat = self.boat
         pos = boat.position
-        record = (boat.time, pos[0], pos[1], boat.heading, boat.speed)
+        wind = boat.condition.wind
+        record = (boat.time, pos[0], pos[1], boat.heading, boat.speed, \
+                  wind[0], wind[1])
         self.__log.append(record)
 
     def update(self):
@@ -35,7 +37,8 @@ class BoatUpdater(Updater):
         for record in self.__log:
             lat, lon, heading = rad_to_deg(record[1:4])
             record = (record[0].strftime(time_format), \
-                      lat, lon, heading, ms_to_knots(record[4]))
+                      lat, lon, heading, ms_to_knots(record[4]), \
+                      rad_to_deg(record[5]), ms_to_knots(record[6]))
             record_str = to_string(record)
             f.write(", ".join(record_str) + "\n")
         f.close()
@@ -58,7 +61,10 @@ class BoatUpdater(Updater):
             ts.set_when(record[0].isoformat())
             pm.set_timeprimitive(ts)
             descr = u'Heading: ' + u"%.2f\u00B0\n" % rad_to_deg(record[3]) \
-                    + u'Speed: ' + u"%.2f kn" % ms_to_knots(record[4])
+                    + u'Speed : ' + u"%.2f kn" % ms_to_knots(record[4]) \
+                    + u'Wind direction: ' + u"%.2f\u00B0\n" % rad_to_deg(record[5]) \
+                    + u'Wind speed    : ' + u"%.2f kn" % ms_to_knots(record[6])  
+        
             pm.set_description(descr.encode('utf-8'))
             doc.add_feature(pm)
 

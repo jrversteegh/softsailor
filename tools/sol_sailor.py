@@ -75,7 +75,7 @@ while sailor.sail():
     print "Wind direction: ", rad_to_deg(boat.condition.wind[0])
     print "Wind angle    : ", rad_to_deg(boat.wind_angle)
     print "Wind speed    : ", ms_to_knots(boat.condition.wind[1])
-    print "Apparent angle: ", rad_to_deg(boat.apparent_wind[0])
+    print "Apparent angle: ", rad_to_deg(boat.apparent_wind.sa)
     print "Apparent speed: ", ms_to_knots(boat.apparent_wind[1])
     print "---"
     sailor.print_log()

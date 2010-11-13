@@ -29,6 +29,10 @@ class Vector(object):
     def xy(self, value):
         self.x, self.y = value
 
+    @property
+    def sa(self):
+        return normalize_angle_pipi(self.a)
+
     def __getitem__(self, index):
         if index == 0:
             return self.a

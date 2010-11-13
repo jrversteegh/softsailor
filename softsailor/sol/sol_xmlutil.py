@@ -18,8 +18,9 @@ def fetch_sol_document_from_url(url):
     return read_sol_document(handle)
 
 def fetch_sol_document(host, file):
-    conn = HTTPConnection(host)
+    conn = HTTPConnection(host, timeout=4)
     conn.request("GET", file)
+    conn.sock.settimeout(4)
     resp = conn.getresponse()
     return read_sol_document(resp)
 
