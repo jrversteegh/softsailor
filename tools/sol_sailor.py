@@ -80,6 +80,8 @@ while sailor.sail():
     print "---"
     sailor.print_log()
     print "==="
+    sys.stdout.flush()
+    sys.stderr.flush()
     if datetime.utcnow() - logged > timedelta(minutes=10):
         updater.save_log("track_log")
         sailor.save_log("sail_log")
