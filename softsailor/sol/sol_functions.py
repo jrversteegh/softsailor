@@ -5,6 +5,7 @@ online game status.
 Author: Jaap Versteegh <j.r.versteegh@gmail.com>
 """
 from softsailor.utils import *
+from softsailor.world import world
 
 from sol_settings import Settings
 from sol_xmlutil import *
@@ -32,14 +33,13 @@ def get_map():
         __sol_map_instance.load(get_settings().map)
     return __sol_map_instance
 
-def get_wind(position, time):
+def get_wind():
     global __sol_wind_instance
-    """Fetch locally interpolated value of online wind at position and time"""
     if __sol_wind_instance == None:
         weather = Weather()
         weather.load(get_settings())
         __sol_wind_instance = Wind(weather)
-    return __sol_wind_instance.get(position, time)
+    return __sol_wind_instance
 
 def fetch_boat(boat):
     """Fetches the online data for boat"""

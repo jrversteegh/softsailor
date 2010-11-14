@@ -6,3 +6,5 @@ class World(object):
     wind = Wind()
     current = Current()
     land = Map()
+
+world = World()

@@ -1,6 +1,8 @@
 from boat import Boat
 from classes import *
 from utils import *
+from world import world
+from datetime import datetime, timedelta
 
 class Updater(object):
     """Base class for objects that update information"""
@@ -71,11 +73,11 @@ class BoatUpdater(Updater):
         save_kml_document(kml, filename + '.kml')
 
 class AdjustUpdater(BoatUpdater):
+    """Class that updates boat information from another boat"""
     timegap = 0
     distance = 0
     speedgap = 0
     headinggap = 0
-    """Class that updates boat information from another boat"""
     def set_source_boat(self, boat):
         self.source_boat = boat
 
@@ -88,4 +90,18 @@ class AdjustUpdater(BoatUpdater):
         self.boat.position = self.source_boat.position
         self.boat.heading = self.source_boat.heading
         self.boat.speed = self.source_boat.speed
+
+class SimUpdater(BoatUpdater):
+    """Class that update boat using simulated time and data"""
+    timestep = timedelta(seconds=15)
+
+    def update(self):
+        boat = self.boat
+        boat.condition.wind = world.wind.get(boat.position, boat.time)
+        boat.speed = boat.performance.get( \
+                (boat.wind_angle, boat.condition.wind[1]))
+        #boat.motion.course 
+
+        super(SimUpdater, self).update()
+
 
