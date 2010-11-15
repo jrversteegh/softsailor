@@ -8,9 +8,31 @@ from softsailor.classes import *
 from sol_xmlutil import *
 
 def poly_intersect(poly, line):
+    if line[0][0] > line[2][0]:
+        max_line_lat = line[0][0]
+        min_line_lat = line[2][0]
+    else:
+        max_line_lat = line[2][0]
+        min_line_lat = line[0][0]
+    if line[0][1] > line[2][1]:
+        max_line_lon = line[0][1]
+        min_line_lon = line[2][1]
+    else:
+        max_line_lon = line[2][1]
+        min_line_lon = line[0][1]
     for poly_part in poly:
-        # I know there is a good optimization in here somewhere
-        # I just can't figure it out now...
+        # First check boxes. If they don't intersect, the lines can't either
+        if (poly_part[0][0] > max_line_lat \
+                    and poly_part[2][0] > max_line_lat) \
+                or (poly_part[0][0] < min_line_lat \
+                    and poly_part[2][0] < min_line_lat) \
+                or (poly_part[0][1] > max_line_lon \
+                    and poly_part[2][1] > max_line_lon) \
+                or (poly_part[0][1] < min_line_lon \
+                    and poly_part[2][1] < min_line_lon):
+            continue
+
+        # Now check for actual intersection
         bearing1 = line[2].get_bearing_from(poly_part[0])
         bearing2 = line[2].get_bearing_from(poly_part[2]) 
         phi1 = normalize_angle_pipi(line[1][0] - bearing1[0])

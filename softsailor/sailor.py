@@ -122,19 +122,25 @@ class Sailor(object):
                 + 60 * math.pow(math.cos(0.8 * off_track_angle), 2)
         # --> Lane width as square root of distance to waypoint
         allowed_off_track = off_track_mult * math.sqrt(bearing[1])
+        cross_track = self.router.get_cross_track()
+        is_off_track = abs(cross_track) > allowed_off_track
+
         # --> Less than 45 degrees approach angle 
         # (required for safely rounding marks)
         cos_approach_angle = math.cos(track[0] - bearing[0]) 
+        approach_lt_45 = cos_approach_angle < 0.72
 
-        off_track = self.router.get_cross_track()
-        if abs(off_track) > allowed_off_track or cos_approach_angle < 0.72:
+        if is_off_track or approach_lt_45:
             # ... in which case we'll make sure we steer on a
             # converging tack/reach
             off_bearing_angle = normalize_angle_pipi(heading - bearing[0])
-
-            if (off_track > 0) == (off_bearing_angle > 0):
+            if (cross_track > 0) == (off_bearing_angle > 0):
                 # ...or tack/gybe when they don't
-                self.__log("Tacked/gybed to reduce CTE")
+                if approach_lt_45:
+                    self.__log("Tacked/gybed to assert <45 degree approach")
+                else:
+                    self.__log("Tacked/gybed to reduce CTE: %.0f m" \
+                               % cross_track)
                 return True, normalize_angle_2pi(heading + 2 * wind_angle)
     
 
