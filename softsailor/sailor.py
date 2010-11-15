@@ -117,22 +117,22 @@ class Sailor(object):
 
         # If we're too far off track, we do have to tack/gybe
         # --> Courses parallel to track are favoured by allowing larger cte
-        off_track_angle = normalize_angle_pipi(track[0] - heading)
+        off_track_angle = normalize_angle_pipi(heading - track[0])
         off_track_mult = 10 \
-                + 60 * math.cos(0.8 * off_track_angle) ^ 2
+                + 60 * math.pow(math.cos(0.8 * off_track_angle), 2)
         # --> Lane width as square root of distance to waypoint
-        allowed_off_track = waypoint.range + off_track_mult * math.sqrt(bearing[1])
+        allowed_off_track = off_track_mult * math.sqrt(bearing[1])
         # --> Less than 45 degrees approach angle 
         # (required for safely rounding marks)
-        cs = math.cos(track[0] - bearing[0]) 
+        cos_approach_angle = math.cos(track[0] - bearing[0]) 
 
         off_track = self.router.get_cross_track()
-        if abs(off_track) > allowed_off_track or cs < 0.72:
+        if abs(off_track) > allowed_off_track or cos_approach_angle < 0.72:
             # ... in which case we'll make sure we steer on a
             # converging tack/reach
-            track_angle = normalize_angle_pipi(heading - track[0])
-            # Check if heading and track line converge...
-            if (off_track > 0) == (track_angle > 0):
+            off_bearing_angle = normalize_angle_pipi(heading - bearing[0])
+
+            if (off_track > 0) == (off_bearing_angle > 0):
                 # ...or tack/gybe when they don't
                 self.__log("Tacked/gybed to reduce CTE")
                 return True, normalize_angle_2pi(heading + 2 * wind_angle)
@@ -166,10 +166,10 @@ class Sailor(object):
             # The only way, we could have gotten something in the view
             # line is that we were reaching or tacking away from the
             # track. Tack or gybe now to get back.
-            track_angle = normalize_angle_pipi(heading - track[0])
+            off_bearing_angle = normalize_angle_pipi(heading - bearing[0])
             off_track = self.router.get_cross_track()
-            # Check if heading and track line converge...
-            if (off_track > 0) == (track_angle > 0):
+            # Check if heading is 'outside' bearing
+            if (off_track > 0) == (off_bearing_angle > 0):
                 # ...or tack/gybe when they don't
                 wind = self.boat.condition.wind
                 wind_angle = normalize_angle_pipi(wind[0] - heading)
