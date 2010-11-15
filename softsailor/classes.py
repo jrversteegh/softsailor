@@ -132,7 +132,7 @@ class PolarVector(Vector):
         self.a = math.atan2(y, value)
         if y < 0:
             self.a += two_pi
-        self.r = math.sqrt(value * value + y * y)
+        self.r = math.hypot(value, y)
 
     @property
     def y(self):
@@ -144,7 +144,7 @@ class PolarVector(Vector):
         self.a = math.atan2(value, x)
         if value < 0:
             self.a += two_pi
-        self.r = math.sqrt(x * x + value * value)
+        self.r = math.hypot(x, value)
 
     # Performance overloads
     def __neg__(self):
@@ -159,7 +159,7 @@ class PolarVector(Vector):
         self.a = math.atan2(value[1], value[0])
         if self.a < 0:
             self.a += two_pi
-        self.r = math.sqrt(value[0] * value[0] + value[1] * value[1])
+        self.r = math.hypot(value[0], value[1])
 
 class CartesianVector(Vector):
     def __init__(self, x_or_vector, y = None):
@@ -184,7 +184,7 @@ class CartesianVector(Vector):
 
     @property
     def r(self):
-        return math.sqrt(self.x * self.x + self.y * self.y)
+        return math.hypot(self.x, self.y)
 
     @r.setter
     def r(self, value):
