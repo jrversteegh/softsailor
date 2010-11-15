@@ -1,3 +1,4 @@
+from classes import PolarVector
 
 class Motion(object):
     speed = 0
@@ -13,7 +14,7 @@ class Motion(object):
 
     @property
     def velocity(self):
-        return (self.course, self.speed) 
+        return PolarVector(self.course, self.speed) 
     @velocity.setter
     def velocity(self, value):
         self.course = value[0]

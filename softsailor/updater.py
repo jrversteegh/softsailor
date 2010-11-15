@@ -92,15 +92,21 @@ class AdjustUpdater(BoatUpdater):
         self.boat.speed = self.source_boat.speed
 
 class SimUpdater(BoatUpdater):
-    """Class that update boat using simulated time and data"""
+    """Class that updates boat using simulated time and predicted conditions"""
     timestep = timedelta(seconds=15)
 
     def update(self):
         boat = self.boat
         boat.condition.wind = world.wind.get(boat.position, boat.time)
-        boat.speed = boat.performance.get( \
+        boat.condition.current = world.current.get(boat.position, boat.time)
+        performance = boat.performance.get( \
                 (boat.wind_angle, boat.condition.wind[1]))
-        #boat.motion.course 
+        boat.speed = performance[1]
+        boat.motion.course = normalize_angle_2pi( \
+                boat.heading - math.copysign(performance[0], boat.wind_angle))
+
+        boat.position += (boat.motion.velocity + boat.condition.current) * self.timestep
+        boat.time += self.timestep
 
         super(SimUpdater, self).update()
 

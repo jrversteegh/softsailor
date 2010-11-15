@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from datetime import timedelta
 
 from utils import *
 
@@ -63,24 +64,25 @@ class Vector(object):
         return self
 
     def __imul__(self, scalar):
-        self.r *= scalar
+        if isinstance(scalar, timedelta):
+            self.r *= timedelta_to_seconds(scalar)
+        else:
+            self.r *= scalar
         return self
 
     def __add__(self, vector):
         result = CartesianVector(self.xy)
-        result.x += vector.x
-        result.y += vector.y
+        result += vector
         return result
 
     def __sub__(self, vector):
         result = CartesianVector(self.xy)
-        result.x -= vector.x
-        result.y -= vector.y
+        result -= vector
         return result
 
     def __mul__(self, scalar):
         result = PolarVector(self)
-        result.r *= scalar
+        result *= scalar
         return result
 
     def __neg__(self):

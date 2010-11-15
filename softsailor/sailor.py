@@ -69,7 +69,7 @@ class Sailor(object):
         """
         bearing = self.router.get_bearing()
         if self.router.is_complete:
-            return self.boat.heading
+            return self.boat.heading, True
         heading = bearing_to_heading(bearing, \
                 self.boat.speed, self.boat.condition.current) 
         changed, heading = self.adjust_heading_for_wind(heading)

@@ -2,8 +2,8 @@ from classes import *
 from datetime import datetime
 
 class Condition(object):
-    __wind = [0, 0]
-    __current = [0, 0]
+    __wind = PolarVector(0, 0)
+    __current = PolarVector(0, 0)
     def __init__(self, *args, **kwargs):
         super(Condition, self).__init__()
         if len(args) > 0:

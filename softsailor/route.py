@@ -6,7 +6,7 @@ import kmlbase
 import kmldom
 
 class Waypoint(Position):
-    range = 100  # Default range for waypoint: 100m
+    range = 100.0  # Default range for waypoint: 100m
     def __init__(self, *args, **kwargs):
         super(Waypoint, self).__init__(*args[:2], **kwargs)
         if len(args) > 2:
@@ -53,7 +53,7 @@ class Route(object):
         result =  ""
         for wp in self:
             deg_wp = rad_to_deg(wp)
-            result += "%f, %f" % (deg_wp[0], deg_wp[1])
+            result += "%f, %f %5.0f" % (deg_wp[0], deg_wp[1], wp.range)
             if hasattr(wp, 'comment'):
                 result += " " + wp.comment
             result += "\n"
@@ -108,7 +108,7 @@ class Route(object):
                 vals = line.split(" ")
                 la, lo = deg_to_rad(vals[:2])
                 if len(vals) > 2:
-                    ra = vals[2]
+                    ra = float(vals[2])
                 else:
                     ra = Waypoint.range
                 wp = Waypoint(la, lo, ra)
