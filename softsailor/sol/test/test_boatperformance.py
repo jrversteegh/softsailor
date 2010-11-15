@@ -14,7 +14,7 @@ class TestBoatWind(unittest.TestCase):
         settings = Settings()
         performance = Performance(polar_data=settings.polar_data)
 
-        speed = performance.get(boat.relative_wind)
+        speed = performance.get_speed(boat.relative_wind)
         bs = ms_to_knots(boat.motion.speed)
         cs = ms_to_knots(speed)
         msg = 'Boat speed: ' + str(bs) + \

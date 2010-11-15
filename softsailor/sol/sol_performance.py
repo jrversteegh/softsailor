@@ -74,7 +74,13 @@ class Performance(object):
                 speed_frac2 * coeffs[angle_j][speed_i][2] + \
                 speed_frac3 * coeffs[angle_j][speed_i][3]
 
-        return speedi * (1 - angle_frac) + speedj * angle_frac
+        return 0, speedi * (1 - angle_frac) + speedj * angle_frac
+
+    def get_drift(self, relative_wind):
+        return 0
+
+    def get_speed(self, relative_wind):
+        return self.get(relative_wind)[1]
 
     def get_optimal_angles(self, wind_speed):
         """Return wind angles for min and max VMG at wind_speed"""
@@ -99,9 +105,11 @@ class Performance(object):
             opt_angles = [0, math.pi]
             opt_vmgs = [0, 0]
             for angle in self.polar_data.angles:
-                boat_speed = self.get((angle, speed))
-                vmg_upwind = math.cos(angle) * boat_speed
-                vmg_downwind = -math.cos(angle) * boat_speed
+                boat_perf = self.get((angle, speed))
+                course_angle = angle + boat_perf[0]
+                boat_speed = boat_perf[1]
+                vmg_upwind = math.cos(course_angle) * boat_speed
+                vmg_downwind = -math.cos(course_angle) * boat_speed
                 if vmg_upwind > opt_vmgs[0]:
                     opt_angles[0] = angle
                     opt_vmgs[0] = vmg_upwind 

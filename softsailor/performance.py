@@ -14,7 +14,14 @@ class Performance(object):
                 pass
 
     def get(self, relative_wind):
-        return 3 * math.sqrt(relative_wind[1]) * abs(math.sin(relative_wind[0] * 1.2))
+        return 0, 3 * math.sqrt(relative_wind[1]) \
+                * abs(math.sin(relative_wind[0] * 1.2)) 
+
+    def get_speed(self, relative_wind):
+        return self.get(relative_wind)[1]
+
+    def get_drift(self, relative_wind):
+        return self.get(relative_wind[0])
 
     def get_optimal_angles(self, wind_speed):
         return (0.25 * math.pi, 0.75 * math.pi)

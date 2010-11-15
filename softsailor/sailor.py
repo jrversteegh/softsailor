@@ -105,7 +105,8 @@ class Sailor(object):
         return True, normalize_angle_2pi(wind[0] - new_wind_angle)
 
     def handle_tacking_and_gybing(self, heading, bearing):
-        wind_angle = normalize_angle_pipi(self.boat.condition.wind[0] - heading)
+        wind = self.boat.condition.wind
+        wind_angle = normalize_angle_pipi(wind[0] - heading)
         track, waypoint = self.router.get_active_segment()
 
         if (wind_angle < 0) != (self.boat.wind_angle < 0):
@@ -114,9 +115,13 @@ class Sailor(object):
             heading = normalize_angle_2pi(heading + 2 * wind_angle)
             wind_angle = -wind_angle
 
-        # If we're not too far off track, we'll have to tack/gybe
+        # If we're too far off track, we do have to tack/gybe
+        # --> Courses parallel to track are favoured by allowing larger cte
+        off_track_angle = normalize_angle_pipi(track[0] - heading)
+        off_track_mult = 10 \
+                + 60 * math.cos(0.8 * off_track_angle) ^ 2
         # --> Lane width as square root of distance to waypoint
-        allowed_off_track = waypoint.range + 50 * math.sqrt(bearing[1])
+        allowed_off_track = waypoint.range + off_track_mult * math.sqrt(bearing[1])
         # --> Less than 45 degrees approach angle 
         # (required for safely rounding marks)
         cs = math.cos(track[0] - bearing[0]) 
