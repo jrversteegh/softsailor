@@ -22,8 +22,8 @@ class TestBoatWind(unittest.TestCase):
 
         boatwind = wind.get(boat.position, time)
 
-        bw = rad_to_deg(boat.condition.wind[0]), ms_to_knots(boat.condition.wind[1])
-        cw = rad_to_deg(boatwind[0]), ms_to_knots(boatwind[1])
+        bw = rad_to_deg(boat.condition.wind[0]), ms_to_kn(boat.condition.wind[1])
+        cw = rad_to_deg(boatwind[0]), ms_to_kn(boatwind[1])
 
         msg = 'Boat wind: ' + str(bw[0]) +  ', ' + str(bw[1]) + \
             '  Calc wind: ' + str(cw[0]) +  ', ' + str(cw[1])

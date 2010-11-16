@@ -56,12 +56,16 @@ def rad_to_deg(rads):
     return math.degrees(float(rads))
 
 @array_func
-def knots_to_ms(knots):
+def kn_to_ms(knots):
     return float(knots) * 1852 / 3600
 
 @array_func
-def ms_to_knots(ms):
+def ms_to_kn(ms):
     return ms * 3600 / 1852
+
+@array_func
+def m_to_nm(m):
+    return m / 1852
 
 @array_func
 def to_float(value):

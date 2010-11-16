@@ -56,7 +56,7 @@ def fetch_boat(boat):
         "lon"))
     # Unfortunately SOL doesn't return a boat time :(
     situation.time = datetime.utcnow()
-    sog = knots_to_ms(get_child_float_value(boat_element, "sog"))
+    sog = kn_to_ms(get_child_float_value(boat_element, "sog"))
     boat.velocity_over_ground = (cog, sog)
     boat.condition.wind = (get_child_float_value(boat_element, "twd"), \
                            get_child_float_value(boat_element, "tws"))

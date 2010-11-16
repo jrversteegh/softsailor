@@ -89,8 +89,13 @@ class Vector(object):
         return CartesianVector(-self.x, -self.y)
 
     def __str__(self):
-        return '(' + str(rad_to_deg(self.a)) + ', ' + str(self.r) + ')-(' + str(self.x) + \
-                ', ' + str(self.y) + ')'
+        r = self.r
+        if r >= 50:
+            return "(%.2f, %.2f)" \
+                    % (rad_to_deg(self.a), m_to_nm(r))
+        else:
+            return "(%.2f, %.2f)" \
+                    % (rad_to_deg(self.a), ms_to_kn(r))
 
     def __eq__(self, vector):
         return np.allclose(self.a, normalize_angle_2pi(vector[0])) \
@@ -280,8 +285,8 @@ class Position(object):
         return result
 
     def __str__(self):
-        return '(' + "%6.3f" % rad_to_deg(self.latitude) + ', ' \
-               + "%7.3f" % rad_to_deg(self.longitude) + ')'
+        return '(' + "%.4f" % rad_to_deg(self.latitude) + ', ' \
+               + "%.4f" % rad_to_deg(self.longitude) + ')'
 
 
 class PolarData:

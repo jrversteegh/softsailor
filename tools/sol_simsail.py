@@ -26,6 +26,7 @@ if not os.path.exists(route_file):
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.utils import *
+from softsailor.classes import *
 from softsailor.sailor import Sailor
 from softsailor.route import *
 from softsailor.router import *
@@ -60,9 +61,9 @@ sailor = Sailor(boat=boat, router=router, map=chart, \
 time.sleep(2)
 while sailor.sail():
     print boat.time.strftime(time_format), \
-            boat.position, \
-            "%3.0f" % rad_to_deg(boat.heading), \
-            "%4.1f" % ms_to_knots(boat.speed)
+            boat.situation.position, \
+            "%4.1f" % rad_to_deg(boat.wind_angle), \
+            boat.motion.velocity
     sys.stdout.flush()
 
 updater.save_log("track_log")

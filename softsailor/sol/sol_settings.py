@@ -55,7 +55,7 @@ class Settings:
         for boat_speeds in boat_speeds_per_angle:
             if boat_speeds.strip() != '':
                 self.polar_data.data.append( \
-                        list(knots_to_ms(boat_speeds.split(' '))))
+                        list(kn_to_ms(boat_speeds.split(' '))))
  
 
 
