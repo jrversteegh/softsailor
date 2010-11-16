@@ -25,6 +25,7 @@ if not os.path.exists(route_file):
 # Add softsailor to the python path
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
+from softsailor.utils import *
 from softsailor.sailor import Sailor
 from softsailor.route import *
 from softsailor.router import *
@@ -61,22 +62,22 @@ while sailor.sail():
     print "Waypoint      : ", router.active_index
     print "  Location    : ", router.active_waypoint
     bearing = router.active_waypoint.get_bearing_from(boat.position)
-    print "  Bearing     : ", rad_to_deg(bearing[0])
-    print "  Distance    : ", bearing[1] / 1852
+    print "  Bearing     : ", "%10.2f" % rad_to_deg(bearing[0])
+    print "  Distance    : ", "%10.2f" % (bearing[1] / 1852)
     print "  Comment     : ", router.active_waypoint.comment
-    print "  CTE         : ", router.get_cross_track() / 1852
+    print "  CTE         : ", "%10.2f" % (router.get_cross_track() / 1852)
     print "---"
-    print "Boat time     : ", boat.situation.time
-    print "Boat latitude : ", rad_to_deg(boat.position[0])
-    print "Boat longitude: ", rad_to_deg(boat.position[1])
-    print "Boat heading  : ", rad_to_deg(boat.heading)
-    print "Boat course   : ", rad_to_deg(boat.motion.course)
-    print "Boat speed    : ", ms_to_kn(boat.speed)
-    print "Wind direction: ", rad_to_deg(boat.condition.wind[0])
-    print "Wind angle    : ", rad_to_deg(boat.wind_angle)
-    print "Wind speed    : ", ms_to_kn(boat.condition.wind[1])
-    print "Apparent angle: ", rad_to_deg(boat.apparent_wind.sa)
-    print "Apparent speed: ", ms_to_kn(boat.apparent_wind[1])
+    print "Boat time     : ", boat.situation.time.strftime(time_format)
+    print "Boat latitude : ", "%10.4f" % rad_to_deg(boat.position[0])
+    print "Boat longitude: ", "%10.4f" % rad_to_deg(boat.position[1])
+    print "Boat heading  : ", "%10.2f" % rad_to_deg(boat.heading)
+    print "Boat course   : ", "%10.2f" % rad_to_deg(boat.motion.course)
+    print "Boat speed    : ", "%10.2f" % ms_to_kn(boat.speed)
+    print "Wind direction: ", "%10.2f" % rad_to_deg(boat.condition.wind[0])
+    print "Wind angle    : ", "%10.2f" % rad_to_deg(boat.wind_angle)
+    print "Wind speed    : ", "%10.2f" % ms_to_kn(boat.condition.wind[1])
+    print "Apparent angle: ", "%10.2f" % rad_to_deg(boat.apparent_wind.sa)
+    print "Apparent speed: ", "%10.2f" % ms_to_kn(boat.apparent_wind[1])
     print "---"
     sailor.print_log()
     print "==="
