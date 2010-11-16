@@ -22,7 +22,7 @@ fetch_boat(boat)
 print "Boat latitude  : ", rad_to_deg(boat.position[0])
 print "Boat longitude : ", rad_to_deg(boat.position[1])
 print "Boat wind angle: ", rad_to_deg(boat.wind_angle)
-print "Boat speed     : ", ms_to_knots(boat.speed)
+print "Boat speed     : ", ms_to_kn(boat.speed)
 
 def steer(a):
     print "Steering wind angle: ", round(rad_to_deg(a), 2),

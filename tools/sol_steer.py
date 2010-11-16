@@ -22,7 +22,7 @@ fetch_boat(boat)
 print "Boat latitude : ", rad_to_deg(boat.position[0])
 print "Boat longitude: ", rad_to_deg(boat.position[1])
 print "Boat heading  : ", rad_to_deg(boat.heading)
-print "Boat speed    : ", ms_to_knots(boat.speed)
+print "Boat speed    : ", ms_to_kn(boat.speed)
 
 args = sys.argv[1:]
 if len(args) < 1:
