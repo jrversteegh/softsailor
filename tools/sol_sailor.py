@@ -62,21 +62,29 @@ while sailor.sail():
     print "Waypoint      : ", router.active_index
     print "  Location    : ", router.active_waypoint
     bearing = router.active_waypoint.get_bearing_from(boat.position)
-    print "  Bearing     : ", "%10.2f" % rad_to_deg(bearing[0])
+    print "  Bearing     : ", u"%10.2f\u00B0".encode('utf-8') \
+            % rad_to_deg(bearing[0])
     print "  Distance    : ", "%10.2f nm" % (bearing[1] / 1852)
     print "  Comment     : ", router.active_waypoint.comment
     print "  CTE         : ", "%10.2f nm" % (router.get_cross_track() / 1852)
     print "---"
     print "Boat time     : ", boat.situation.time.strftime(time_format)
-    print "Boat latitude : ", "%10.4f N" % rad_to_deg(boat.position[0])
-    print "Boat longitude: ", "%10.4f E" % rad_to_deg(boat.position[1])
-    print "Boat heading  : ", "%10.2f" % rad_to_deg(boat.heading)
-    print "Boat course   : ", "%10.2f" % rad_to_deg(boat.motion.course)
+    print "Boat latitude : ", u"%10.4f\u00B0N".encode('utf-8') \
+            % rad_to_deg(boat.position[0])
+    print "Boat longitude: ", u"%10.4f\u00B0E".encode('utf-8') \
+            % rad_to_deg(boat.position[1])
+    print "Boat heading  : ", u"%10.2f\u00B0".encode('utf-8') \
+            % rad_to_deg(boat.heading)
+    print "Boat course   : ", u"%10.2f\u00B0".encode('utf-8') \
+            % rad_to_deg(boat.motion.course)
     print "Boat speed    : ", "%10.2f kn" % ms_to_kn(boat.speed)
-    print "Wind direction: ", "%10.2f" % rad_to_deg(boat.condition.wind[0])
-    print "Wind angle    : ", "%10.2f" % rad_to_deg(boat.wind_angle)
+    print "Wind direction: ", u"%10.2f\u00B0".encode('utf-8') \
+            % rad_to_deg(boat.condition.wind[0])
+    print "Wind angle    : ", u"%10.2f\u00B0".encode('utf-8') \
+            % rad_to_deg(boat.wind_angle)
     print "Wind speed    : ", "%10.2f kn" % ms_to_kn(boat.condition.wind[1])
-    print "Apparent angle: ", "%10.2f" % rad_to_deg(boat.apparent_wind.sa)
+    print "Apparent angle: ", u"%10.2f\u00B0".encode('utf-8') \
+            % rad_to_deg(boat.apparent_wind.sa)
     print "Apparent speed: ", "%10.2f kn" % ms_to_kn(boat.apparent_wind[1])
     print "---"
     sailor.print_log()
