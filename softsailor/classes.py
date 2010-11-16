@@ -280,8 +280,8 @@ class Position(object):
         return result
 
     def __str__(self):
-        return '(' + str(rad_to_deg(self.latitude)) + ', ' + \
-                         str(rad_to_deg(self.longitude)) + ')'
+        return '(' + "%6.3f" % rad_to_deg(self.latitude) + ', ' \
+               + "%7.3f" % rad_to_deg(self.longitude) + ')'
 
 
 class PolarData:

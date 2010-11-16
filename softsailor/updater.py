@@ -62,8 +62,9 @@ class BoatUpdater(Updater):
             ts = factory.CreateTimeStamp()
             ts.set_when(record[0].isoformat())
             pm.set_timeprimitive(ts)
-            descr = u'Heading: ' + u"%.2f\u00B0\n" % rad_to_deg(record[3]) \
-                    + u'Speed : ' + u"%.2f kn" % ms_to_knots(record[4]) \
+            descr = u'Time: ' + record[0].strftime(time_format) + "\n" \
+                    + u'Heading: ' + u"%.2f\u00B0\n" % rad_to_deg(record[3]) \
+                    + u'Speed : ' + u"%.2f kn\n" % ms_to_knots(record[4]) \
                     + u'Wind direction: ' + u"%.2f\u00B0\n" % rad_to_deg(record[5]) \
                     + u'Wind speed    : ' + u"%.2f kn" % ms_to_knots(record[6])  
         
