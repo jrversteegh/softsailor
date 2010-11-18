@@ -225,21 +225,21 @@ class Position(object):
     def dxy(self):
         return self.dxy_dpos(self.latitude, self.longitude) 
 
-    @vec_meth
-    def get_bearing_from(self, position):
+    @vec_func
+    def get_bearing_from(self, lat, lon):
         dxy1 = self.dxy
-        dxy2 = self.dxy_dpos(*position)
+        dxy2 = self.dxy_dpos(lat, lon)
         dx = 0.5 * (dxy1[0] + dxy2[0])
         dy = 0.5 * (dxy1[1] + dxy2[1])
-        x = dx * (self.latitude - position[0])
-        y = dy * (self.longitude - position[1])
+        x = dx * (self.latitude - lat)
+        y = dy * (self.longitude - lon)
         result = PolarVector(0, 0)
         result.xy = (x, y)
         return result
 
-    @vec_meth
-    def get_bearing_to(self, position):
-        result = self.get_bearing_from(position)
+    @vec_func
+    def get_bearing_to(self, lat, lon):
+        result = self.get_bearing_from(lat, lon)
         result = -result
         return result
 
@@ -283,6 +283,10 @@ class Position(object):
             result = Position(self)
             result -= vector_or_position
         return result
+
+    def __eq__(self, position):
+        return np.allclose(self[0], position[0]) \
+                and np.allclose(self[1], position[1])
 
     def __str__(self):
         return '(' + "%.4f" % rad_to_deg(self.latitude) + ', ' \

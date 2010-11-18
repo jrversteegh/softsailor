@@ -50,3 +50,8 @@ class TestRoute(unittest.TestCase):
     def testLen(self):
         self.assertEquals(2, len(self.route))
 
+    def testCopyConstruct(self):
+        route = Route(self.route)
+        self.assertEqual(len(self.route), len(route))
+        self.assertEqual(self.route[0], route[0])
+

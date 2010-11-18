@@ -5,6 +5,7 @@ from xml.dom.minidom import parseString, getDOMImplementation
 import kmlbase
 import kmldom
 import kmlengine
+from itertools import chain
 
 def get_config_dir():
     script_path = os.path.dirname(os.path.realpath(__file__))
@@ -15,6 +16,9 @@ def timedelta_to_seconds(td):
     return td.days * 86400 + td.seconds + td.microseconds * 1E-6
 
 def array_func(func):
+    """Decorator that creates a function that accepts multiple arguments or 
+       a container to be passed to single argument scalar functions
+    """
     def decorated(*args):
         if len(args) > 1:
             return list(map(func, args))
@@ -32,19 +36,17 @@ def array_func(func):
     return decorated
 
 def vec_func(func):
+    """Decorator that creates a function that accepts a vector as last
+       argument, which is exploded before calling the original function"""
     def decorated(*args):
-        if len(args) > 1:
-            return func((args[0], args[1]))
-        else:
-            return func(args[0])
-    return decorated
+        try:
+            it = iter(args[-1])
+            args = tuple(chain(args[:-1], it))
+        except TypeError:
+            pass
 
-def vec_meth(func):
-    def decorated(self, *args):
-        if len(args) > 1:
-            return func(self, (args[0], args[1]))
-        else:
-            return func(self, args[0])
+        return func(*args)
+
     return decorated
 
 @array_func

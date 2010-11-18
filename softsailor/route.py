@@ -93,9 +93,13 @@ class Route(object):
             l += segment[0].r
         return l
 
-    @vec_meth
-    def add(self, waypoint):
-        self.__waypoints.append(Waypoint(waypoint))
+    @vec_func
+    def add(self, lat, lon):
+        self.__waypoints.append(Waypoint(lat, lon))
+
+    @vec_func
+    def insert(self, index, lat, lon):
+        self.__waypoints.insert(index, Waypoint(lat, lon))
 
     def load_from_file(self, filename):
         f = open(filename, "r")
