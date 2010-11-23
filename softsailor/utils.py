@@ -16,8 +16,8 @@ def timedelta_to_seconds(td):
     return td.days * 86400 + td.seconds + td.microseconds * 1E-6
 
 def array_func(func):
-    """Decorator that creates a function that accepts multiple arguments or 
-       a container to be passed to single argument scalar functions
+    """Decorator that creates a function wrapper that accepts multiple 
+       arguments or a container for single argument scalar functions
     """
     def decorated(*args):
         if len(args) > 1:
@@ -92,7 +92,6 @@ def create_kml_document(name):
 
     icon = factory.CreateIconStyleIcon()
     icon.set_href('http://maps.google.com/mapfiles/kml/paddle/blu-circle.png')
-
 
     icon_style = factory.CreateIconStyle()
     icon_style.set_scale(0.64)

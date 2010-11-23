@@ -109,7 +109,7 @@ class Route(object):
             line, sep, comment = line.partition("#")
             line = line.strip()
             if line != "": 
-                vals = line.split(" ")
+                vals = line.split()
                 la, lo = deg_to_rad(vals[:2])
                 if len(vals) > 2:
                     ra = float(vals[2])
