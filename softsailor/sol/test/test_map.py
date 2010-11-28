@@ -13,6 +13,12 @@ class TestMap(unittest.TestCase):
     def testLoad(self):
         settings = Settings()
         self.map.load(settings.map)
+        print settings.map
+        for point in self.map.points:
+            has_one_or_two_links = (len(point.links) == 1) \
+                    or (len(point.links) == 2)
+            self.assertTrue(has_one_or_two_links, \
+                            "Expected each point to have one or two links")
 
     def testHit(self):
         self.map.load('http://race.sailport.se/site_media/maps/xmlmaps/Canary_Brazil.xml')

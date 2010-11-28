@@ -1,5 +1,5 @@
 import math
-from bisect import bisect
+from bisect import bisect, bisect_left, insort
 import numpy as np
 
 from softsailor.utils import *
@@ -50,6 +50,11 @@ def poly_intersect(poly, line):
                 return True
     return False
 
+class MapPoint(Position):
+    def __init__(self, *args, **kwargs):
+        super(MapPoint, self).__init__(*args, **kwargs)
+        self.links = []
+
 class Map:
     def load(self, mapurl):
         dom = fetch_sol_document_from_url(mapurl)
@@ -80,7 +85,7 @@ class Map:
                     lat = float(point.getAttribute('lat'))
                     lon = float(point.getAttribute('lon'))
                     pos1 = Position(deg_to_rad(lat), deg_to_rad(lon))
-                    if pos2 != None:
+                    if not pos2 is None and not pos2 == pos1:
                         # Avoid adding grid lines
                         looks_like_grid = False
                         if pos1[0] == pos2[0]: 
@@ -102,6 +107,7 @@ class Map:
                     self.cells[lat_i][lon_i].append(pl)
 
         dom.unlink()
+        self.__connect()
 
 
     def hit(self, line):
@@ -119,4 +125,32 @@ class Map:
                     if poly_intersect(pl, line):
                         return True
         return False
+
+    def outer(self, line):
+        return tuple()
+
+    def __find_point(self, point):
+        i = bisect_left(self.points, point)
+        if i != len(self.points) and self.points[i] == point:
+            return self.points[i]
+        else:
+            return None
+    
+    def __connect(self):
+        self.points = []
+        for cell_row in self.cells:
+            for cell in cell_row:
+                for polys in cell:
+                    for poly_part in polys:
+                        p1 = self.__find_point(poly_part[0])
+                        p2 = self.__find_point(poly_part[2])
+                        if p1 is None:
+                            p1 = MapPoint(poly_part[0])
+                            insort(self.points, p1)
+                        if p2 is None:
+                            p2 = MapPoint(poly_part[2])
+                            insort(self.points, p2)
+                        p1.links.append(p2)
+                        p2.links.append(p1)
+
 

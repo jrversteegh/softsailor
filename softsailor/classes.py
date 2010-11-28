@@ -50,6 +50,9 @@ class Vector(object):
         else:
             raise IndexError("Vector index should be 0 or 1")
 
+    def __len__(self):
+        return 2
+
     def __iter__(self):
         return iter((self.a, self.r))
 
@@ -98,8 +101,8 @@ class Vector(object):
                     % (rad_to_deg(self.a), ms_to_kn(r))
 
     def __eq__(self, vector):
-        return np.allclose(self.a, normalize_angle_2pi(vector[0])) \
-                and np.allclose(self.r, vector[1])
+        vec = (normalize_angle_2pi(vector[0]), vector[1])
+        return np.allclose(self, vec)
     
     def __lt__(self, vector):
         return self.r < vector[1]
@@ -122,12 +125,14 @@ class Vector(object):
     
 
 class PolarVector(Vector):
-    def __init__(self, a_or_vector, r = None):
-        if r == None:
-            self.a, self.r = a_or_vector
+    def __init__(self, *args, **kwargs):
+        super(PolarVector, self).__init__(*args, **kwargs)
+        self.a = kwargs.get('a', 0)
+        self.r = kwargs.get('r', 0)
+        if len(args) > 1:
+            self.a, self.r = args
         else:
-            self.a = a_or_vector
-            self.r = r
+            self.a, self.r = args[0]
 
     @property
     def x(self):
@@ -169,12 +174,14 @@ class PolarVector(Vector):
         self.r = math.hypot(value[0], value[1])
 
 class CartesianVector(Vector):
-    def __init__(self, x_or_vector, y = None):
-        if y == None:
-            self.x, self.y = x_or_vector
+    def __init__(self, *args, **kwargs):
+        super(CartesianVector, self).__init__(*args, **kwargs)
+        self.x = kwargs.get('x', 0)
+        self.y = kwargs.get('y', 0)
+        if len(args) > 1:
+            self.x, self.y = args
         else:
-            self.x = x_or_vector
-            self.y = y
+            self.x, self.y = args[0]
 
     @property
     def a(self):
@@ -211,13 +218,15 @@ class CartesianVector(Vector):
         self.y = value[1] * math.sin(value[0])
 
 class Position(object):
-    def __init__(self, latitude_or_vector, longitude = None):
-        if longitude == None:
-            self.latitude = latitude_or_vector[0]
-            self.longitude = latitude_or_vector[1]
+    def __init__(self, *args, **kwargs):
+        super(Position, self).__init__()
+        self.latitude = kwargs.get('latitude', 0)
+        self.longitude = kwargs.get('longitude', 0)
+        if len(args) > 1:
+            self.latitude, self.longitude = args
         else:
-            self.latitude = latitude_or_vector
-            self.longitude = longitude
+            self.latitude, self.longitude = args[0]
+
         # Initialize earth model
         self.dxy_dpos = dxy_dpos
 
@@ -285,12 +294,28 @@ class Position(object):
         return result
 
     def __eq__(self, position):
-        return np.allclose(self[0], position[0]) \
-                and np.allclose(self[1], position[1])
+        if position is None:
+            return False
+        return np.allclose(self, position)
+
+    def __cmp__(self, position):
+        if self.latitude < position[0]:
+            return -1
+        elif self.latitude > position[0]:
+            return 1
+        elif self.longitude < position[1]:
+            return -1
+        elif self.longitude > position[1]:
+            return 1
+        else:
+            return 0
 
     def __str__(self):
         return '(' + "%.4f" % rad_to_deg(self.latitude) + ', ' \
                + "%.4f" % rad_to_deg(self.longitude) + ')'
+
+    def __len__(self):
+        return 2
 
 
 class PolarData:

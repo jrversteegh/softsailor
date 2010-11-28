@@ -38,7 +38,12 @@ class Wind:
     def get(self, position, time):
         self.update_weather()
         reltime = timedelta_to_seconds(time - self.weather.start_datetime)
-        fracs = self.get_fracs(position[0], position[1], reltime)
+        lat = position[0]
+        if self.weather.lon_max >= math.pi:
+            lon = normalize_angle_2pi(position[1])
+        else:
+            lon = position[1]
+        fracs = self.get_fracs(lat, lon, reltime)
         uv = self.evaluate(*fracs)
         d, s = rectangular_to_polar(uv)
         # Wind direction points opposite to wind speed vector, so add pi
@@ -104,8 +109,8 @@ class Wind:
         self.grid_slice = None
         weather = self.weather
         self.grid = np.mgrid[weather.lat_min: weather.lat_max: weather.lat_n * 1j,
-                                   weather.lon_min: weather.lon_max: weather.lon_n * 1j,
-                                   0: weather.reltime_n]
+                             weather.lon_min: weather.lon_max: weather.lon_n * 1j,
+                             0: weather.reltime_n]
         grid = self.grid
         # Fix up relative time values
         for i,lat in enumerate(grid[2,:,0,0]):
