@@ -209,6 +209,9 @@ def normalize_angle_2pi(angle):
         angle += two_pi
     return angle
 
+def angle_diff(angle1, angle2):
+    return normalize_angle_pipi(angle1 - angle2)
+
 def rectangular_to_polar(vector):
     return (normalize_angle_2pi(math.atan2(vector[1], vector[0])),  \
             math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]))

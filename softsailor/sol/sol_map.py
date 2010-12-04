@@ -7,7 +7,25 @@ from softsailor.classes import *
 
 from sol_xmlutil import *
 
+def intersection(line1, line2):
+    bearing = line1[0].get_bearing_from(line2[0])
+    phi = line2[1][0] - bearing[0]
+    gamma = line1[1][0] - line2[1][0]
+    u = math.cos(phi)
+    v = math.sin(phi) * math.cos(gamma)
+    sg = math.sin(gamma)
+    if sg != 0:
+        v /= sg
+    else:
+        v = 0
+    vec = PolarVector(line2[1][0], bearing[1] * (u + v))
+    return Position(line2[0]) + vec
+
+def line(p1, p2):
+    return (p1, p2 - p1, p2)
+
 def poly_intersect(poly, line):
+    result = []
     if line[0][0] > line[2][0]:
         max_line_lat = line[0][0]
         min_line_lat = line[2][0]
@@ -47,13 +65,36 @@ def poly_intersect(poly, line):
             phi1 = normalize_angle_pipi(poly_part[1][0] - bearing1[0])
             phi2 = normalize_angle_pipi(poly_part[1][0] - bearing2[0])
             if (phi1 > 0 and phi2 <= 0) or (phi1 <= 0 and phi2 > 0):
-                return True
-    return False
+                intersect_point = intersection(poly_part, line)
+                print intersect_point
+                result.append((poly_part, intersect_point))
+    return result
 
 class MapPoint(Position):
     def __init__(self, *args, **kwargs):
         super(MapPoint, self).__init__(*args, **kwargs)
         self.links = []
+
+    def other_link(self, point):
+        for link_point in self.links:
+            if not link_point is point:
+                return link_point
+        return None
+
+    @property
+    def link1(self):
+        if len(self.links) > 0:
+            return self.links[0]
+        else:
+            return None
+
+    @property
+    def link2(self):
+        if len(self.links) > 1:
+            return self.links[1]
+        else:
+            return None
+
 
 class Map:
     def load(self, mapurl):
@@ -109,8 +150,9 @@ class Map:
         dom.unlink()
         self.__connect()
 
-
-    def hit(self, line):
+    def __hit(self, line):
+        result = None
+        dist = line[1][1]
         i1 = int(math.floor((line[0][0] - self.minlat) / self.cellsize))
         j1 = int(math.floor((line[0][1] - self.minlon) / self.cellsize))
         i2 = int(math.floor((line[2][0] - self.minlat) / self.cellsize))
@@ -122,12 +164,71 @@ class Map:
         for i in range(min_i, max_i + 1):
             for j in range(min_j, max_j + 1):   
                 for pl in self.cells[i][j]:
-                    if poly_intersect(pl, line):
-                        return True
-        return False
+                    intersects = poly_intersect(pl, line) 
+                    if intersects:
+                        for poly_part, intersect_point in intersects:
+                            intersect_bearing = line[0].get_bearing_to(intersect_point)
+                            if intersect_bearing[1] < dist:
+                                result = poly_part
+                                dist = intersect_bearing[1]
+        return result
+
+    def hit(self, line):
+        poly_part = self.__hit(line)
+        if poly_part:
+            return True
+        else:
+            return False
 
     def outer(self, line):
-        return tuple()
+        poly_part = self.__hit(line)
+        p_outer = [None, None]
+        if not poly_part is None:
+            # Line intersects with land
+            p = [self.__find_point(poly_part[0]), \
+                 self.__find_point(poly_part[2])]
+            p_from = Position(line[0])
+            b = [p[0].get_bearing_from(p_from), \
+                 p[1].get_bearing_from(p_from) ]
+            b_outer = [None, None]
+            if b[1].is_left_of(b[0]):
+                direction = 1
+            else:
+                direction = 0
+
+            def trace_poly(forward, right):
+                print "Trace forward: %d direct %d" % (forward, right)
+                p_cur = p[forward]
+                # Remember last point in order to maintain direction
+                p_last = p[1 - forward]
+                # While there is a next point and we haven't gone completely round
+                while p_cur and not p_cur is p[1 - forward]:
+                    b_cur = p_cur.get_bearing_from(p_from)
+                    print p_last, p_cur, b_cur
+                    # Only when point is closer then line length, otherwise
+                    # the point will never be reached
+                    if b_cur[1] < line[1][1]:
+                        if b_cur.is_side_of(b_outer[right], right):
+                            b_outer[right] = b_cur
+                            p_outer[right] = p_cur
+                            print 'Outer: ', p_outer[right], b_outer[right]
+                    else:
+                        print "Out of reach"
+
+                    p_next = p_cur.other_link(p_last)
+                    p_last = p_cur
+                    p_cur = p_next
+
+                # Poly ended (edge of map?). That's not a way around
+                if not p_cur and p_last is p_outer[right]:
+                    p_outer[right] = None
+
+            trace_poly(0, direction)
+            trace_poly(1, 1 - direction)
+
+        return p_outer
+
+                
 
     def __find_point(self, point):
         i = bisect_left(self.points, point)

@@ -66,6 +66,7 @@ class TestPosition(unittest.TestCase):
         self.position_1 = Position((1.0, 1.0))
         self.position_2 = Position(0.9, 1.0)
         self.position_3 = Position(1.0, 0.9)
+        self.position_4 = Position(0.9, 0.9)
 
     def testHasGetBearingFrom(self):
         self.assertTrue(hasattr(self.position_1, 'get_bearing_from'))
@@ -82,6 +83,27 @@ class TestPosition(unittest.TestCase):
     def testGetBearingTo(self):
         br = self.position_1.get_bearing_to(self.position_2)
         self.assertAlmostEqual(math.pi, br[0])
+
+    def testAddition(self):
+        bearing = self.position_4 - self.position_1
+        new_pos = self.position_1 + bearing
+        bearing = new_pos.get_bearing_from(self.position_4)
+        self.assertTrue(bearing[1] < 100, "Check addition")
+
+    def testSubtraction(self):
+        bearing = self.position_4 - self.position_1
+        new_pos = self.position_4 - bearing
+        bearing = new_pos.get_bearing_from(self.position_1)
+        self.assertTrue(bearing[1] < 100, "Check addition")
+
+    def testNonLinearity(self):
+        bearing = self.position_4 - self.position_1
+        new_pos = Position(self.position_1)
+        for i in range(10):
+            new_pos += bearing * 0.1
+        bearing = new_pos.get_bearing_from(self.position_4)
+        self.assertTrue(bearing[1] < 320, "Check non linearity")
+
 
 if __name__ == '__main__':
     unittest.main()

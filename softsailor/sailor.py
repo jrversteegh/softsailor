@@ -72,8 +72,8 @@ class Sailor(object):
             return self.boat.heading, True
         heading = bearing_to_heading(bearing, \
                 self.boat.speed, self.boat.condition.current) 
-        changed, heading = self.adjust_heading_for_wind(heading)
-        if changed:
+        adjusted_for_wind, heading = self.adjust_heading_for_wind(heading)
+        if adjusted_for_wind:
             # These are only required when we're not headed directly for the
             # waypoint
             changed, heading = self.handle_tacking_and_gybing(heading, bearing)

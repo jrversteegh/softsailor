@@ -217,6 +217,23 @@ class CartesianVector(Vector):
         self.x = value[1] * math.cos(value[0])
         self.y = value[1] * math.sin(value[0])
 
+class Bearing(PolarVector):
+    def is_left_of(self, other):
+        if other is None:
+            return True
+        return angle_diff(self.a, other[0]) < 0
+
+    def is_right_of(self, other):
+        if other is None:
+            return True
+        return angle_diff(self.a, other[0]) > 0
+
+    def is_side_of(self, other, right):
+        if right:
+            return self.is_right_of(other)
+        else:
+            return self.is_left_of(other)
+
 class Position(object):
     def __init__(self, *args, **kwargs):
         super(Position, self).__init__()
@@ -242,7 +259,7 @@ class Position(object):
         dy = 0.5 * (dxy1[1] + dxy2[1])
         x = dx * (self.latitude - lat)
         y = dy * (self.longitude - lon)
-        result = PolarVector(0, 0)
+        result = Bearing(0, 0)
         result.xy = (x, y)
         return result
 
@@ -269,13 +286,24 @@ class Position(object):
             raise IndexError("Position index should be 0 or 1")
 
     def __iadd__(self, vector):
-        dxy = self.dxy
+        dxy = list(self.dxy)
+        new_lat = self.latitude + vector.x / dxy[0]
+        new_lon = self.longitude + vector.y / dxy[1]
+        dxy_new = self.dxy_dpos(new_lat, new_lon) 
+        dxy[0] = 0.5 * (dxy[0] + dxy_new[0])
+        dxy[1] = 0.5 * (dxy[1] + dxy_new[1])
+
         self.latitude += vector.x / dxy[0]
         self.longitude += vector.y / dxy[1]
         return self
 
     def __isub__(self, vector):
-        dxy = self.dxy
+        dxy = list(self.dxy)
+        new_lat = self.latitude - vector.x / dxy[0]
+        new_lon = self.longitude - vector.y / dxy[1]
+        dxy_new = self.dxy_dpos(new_lat, new_lon) 
+        dxy[0] = 0.5 * (dxy[0] + dxy_new[0])
+        dxy[1] = 0.5 * (dxy[1] + dxy_new[1])
         self.latitude -= vector.x / dxy[0]
         self.longitude -= vector.y / dxy[1]
         return self
