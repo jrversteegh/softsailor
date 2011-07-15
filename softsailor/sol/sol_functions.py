@@ -1,9 +1,15 @@
 """
-This module contains functions for interfacing with the sailonline.org
-online game status.
+Sol functions module
 
-Author: Jaap Versteegh <j.r.versteegh@gmail.com>
+Contains functions for interfacing with the sailonline.org
+online game status.
 """
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 from softsailor.utils import *
 from softsailor.world import world
 

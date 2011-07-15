@@ -1,8 +1,15 @@
 """
-This module contains boat updater implementations for sailonline.org
+Sol updater module
 
-Author: Jaap Versteegh <j.r.versteegh@gmail.com>
+Contains object that update other objects, in particular a boat updater 
+implementation for sailonline.org
 """
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 from softsailor.updater import BoatUpdater, SimUpdater as BaseSimUpdater
 from sol_functions import fetch_boat
 

@@ -1,3 +1,14 @@
+"""
+Situation module
+
+Contains an interface for static orientation and position of a boat
+"""
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 from classes import Position
 from datetime import datetime
 

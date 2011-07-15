@@ -1,3 +1,14 @@
+"""
+Route module
+
+Contains objects for dealing with route information
+"""
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 import os
 import datetime
 from utils import *

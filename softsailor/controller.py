@@ -1,3 +1,14 @@
+"""
+Controller module
+
+Contains interfaces to the operation of a boat
+"""
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 from boat import Boat
 from utils import *
 from conditions import Condition
@@ -6,6 +17,8 @@ from motion import Motion
 
 class ControllerError(Exception):
     pass
+
+
 class Controller(object):
     def __init__(self, *args, **kwargs):
         super(Controller, self).__init__()

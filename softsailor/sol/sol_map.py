@@ -1,3 +1,14 @@
+"""
+Sol map module
+
+Contains sol map implementation
+"""
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 import math
 from bisect import bisect, bisect_left, insort
 import numpy as np

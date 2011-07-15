@@ -1,3 +1,14 @@
+"""
+Sol boat module
+
+Contains a boat with sol performance
+"""
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 from softsailor.boat import SailBoat
 from sol_performance import Performance
 from sol_settings import *

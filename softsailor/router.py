@@ -1,3 +1,14 @@
+"""
+Router module
+
+Contains an object that determines which way to head in order to follow a route
+"""
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 import math
 from classes import *
 from boat import *
@@ -5,7 +16,7 @@ from route import *
 
 class Router(object):
     __active_index = 0
-    """Object that determines which way to steer to follow a route"""
+    """Object that determines which way to head to follow a route"""
     def __init__(self, *args, **kwargs):
         super(Router, self).__init__()
         if len(args) > 0:

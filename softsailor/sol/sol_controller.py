@@ -1,8 +1,14 @@
 """
-This module contains a remoter controller implementation for sailonline.org
+Controller module
 
-Author: Jaap Versteegh <j.r.versteegh@gmail.com>
+Contains a remoter controller implementation for sailonline.org
 """
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 import time
 from softsailor.utils import *
 from softsailor.controller import BoatController, ControllerError

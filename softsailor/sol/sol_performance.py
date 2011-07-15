@@ -1,8 +1,13 @@
 """
-This module contains a boat performance evaluator for sailonline.org boats
+Sol performance module
 
-Author: Jaap Versteegh <j.r.versteegh@gmail.com>
+Contains a boat performance evaluator for sailonline.org boats
 """
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 from bisect import bisect_left
 import math

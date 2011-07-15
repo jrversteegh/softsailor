@@ -1,3 +1,15 @@
+"""
+Sailor module
+
+Contains a sailor object that integrates all available information
+and controls the boat based on that
+"""
+__author__ = "J.R. Versteegh"
+__copyright__ = "Copyright 2011, J.R. Versteegh"
+__contact__ = "j.r.versteegh@gmail.com"
+__version__ = "0.1"
+__license__ = "GPLv3, No Warranty. See 'LICENSE'"
+
 import sys
 import traceback
 from utils import *
