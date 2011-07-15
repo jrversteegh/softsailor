@@ -9,7 +9,7 @@ Provided with a sailor's input (heading, sailchoice) and
 environmental conditions (wind, current) it updates the
 boats speed and position over time.
 
-The sailor is entity that converts routing data into
+The sailor is an entity that converts routing data into
 an actual input (heading, sails) for the boat.
 It can be ordered to follow a route according to
 certain rules, like sailing with an optimal vmg,
