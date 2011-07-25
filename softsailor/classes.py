@@ -228,22 +228,6 @@ class CartesianVector(Vector):
         self.x = value[1] * math.cos(value[0])
         self.y = value[1] * math.sin(value[0])
 
-class Bearing(PolarVector):
-    def is_left_of(self, other):
-        if other is None:
-            return True
-        return angle_diff(self.a, other[0]) < 0
-
-    def is_right_of(self, other):
-        if other is None:
-            return True
-        return angle_diff(self.a, other[0]) > 0
-
-    def is_side_of(self, other, right):
-        if right:
-            return self.is_right_of(other)
-        else:
-            return self.is_left_of(other)
 
 class Position(object):
     def __init__(self, *args, **kwargs):
@@ -270,7 +254,7 @@ class Position(object):
         dy = 0.5 * (dxy1[1] + dxy2[1])
         x = dx * (self.latitude - lat)
         y = dy * (self.longitude - lon)
-        result = Bearing(0, 0)
+        result = PolarVector(0, 0)
         result.xy = (x, y)
         return result
 

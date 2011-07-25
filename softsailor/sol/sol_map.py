@@ -14,76 +14,32 @@ from bisect import bisect, bisect_left, insort
 import numpy as np
 
 from softsailor.utils import *
-from softsailor.classes import *
-
 from sol_xmlutil import *
 
-def intersection(line1, line2):
-    bearing = line1[0].get_bearing_from(line2[0])
-    phi = line2[1][0] - bearing[0]
-    gamma = line1[1][0] - line2[1][0]
-    u = math.cos(phi)
-    v = math.sin(phi) * math.cos(gamma)
-    sg = math.sin(gamma)
-    if sg != 0:
-        v /= sg
-    else:
-        v = 0
-    vec = PolarVector(line2[1][0], bearing[1] * (u + v))
-    return Position(line2[0]) + vec
+from geofun import Position, Line
 
-def line(p1, p2):
-    return (p1, p2 - p1, p2)
 
 def poly_intersect(poly, line):
     result = []
-    if line[0][0] > line[2][0]:
-        max_line_lat = line[0][0]
-        min_line_lat = line[2][0]
-    else:
-        max_line_lat = line[2][0]
-        min_line_lat = line[0][0]
-    if line[0][1] > line[2][1]:
-        max_line_lon = line[0][1]
-        min_line_lon = line[2][1]
-    else:
-        max_line_lon = line[2][1]
-        min_line_lon = line[0][1]
     for poly_part in poly:
         # First check boxes. If they don't intersect, the lines can't either
-        if (poly_part[0][0] > max_line_lat \
-                    and poly_part[2][0] > max_line_lat) \
-                or (poly_part[0][0] < min_line_lat \
-                    and poly_part[2][0] < min_line_lat) \
-                or (poly_part[0][1] > max_line_lon \
-                    and poly_part[2][1] > max_line_lon) \
-                or (poly_part[0][1] < min_line_lon \
-                    and poly_part[2][1] < min_line_lon):
+        if not line.intersects(poly_part):
             continue
 
         # Now check for actual intersection
-        bearing1 = line[2].get_bearing_from(poly_part[0])
-        bearing2 = line[2].get_bearing_from(poly_part[2]) 
-        phi1 = normalize_angle_pipi(line[1][0] - bearing1[0])
-        phi2 = normalize_angle_pipi(line[1][0] - bearing2[0])
-        # When the angles have a different sign, the points lie
-        # each on different sides of the course line.
-        # Further investigation required
-        if (phi1 > 0 and phi2 <= 0) or (phi1 <= 0 and phi2 > 0):
-            # Now check if the two points of the course segment lie on different 
-            # sides of the poly segment. 
-            bearing2 = line[0].get_bearing_from(poly_part[0])
-            phi1 = normalize_angle_pipi(poly_part[1][0] - bearing1[0])
-            phi2 = normalize_angle_pipi(poly_part[1][0] - bearing2[0])
-            if (phi1 > 0 and phi2 <= 0) or (phi1 <= 0 and phi2 > 0):
-                intersect_point = intersection(poly_part, line)
-                print intersect_point
-                result.append((poly_part, intersect_point))
+        intersect_point = line.intersection(poly_part)
+        result.append((poly_part, intersect_point))
     return result
 
 class MapPoint(Position):
     def __init__(self, *args, **kwargs):
-        super(MapPoint, self).__init__(*args, **kwargs)
+        if len(args) > 1:
+            super(MapPoint, self).__init__(args[0], args[1])
+        elif len(args) > 0:
+            super(MapPoint, self).__init__(args[0])
+        else:
+            super(MapPoint, self).__init__()
+
         self.links = []
 
     def other_link(self, point):
@@ -105,6 +61,18 @@ class MapPoint(Position):
             return self.links[1]
         else:
             return None
+
+
+def side_of(b1, b2, right=False):
+    if b2 is None:
+        return True
+    if b1 is None:
+        return True
+    left = angle_diff(b1.a, b2.a) < 0
+    if right:
+        return not left
+    else:
+        return left
 
 
 class Map:
@@ -153,7 +121,7 @@ class Map:
                             if np.allclose(pos1[1], rounded):
                                 looks_like_grid = True
                         if not looks_like_grid:
-                            pl.append((pos1, pos2 - pos1, pos2))
+                            pl.append(Line(pos1, pos2))
                     pos2 = pos1
                 if len(pl) > 0:
                     self.cells[lat_i][lon_i].append(pl)
@@ -199,10 +167,9 @@ class Map:
             p = [self.__find_point(poly_part[0]), \
                  self.__find_point(poly_part[2])]
             p_from = Position(line[0])
-            b = [p[0].get_bearing_from(p_from), \
-                 p[1].get_bearing_from(p_from) ]
+            b = [p[0] - p_from, p[1] - p_from]
             b_outer = [None, None]
-            if b[1].is_left_of(b[0]):
+            if side_of(b[1], b[0], False):
                 direction = 1
             else:
                 direction = 0
@@ -219,7 +186,7 @@ class Map:
                     # Only when point is closer then line length, otherwise
                     # the point will never be reached
                     if b_cur[1] < line[1][1]:
-                        if b_cur.is_side_of(b_outer[right], right):
+                        if side_of(b_cur, b_outer[right], right):
                             b_outer[right] = b_cur
                             p_outer[right] = p_cur
                             print 'Outer: ', p_outer[right], b_outer[right]
@@ -257,6 +224,7 @@ class Map:
                         p1 = self.__find_point(poly_part[0])
                         p2 = self.__find_point(poly_part[2])
                         if p1 is None:
+                            print poly_part[0]
                             p1 = MapPoint(poly_part[0])
                             insort(self.points, p1)
                         if p2 is None:
