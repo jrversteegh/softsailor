@@ -35,5 +35,5 @@ print "Wind angle    : ", u"%10.2f\u00B0".encode('utf-8') \
         % rad_to_deg(boat.wind_angle)
 print "Wind speed    : ", "%10.2f kn" % ms_to_kn(boat.condition.wind[1])
 print "Apparent angle: ", u"%10.2f\u00B0".encode('utf-8') \
-        % rad_to_deg(boat.apparent_wind[0])
+        % rad_to_deg(normalize_angle_pipi(boat.apparent_wind[0]))
 print "Apparent speed: ", "%10.2f kn" % ms_to_kn(boat.apparent_wind[1])
