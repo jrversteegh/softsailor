@@ -8,10 +8,10 @@ from softsailor.sol.sol_settings import Settings
 
 class TestFuncs(unittest.TestCase):
     def testIntersection(self):
-        p1 = Position(0.9, 0.9)
-        p2 = Position(0.9, 1.0)
+        p1 = Position(0.99, 0.99)
+        p2 = Position(0.99, 1.0)
         p3 = Position(1.0, 1.0)
-        p4 = Position(1.0, 0.9) 
+        p4 = Position(1.0, 0.99) 
         line1 = line(p1, p2)
         line2 = line(p2, p3)
         line3 = line(p3, p4)
