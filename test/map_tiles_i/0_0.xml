@@ -1,0 +1,8 @@
+<data><cell minlon='-180' maxlon='-170' minlat='-90' maxlat='-80'>
+<poly level='1'>
+<point lon='-180' lat='-80'/>
+<point lon='-170' lat='-80'/>
+<point lon='-170' lat='-90'/>
+<point lon='-180' lat='-90'/>
+</poly>
+</cell></data>
