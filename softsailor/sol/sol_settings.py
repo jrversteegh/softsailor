@@ -15,6 +15,7 @@ from softsailor.utils import *
 from softsailor.classes import PolarData
 
 from sol_xmlutil import *
+from geofun import Position
 
 class SettingsNotFound(Exception):
     pass
@@ -47,11 +48,44 @@ class Settings:
     def load_race(self):
         uri = self.race_url + '?token=' + self.token
         dom = fetch_sol_document(self.host, uri)
+        #print dom.toxml("utf-8")
         root = dom.childNodes[0]
         self.boat = get_child_text_value(root, 'boaturl')
+        if self.boat == '':
+            raise Exception('Failed to find boat location')
         self.weather = get_child_text_value(root, 'weatherurl')
+        if self.weather == '':
+            raise Exception('Failed to find weather location')
+        self.tilemap = get_child_text_value(root, 'tilemap')
         self.map = get_child_text_value(root, 'mapurl')
+        if self.map == '' and self.tilemap == '':
+            raise Exception('Failed to find map location')
+        self.area = [-half_pi, half_pi, -pi, pi]
+        minlat = get_child_text_value(root, 'minlat')
+        if minlat != '':
+            maxlat = get_child_text_value(root, 'maxlat')
+            minlon = get_child_text_value(root, 'minlon')
+            maxlon = get_child_text_value(root, 'maxlon')
+            self.area[0] = deg_to_rad(float(minlat))
+            self.area[1] = deg_to_rad(float(maxlat))
+            self.area[2] = deg_to_rad(float(minlon))
+            self.area[3] = deg_to_rad(float(maxlon))
+        self.opponents = 'http://' + self.host + \
+            get_child_text_value(root, 'url') + '?token=' + self.token
+        self.traces = 'http://' + self.host + \
+            get_child_text_value(root, 'traceUrl') + '?token=' + self.token
         self.load_polars(get_element(root, 'vpp'))
+        self.load_course(get_element(root, 'course'))
+
+    def load_course(self, course):
+        self.course = []
+        waypoints = get_elements(course, 'waypoint')
+        for waypoint in waypoints:
+            lat = deg_to_rad(float(get_child_text_value(waypoint, 'lat')))
+            lon = deg_to_rad(float(get_child_text_value(waypoint, 'lon')))
+            self.course.append(Position(lat, lon))
+        self.finish_radius = nm_to_m(float(get_child_text_value(course, 'goal_radius')))
+        
 
     def load_polars(self, vpp):
         speed_text = get_child_text_value(vpp, "tws_splined")

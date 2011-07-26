@@ -36,7 +36,15 @@ def get_map():
     global __sol_map_instance
     if __sol_map_instance == None:
         __sol_map_instance = Map()
-        __sol_map_instance.load(get_settings().map)
+        settings = get_settings()
+        if settings.map != '':
+            __sol_map_instance.load(get_settings().map)
+        else:
+            settings = get_settings()
+            __sol_map_instance.load_tiles(
+                settings.host,
+                settings.tilemap,
+                settings.area)
     return __sol_map_instance
 
 def get_wind():

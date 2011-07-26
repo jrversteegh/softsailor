@@ -1,10 +1,12 @@
 import unittest
 import test_utils
 
-from softsailor.classes import *
 
+from softsailor.utils import *
 from softsailor.sol.sol_map import *
 from softsailor.sol.sol_settings import Settings
+
+from geofun import Position, Vector
 
 class TestFuncs(unittest.TestCase):
     def testIntersection(self):
@@ -27,9 +29,9 @@ class TestFuncs(unittest.TestCase):
         pc = line5.intersection(line7)
         bb = pb - pa
         bc = pc - pa
-        print pa
-        print pb, bb
-        print pc, bc
+        #print pa
+        #print pb, bb
+        #print pc, bc
         self.assertTrue(bb[1] < 200)
         self.assertTrue(bc[1] < 200)
         
@@ -40,7 +42,11 @@ class TestMap(unittest.TestCase):
 
     def testLoad(self):
         settings = Settings()
-        self.map.load(settings.map)
+        if settings.map != '':
+            self.map.load(settings.map)
+        else:
+            self.assertTrue(settings.area[0] > -half_pi)
+            self.map.load_tiles(settings.host, settings.tilemap, settings.area)
         for point in self.map.points:
             has_one_or_two_links = (len(point.links) == 1) \
                     or (len(point.links) == 2)
@@ -52,43 +58,43 @@ class TestMap(unittest.TestCase):
 
         # Attempt to hit Sao Antao (Cabo Verde) from all sides
         pos_to = Position(0.297869, -0.43921)
-        bearing = PolarVector(0, 30000)
+        bearing = Vector(0, 30000)
         pos_from = pos_to - bearing
-        segment = (pos_from, bearing, pos_to)
+        segment = Line(pos_from, pos_to)
         hit = self.map.hit(segment)
         self.assertTrue(hit)
 
-        bearing = PolarVector(1.57, 25000)
+        bearing = Vector(1.57, 25000)
         pos_from = pos_to - bearing
-        segment = (pos_from, bearing, pos_to)
+        segment = Line(pos_from, pos_to)
         hit = self.map.hit(segment)
         self.assertTrue(hit)
 
-        bearing = PolarVector(3.14, 25000)
+        bearing = Vector(3.14, 25000)
         pos_from = pos_to - bearing
-        segment = (pos_from, bearing, pos_to)
+        segment = Line(pos_from, pos_to)
         hit = self.map.hit(segment)
         self.assertTrue(hit)
 
-        bearing = PolarVector(4.71, 30000)
+        bearing = Vector(4.71, 30000)
         pos_from = pos_to - bearing
-        segment = (pos_from, bearing, pos_to)
+        segment = Line(pos_from, pos_to)
         hit = self.map.hit(segment)
         self.assertTrue(hit)
 
         # This point is not on the island
-        pos1 = Position((0.3019, -0.4363))
+        pos1 = Position(0.3019, -0.4363)
         pos2 = pos1 - bearing
-        segment = (pos1, bearing, pos2 )
+        segment = Line(pos1, pos2)
         hit = self.map.hit(segment)
         self.assertFalse(hit)
 
     def testOuter(self):
         self.map.load('http://race.sailport.se/site_media/maps/xmlmaps/Canary_Brazil.xml')
         # Attempt to pass Sao Antao (Cabo Verde) from north to south
-        pos_from = Position(0.297869, -0.43921) + PolarVector(0, 30000)
-        pos_to = Position(0.297869, -0.43921) + PolarVector(math.pi, 30000)
-        segment = (pos_from, pos_to - pos_from, pos_to)
+        pos_from = Position(0.297869, -0.43921) + Vector(0, 30000)
+        pos_to = Position(0.297869, -0.43921) + Vector(math.pi, 30000)
+        segment = Line(pos_from, pos_to)
         # First verify that we're hitting
         hit = self.map.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
@@ -100,9 +106,9 @@ class TestMap(unittest.TestCase):
                         'Island, so expected two ways to pass (both sides)')
 
         # ..now from south to north
-        pos_from = Position(0.297869, -0.43921) + PolarVector(math.pi, 30000)
-        pos_to = Position(0.297869, -0.43921) + PolarVector(0, 30000)
-        segment = (pos_from, pos_to - pos_from, pos_to)
+        pos_from = Position(0.297869, -0.43921) + Vector(math.pi, 30000)
+        pos_to = Position(0.297869, -0.43921) + Vector(0, 30000)
+        segment = Line(pos_from, pos_to)
         # First verify that we're hitting
         hit = self.map.hit(segment)
         self.assertTrue(hit, 'Expected island hit')

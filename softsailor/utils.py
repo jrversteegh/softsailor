@@ -81,6 +81,10 @@ def m_to_nm(m):
     return m / 1852
 
 @array_func
+def nm_to_m(nm):
+    return nm * 1852
+
+@array_func
 def to_float(value):
     return float(value)
 
@@ -201,7 +205,9 @@ def save_kml_document(kml, filename):
     f.write(xml)
     f.close()
 
+pi = math.pi
 two_pi = 2 * math.pi
+half_pi = math.pi / 2
 time_format = "%Y-%m-%d %H:%M:%S"
 
 def normalize_angle_pipi(angle):
