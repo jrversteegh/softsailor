@@ -28,7 +28,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from softsailor.utils import *
 from softsailor.sailor import Sailor
 from softsailor.route import *
-from softsailor.router import *
+from softsailor.navigator import *
 
 from softsailor.sol.sol_boat import Boat
 from softsailor.sol.sol_updater import Updater
@@ -51,22 +51,22 @@ controller = Controller(boat)
 updater = Updater(boat)
 # Update now so the boat has a proper initial position
 updater.update()
-router = Router(boat=boat, route=route)
+navigator = Navigator(boat=boat, route=route)
 
-sailor = Sailor(boat=boat, router=router, map=chart, \
+sailor = Sailor(boat=boat, navigator=navigator, map=chart, \
                 controller=controller, updater=updater)
 
 logged = datetime.utcnow()
 
 while sailor.sail():
-    print "Waypoint      : ", router.active_index
-    print "  Location    : ", router.active_waypoint
-    bearing = router.active_waypoint.get_bearing_from(boat.position)
+    print "Waypoint      : ", navigator.active_index
+    print "  Location    : ", navigator.active_waypoint
+    bearing = navigator.active_waypoint.get_bearing_from(boat.position)
     print "  Bearing     : ", u"%10.2f\u00B0".encode('utf-8') \
             % rad_to_deg(bearing[0])
     print "  Distance    : ", "%10.2f nm" % (bearing[1] / 1852)
-    print "  Comment     : ", router.active_waypoint.comment
-    print "  CTE         : ", "%10.2f nm" % (router.get_cross_track() / 1852)
+    print "  Comment     : ", navigator.active_waypoint.comment
+    print "  CTE         : ", "%10.2f nm" % (navigator.get_cross_track() / 1852)
     print "---"
     print "Boat time     : ", boat.situation.time.strftime(time_format)
     print "Boat latitude : ", u"%10.4f\u00B0N".encode('utf-8') \

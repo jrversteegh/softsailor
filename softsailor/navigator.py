@@ -1,5 +1,5 @@
 """
-Router module
+Navigator module
 
 Contains an object that determines which way to head in order to follow a route
 """
@@ -15,11 +15,11 @@ from geofun import Vector
 from boat import *
 from route import *
 
-class Router(object):
+class Navigator(object):
     __active_index = 0
     """Object that determines which way to head to follow a route"""
     def __init__(self, *args, **kwargs):
-        super(Router, self).__init__()
+        super(Navigator, self).__init__()
         if len(args) > 0:
             self.route = args[0]
             self.boat = args[1]

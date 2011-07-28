@@ -9,6 +9,8 @@ from softsailor.sol.sol_settings import Settings
 
 from geofun import Position, Vector
 
+dirname = os.path.dirname(os.path.abspath(__file__))
+
 class TestFuncs(unittest.TestCase):
     def testIntersection(self):
         p1 = Position(0.99, 0.99)
@@ -55,7 +57,7 @@ class TestMap(unittest.TestCase):
                             "Expected each point to have one or two links")
 
     def testHit(self):
-        self.map.load('http://race.sailport.se/site_media/maps/xmlmaps/Canary_Brazil.xml')
+        self.map.load(dirname + '/Canary_Brazil.xml')
 
         # Attempt to hit Sao Antao (Cabo Verde) from all sides
         pos_to = Position(0.297869, -0.43921)
@@ -91,7 +93,7 @@ class TestMap(unittest.TestCase):
         self.assertFalse(hit)
 
     def testOuter(self):
-        self.map.load('http://race.sailport.se/site_media/maps/xmlmaps/Canary_Brazil.xml')
+        self.map.load(dirname + '/Canary_Brazil.xml')
         # Attempt to pass Sao Antao (Cabo Verde) from north to south
         pos_from = Position(0.297869, -0.43921) + Vector(0, 30000)
         pos_to = Position(0.297869, -0.43921) + Vector(math.pi, 30000)
@@ -121,9 +123,10 @@ class TestMap(unittest.TestCase):
                         'Island, so expected two ways to pass (both sides)')
 
     def testSaveToKml(self):
-        dirname = os.path.dirname(os.path.abspath(__file__))
         self.map.load(dirname + '/Gbr_Gtb.xml')
         self.map.save_to_kml(dirname + '/gbr_gtb.kml')
+        self.map.load(dirname + '/Canary_Brazil.xml')
+        self.map.save_to_kml(dirname + '/canary_brazil.kml')
 
 
 class TestMapPoint(unittest.TestCase):

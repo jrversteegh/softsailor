@@ -28,13 +28,13 @@ class Sailor(object):
             self.boat = args[0]
             self.controller = args[1]
             self.updater = args[2]
-            self.router = args[3]
+            self.navigator = args[3]
             self.map = args[4]
         else:
             self.boat = kwargs['boat']
             self.controller = kwargs['controller']
             self.updater = kwargs['updater']
-            self.router = kwargs['router']
+            self.navigator = kwargs['navigator']
             self.map = kwargs['map']
 
     def __log(self, log_string):
@@ -53,7 +53,7 @@ class Sailor(object):
     def sail(self):
         try:
             self.updater.update()
-            if self.router.is_complete:
+            if self.navigator.is_complete:
                 return False
             new_heading, is_direct = self.get_heading()
             if abs(new_heading - self.boat.heading) > 0.002:
@@ -79,8 +79,8 @@ class Sailor(object):
         """Returns new heading and whether this heading is aiming straight
            for the waypoint
         """
-        bearing = self.router.get_bearing()
-        if self.router.is_complete:
+        bearing = self.navigator.get_bearing()
+        if self.navigator.is_complete:
             return self.boat.heading, True
         heading = bearing_to_heading(bearing, \
                 self.boat.speed, self.boat.condition.current) 
@@ -119,7 +119,7 @@ class Sailor(object):
     def handle_tacking_and_gybing(self, heading, bearing):
         wind = self.boat.condition.wind
         wind_angle = normalize_angle_pipi(wind[0] - heading)
-        track, waypoint = self.router.get_active_segment()
+        track, waypoint = self.navigator.get_active_segment()
 
         if (wind_angle < 0) != (self.boat.wind_angle < 0):
             # A tack or gybe is apparently suggested...
@@ -134,7 +134,7 @@ class Sailor(object):
                 + 60 * math.pow(math.cos(0.8 * off_track_angle), 2)
         # --> Lane width as square root of distance to waypoint
         allowed_off_track = off_track_mult * math.sqrt(bearing[1])
-        cross_track = self.router.get_cross_track()
+        cross_track = self.navigator.get_cross_track()
         is_off_track = abs(cross_track) > allowed_off_track
 
         # --> Less than 45 degrees approach angle 
@@ -177,7 +177,7 @@ class Sailor(object):
             return True, normalize_angle_2pi(heading + 2 * wind_angle)
 
         # Also, we want to keep a clear line of sight to the waypoint
-        track, waypoint = self.router.get_active_segment()
+        track, waypoint = self.navigator.get_active_segment()
         bearing = waypoint - self.boat.position
         view_line = Line(self.boat.position, waypoint)
         if self.map.hit(view_line):
@@ -185,7 +185,7 @@ class Sailor(object):
             # line is that we were reaching or tacking away from the
             # track. Tack or gybe now to get back.
             off_bearing_angle = normalize_angle_pipi(heading - bearing[0])
-            off_track = self.router.get_cross_track()
+            off_track = self.navigator.get_cross_track()
             # Check if heading is 'outside' bearing
             if (off_track > 0) == (off_bearing_angle > 0):
                 # ...or tack/gybe when they don't

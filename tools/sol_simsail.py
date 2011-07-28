@@ -29,7 +29,7 @@ from softsailor.utils import *
 from softsailor.classes import *
 from softsailor.sailor import Sailor
 from softsailor.route import *
-from softsailor.router import *
+from softsailor.navigator import *
 
 import softsailor.sol.sol_world
 from softsailor.sol.sol_boat import Boat
@@ -53,9 +53,9 @@ controller = BoatController(boat)
 updater = SimUpdater(boat)
 # Set boat at start of route
 boat.position = route[0]
-router = Router(boat=boat, route=route)
+navigator = Navigator(boat=boat, route=route)
 
-sailor = Sailor(boat=boat, router=router, map=chart, \
+sailor = Sailor(boat=boat, navigator=navigator, map=chart, \
                 controller=controller, updater=updater)
 
 time.sleep(2)
