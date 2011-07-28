@@ -25,11 +25,11 @@ class TestRouter(unittest.TestCase):
     def testGetBearing(self):
         br = self.router.get_bearing()
         self.assertAlmostEqual(3.046, br[0], 3)
-        self.assertEqual(767559, round(br[1]))
+        self.assertEqual(768884, round(br[1]))
 
     def testCrossTrack(self):
         cte = self.router.get_cross_track()
-        self.assertEqual(73028, round(cte))
+        self.assertEqual(73100, round(cte))
 
     def testActiveIndex(self):
         self.assertEquals(2, self.router.active_index)

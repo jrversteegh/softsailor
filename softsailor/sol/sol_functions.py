@@ -18,6 +18,7 @@ from sol_xmlutil import *
 from sol_wind import *
 from sol_weather import *
 from sol_map import Map
+from sol_course import Course
 
 from datetime import datetime
 
@@ -25,6 +26,7 @@ from datetime import datetime
 __sol_settings_instance = None
 __sol_wind_instance = None
 __sol_map_instance = None
+__sol_course_instance = None
 
 def get_settings():
     global __sol_settings_instance
@@ -34,7 +36,7 @@ def get_settings():
 
 def get_map():
     global __sol_map_instance
-    if __sol_map_instance == None:
+    if __sol_map_instance is None:
         __sol_map_instance = Map()
         settings = get_settings()
         if settings.map != '':
@@ -49,11 +51,20 @@ def get_map():
 
 def get_wind():
     global __sol_wind_instance
-    if __sol_wind_instance == None:
+    if __sol_wind_instance is None:
         weather = Weather()
         weather.load(get_settings())
         __sol_wind_instance = Wind(weather)
     return __sol_wind_instance
+
+def get_course():
+    global __sol_course_instance
+    if __sol_course_instance is None:
+        settings = get_settings()
+        __sol_course_instance = Course(settings.course, 
+                                       settings.finish_radius, 
+                                       get_map()) 
+    return __sol_course_instance
 
 def fetch_boat(boat):
     """Fetches the online data for boat"""
@@ -64,9 +75,9 @@ def fetch_boat(boat):
     boat_element = get_element(root, "boat")
     situation = boat.situation
     cog = get_child_float_value(boat_element, "cog")
-    situation.position[0] = deg_to_rad(get_child_float_value(boat_element, \
+    situation.position.lat = deg_to_rad(get_child_float_value(boat_element, \
         "lat"))
-    situation.position[1] = deg_to_rad(get_child_float_value(boat_element, \
+    situation.position.lon = deg_to_rad(get_child_float_value(boat_element, \
         "lon"))
     # Unfortunately SOL doesn't return a boat time :(
     situation.time = datetime.utcnow()

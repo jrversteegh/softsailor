@@ -15,6 +15,7 @@ from conditions import *
 from performance import *
 from motion import *
 from situation import *
+from geofun import Position, Vector
 
 
 class Boat(object):
@@ -39,7 +40,7 @@ class Boat(object):
         return self.situation.position
     @position.setter
     def position(self, value):
-        self.situation.position = Position(value)
+        self.situation.position = Position(value[0], value[1])
 
     @property
     def heading(self):
@@ -57,12 +58,12 @@ class Boat(object):
 
     @property
     def velocity_over_ground(self):
-        return PolarVector(self.motion.velocity) \
-                + PolarVector(self.condition.current)
+        return Vector(self.motion.velocity) \
+                + Vector(self.condition.current)
     @velocity_over_ground.setter
     def velocity_over_ground(self, value):
-        self.motion.velocity = PolarVector(value) \
-                - PolarVector(self.condition.current)
+        self.motion.velocity = Vector(value[0], value[1]) \
+                - Vector(self.condition.current)
 
     @property 
     def drift(self):
@@ -93,5 +94,6 @@ class SailBoat(Boat):
 
     @property
     def apparent_wind(self):
-        return PolarVector(self.relative_wind) + PolarVector(0, self.motion.speed)
+        return Vector(self.relative_wind[0], self.relative_wind[1]) \
+            + Vector(0, self.motion.speed)
 

@@ -12,7 +12,7 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 import os
 import datetime
 from utils import *
-from classes import *
+from geofun import Position, Line
 import kmlbase
 import kmldom
 
@@ -22,12 +22,6 @@ class Waypoint(Position):
         super(Waypoint, self).__init__(*args[:2], **kwargs)
         if len(args) > 2:
             self.range = args[2]
-        elif len(args) > 1:
-            try:
-                it = iter(args[0])
-                self.range = args[1]
-            except TypeError:
-                pass
         self.comment = ""
 
     def is_reached(self, position):
@@ -85,7 +79,7 @@ class Route(object):
         wp_from = wp.next()
         while True:
             wp_to = wp.next()
-            yield wp_to.get_bearing_from(wp_from), wp_to
+            yield wp_to - wp_from, wp_to
             wp_from = wp_to
 
     @property
@@ -94,7 +88,7 @@ class Route(object):
         wp_from = wp.next()
         while True:
             wp_to = wp.next()
-            yield wp_from, wp_to
+            yield Line(wp_from, wp_to)
             wp_from = wp_to
 
     @property
@@ -151,11 +145,13 @@ class Route(object):
         lines = factory.CreateFolder()
         lines.set_name('Track')
         for i, ln in enumerate(self.lines):
-            vec = ln[1].get_bearing_from(ln[0])
-            ln = (rad_to_deg(ln[0]), rad_to_deg(ln[1]))
+            vec = ln.v
+            p1 = list(ln.p1)
+            p2 = list(ln.p2)
+            ln = (rad_to_deg(p1), rad_to_deg(p2))
             line = create_line_placemark('Track ' + str(i), ln)
-            description = u'Bearing: ' + u"%.2f\u00B0" % rad_to_deg(vec[0]) \
-                    + u'  Length: ' + u"%.2f nm" % (vec[1] / 1852)
+            description = u'Bearing: ' + u"%.2f\u00B0" % rad_to_deg(vec.a) \
+                    + u'  Length: ' + u"%.2f nm" % (vec.r / 1852)
             line.set_description(description.encode("utf-8"))
             lines.add_feature(line)
 

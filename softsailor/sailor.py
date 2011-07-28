@@ -13,7 +13,7 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 import sys
 import traceback
 from utils import *
-from classes import *
+from geofun import Vector, Line
 from controller import ControllerError
 
 from datetime import datetime
@@ -165,9 +165,9 @@ class Sailor(object):
         # We'll construct a future course line...
         boat_position = self.boat.position
         # ... project it ahead...
-        sail_vector = PolarVector(heading, look_ahead)
+        sail_vector = Vector(heading, look_ahead)
         future_position = boat_position + sail_vector
-        sail_line = (self.boat.position, sail_vector, future_position)
+        sail_line = Line(self.boat.position, future_position)
         # Check if the projected line hits land...
         if self.map.hit(sail_line):
             # ... and if so, tack or gybe away from it
@@ -178,8 +178,8 @@ class Sailor(object):
 
         # Also, we want to keep a clear line of sight to the waypoint
         track, waypoint = self.router.get_active_segment()
-        bearing = waypoint.get_bearing_from(self.boat.position)
-        view_line = (self.boat.position, bearing, waypoint)
+        bearing = waypoint - self.boat.position
+        view_line = Line(self.boat.position, waypoint)
         if self.map.hit(view_line):
             # The only way, we could have gotten something in the view
             # line is that we were reaching or tacking away from the

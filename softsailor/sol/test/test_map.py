@@ -1,3 +1,4 @@
+import os
 import unittest
 import test_utils
 
@@ -118,6 +119,11 @@ class TestMap(unittest.TestCase):
         self.assertTrue(not outer_points[0] is None \
                         and not outer_points[1] is None, \
                         'Island, so expected two ways to pass (both sides)')
+
+    def testSaveToKml(self):
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        self.map.load(dirname + '/Gbr_Gtb.xml')
+        self.map.save_to_kml(dirname + '/gbr_gtb.kml')
 
 
 class TestMapPoint(unittest.TestCase):

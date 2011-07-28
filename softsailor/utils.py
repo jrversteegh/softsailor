@@ -92,6 +92,39 @@ def to_float(value):
 def to_string(value):
     return str(value)
 
+def lat_to_str(value, unsigned=True):
+    if value < 0 and unsigned:
+        return u"%8.4f \u00B0S" % rad_to_deg(-value)
+    else:
+        return u"%8.4f \u00B0N" % rad_to_deg(value)
+
+def lon_to_str(value, unsigned=True):
+    if value < 0 and unsigned:
+        return u"%8.4f \u00B0W" % rad_to_deg(-value)
+    else:
+        return u"%8.4f \u00B0E" % rad_to_deg(value)
+
+def pos_to_str(value, unsigned=True):
+    return lat_to_str(value[0], unsigned) + u', ' + lon_to_str(value[1], unsigned) 
+
+def ang_to_str(value):
+    return u"%8.2f \u00B0" % rad_to_deg(value)
+
+def dst_to_str(value):
+    return u"%8.2f nm" % m_to_nm(value)
+
+def spd_to_str(value):
+    return u"%8.2f kn" % ms_to_kn(value)
+
+def vec_to_str(value):
+    return ang_to_str(value[0]) + u', ' + dst_to_str(value[1]) 
+
+def vel_to_str(value):
+    return ang_to_str(value[0]) + u', ' + spd_to_str(value[1])
+
+def lin_to_str(value):
+    return pos_to_str(value[0]) + ' - ' + pos_to_str(value[2])
+
 def add_element_with_text(dom, parent, name, text):
     """Adds an xml element with 'name' and containing 'text' to a existing
        element 'parent'

@@ -36,7 +36,7 @@ class MapPoint(Position):
         if len(args) > 1:
             super(MapPoint, self).__init__(args[0], args[1])
         elif len(args) > 0:
-            super(MapPoint, self).__init__(args[0])
+            super(MapPoint, self).__init__(args[0][0], args[0][1])
         else:
             super(MapPoint, self).__init__()
 
@@ -151,12 +151,26 @@ class Map:
 
     def load_tiles(self, host, tiles, loadarea=None):
         self.tiles = tiles
-        self.minlat = loadarea[0]
-        self.maxlat = loadarea[1]
-        self.minlon = loadarea[2]
-        self.maxlon = loadarea[3]
+        self.minlat = -half_pi
+        self.maxlat =  half_pi 
+        self.minlon = -pi 
+        self.maxlon =  pi 
 
         self.cellsize = tile_cell_size[tiles]
+
+        if loadarea is not None:
+            while self.minlat <= loadarea[0]:
+                self.minlat += self.cellsize
+            while self.maxlat >= loadarea[1]:
+                self.maxlat -= self.cellsize
+            while self.minlon <= loadarea[2]:
+                self.minlon += self.cellsize
+            while self.maxlon >= loadarea[3]:
+                self.maxlon -= self.cellsize
+            self.minlat -= self.cellsize
+            self.maxlat += self.cellsize
+            self.minlon -= self.cellsize
+            self.maxlon += self.cellsize
 
         min_i = int(round((half_pi + self.minlat) / self.cellsize))
         min_j = int(round((pi + self.minlon) / self.cellsize))
@@ -177,11 +191,8 @@ class Map:
 
         self.__connect()
 
-
-    def __hit(self, line):
-        result = None
-        # Maximum hit distance is the length of the line
-        dist = line.v.r
+    def __intersects(self, line):
+        result = []
         i1 = int(math.floor((line.p1.lat - self.minlat) / self.cellsize))
         j1 = int(math.floor((line.p1.lon - self.minlon) / self.cellsize))
         i2 = int(math.floor((line.p2.lat - self.minlat) / self.cellsize))
@@ -194,24 +205,42 @@ class Map:
             for j in range(min_j, max_j + 1):   
                 for pl in self.cells[i][j]:
                     intersects = poly_intersect(pl, line) 
-                    if intersects:
-                        # Determine the closest hit
-                        for poly_part, intersect_point in intersects:
-                            intersect_bearing = intersect_point - line.p1
-                            if intersect_bearing.r < dist:
-                                result = poly_part
-                                dist = intersect_bearing.r
+                    for intersect in intersects:
+                        result.append(intersect)
+        return result
+
+    def __hit(self, line):
+        result = None
+        # Maximum hit distance is the length of the line
+        dist = line.v.r
+        intersects = self.__intersects(line)
+        # Determine the closest hit
+        for poly_part, intersect in intersects:
+            intersect_vec = intersect - line.p1
+            if intersect_vec.r < dist:
+                result = poly_part, intersect
+                dist = intersect_vec.r
         return result
 
     def hit(self, line):
-        poly_part = self.__hit(line)
-        if poly_part is not None:
+        intersect = self.__hit(line)
+        if intersect is not None:
             return True
         else:
             return False
 
+    def intersect(self, line):
+        return self.__hit(line)
+
+    def intersections(self, line):
+        result = []
+        intersects = self.__intersects(line)
+        for line, point in intersects:
+            result.append(point)
+        return result
+
     def outer(self, line):
-        poly_part = self.__hit(line)
+        poly_part, intersect = self.__hit(line)
         p_outer = [None, None]
         if poly_part is not None:
             # Line intersects with land
@@ -283,5 +312,35 @@ class Map:
                             insort(self.points, p2)
                         p1.links.append(p2)
                         p2.links.append(p1)
+
+    def save_to_kml(self, filename):
+        filedir, file = os.path.split(filename)
+        filebase, fileext = os.path.splitext(file)
+
+        kml, doc = create_kml_document('Map: ' + filebase)
+
+        factory = kmldom.KmlFactory_GetFactory()
+        
+        lines = factory.CreateFolder()
+        lines.set_name('Map')
+        for i, row in enumerate(self.cells):
+            for j, cell in enumerate(row):
+                for poly in cell:
+                    for i, ln in enumerate(poly):
+                        vec = ln.v
+                        p1 = list(ln.p1)
+                        p2 = list(ln.p2)
+                        ln = (rad_to_deg(p1), rad_to_deg(p2))
+                        line = create_line_placemark('Segment ' + str(i), ln)
+                        description = pos_to_str(p1) + ' - ' + pos_to_str(p2)
+                        line.set_description(description.encode("utf-8"))
+                        lines.add_feature(line)
+
+        description = pos_to_str((self.minlat, self.minlon)) + ' - ' \
+                    + pos_to_str((self.maxlat, self.maxlon))
+        doc.set_description(description.encode("utf-8"))
+        doc.add_feature(lines)
+        
+        save_kml_document(kml, filename)
 
 

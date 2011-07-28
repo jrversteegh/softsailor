@@ -9,7 +9,7 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
-from classes import PolarVector
+from geofun import Vector
 
 class Motion(object):
     speed = 0
@@ -25,7 +25,7 @@ class Motion(object):
 
     @property
     def velocity(self):
-        return PolarVector(self.course, self.speed) 
+        return Vector(self.course, self.speed) 
     @velocity.setter
     def velocity(self, value):
         self.course = value[0]
