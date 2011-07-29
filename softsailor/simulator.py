@@ -11,4 +11,6 @@ __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 class Simulator(object):
-    pass
+    def __init__(self, *args, **kwargs):
+        super(Simulator, self).__init__()
+        self.sailor = kwargs['sailor']

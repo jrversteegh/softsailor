@@ -16,16 +16,20 @@ from utils import *
 from world import world
 from datetime import datetime, timedelta
 
-class Updater(object):
+class Updater(Logable):
     """Base class for objects that update information"""
     def __init__(self, *args, **kwargs):
         super(Updater, self).__init__()
-        
+
     def update(self):
+        """Update the object"""
+        pass
+
+    def record(self):
+        """Record status of object"""
         pass
 
 class BoatUpdater(Updater):
-    __log = []
     """Base class for objects that update boat information"""
     def __init__(self, *args, **kwargs):
         super(BoatUpdater, self).__init__(*args, **kwargs)
@@ -33,57 +37,58 @@ class BoatUpdater(Updater):
             self.boat = args[0]
         else:
             self.boat = kwargs['boat']
+        self.fmtrs = [
+            tim_to_str,
+            lat_to_str,
+            lon_to_str,
+            ang_to_str,
+            spd_to_str,
+            ang_to_str,
+            spd_to_str]
 
-    def log(self):
-        boat = self.boat
-        pos = boat.position
-        wind = boat.condition.wind
-        record = (boat.time, pos[0], pos[1], boat.heading, boat.speed, \
-                  wind[0], wind[1])
-        self.__log.append(record)
+    def record(self):
+        self.log ('log',
+                  self.boat.time, 
+                  self.boat.position[0],
+                  self.boat.position[1], 
+                  self.boat.heading, 
+                  self.boat.speed, 
+                  self.boat.condition.wind[0], 
+                  self.boat.condition.wind[1])
 
     def update(self):
-        self.log()
+        self.record()
 
-    def save_log(self, filename):
-        """Save the stored tracklog to filename in txt and kml format"""
-        f = open(filename + '.txt', "w")
-        for record in self.__log:
-            lat, lon, heading = rad_to_deg(record[1:4])
-            record = (record[0].strftime(time_format), \
-                      lat, lon, heading, ms_to_kn(record[4]), \
-                      rad_to_deg(record[5]), ms_to_kn(record[6]))
-            record_str = to_string(record)
-            f.write(", ".join(record_str) + "\n")
-        f.close()
-
+    def save_to_kml(self, filename):
         kml, doc = create_kml_document(filename)
         factory = kmldom.KmlFactory_GetFactory()
         func = []
-        for record in self.__log:
+        for record in self.records:
+            fields = record[2] 
             # function point has format lat,lon,value (speed here)
-            lat, lon = rad_to_deg(record[1], record[2])
-            func.append((lat, lon, record[4]))
+            lat, lon = rad_to_deg(fields[1], fields[2])
+            func.append((lat, lon, ms_to_kn(fields[4])))
         track = create_func_placemark('Track', func, 3600 / 18.52)
         doc.add_feature(track)
 
-        for i, record in enumerate(self.__log[::60]):
-            lat, lon = rad_to_deg(record[1], record[2])
+        for i, record in enumerate(self.records[::60]):
+            fields = record[2] 
+            lat, lon = rad_to_deg(fields[1], fields[2])
             pm = create_point_placemark(str(i), lat, lon)
             pm.set_styleurl('#sailboat')
             ts = factory.CreateTimeStamp()
-            ts.set_when(record[0].isoformat())
+            ts.set_when(fields[0].isoformat())
             pm.set_timeprimitive(ts)
-            descr = u'Time: ' + record[0].strftime(time_format) + "\n" \
-                    + u'Heading: ' + u"%.2f\u00B0\n" % rad_to_deg(record[3]) \
-                    + u'Speed : ' + u"%.2f kn\n" % ms_to_kn(record[4]) \
-                    + u'Wind direction: ' + u"%.2f\u00B0\n" % rad_to_deg(record[5]) \
-                    + u'Wind speed    : ' + u"%.2f kn" % ms_to_kn(record[6])  
+            descr = u'Time: ' + tim_to_str(fields[0]) + "\n" \
+                    + u'Heading: ' + ang_to_str(fields[3]) \
+                    + u'Speed : ' + spd_to_str(fields[4]) \
+                    + u'Wind direction: ' + ang_to_str(fields[5]) \
+                    + u'Wind speed    : ' + spd_to_str(fields[6])  
         
             pm.set_description(descr.encode('utf-8'))
             doc.add_feature(pm)
 
-        save_kml_document(kml, filename + '.kml')
+        save_kml_document(kml, filename)
 
 class AdjustUpdater(BoatUpdater):
     """Class that updates boat information from another boat"""

@@ -10,4 +10,15 @@ __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 class Router(object):
-    pass
+    def __init__(self, *args, **kwargs):
+        super(Router, self).__init__()
+        self.course = kwargs['course']
+        try:
+            self.chart = kwargs['chart']
+        except KeyError:
+            self.chart = kwargs['map']
+        try:
+            self.boat = kwargs['boat']
+        except KeyError:
+            self.boat = None
+

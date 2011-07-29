@@ -13,14 +13,14 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 import sys
 import traceback
 from utils import *
+from classes import Logable
 from geofun import Vector, Line
 from controller import ControllerError
 
 from datetime import datetime
 
-class Sailor(object):
+class Sailor(Logable):
     """Handles sailing a boat along a route"""
-    __log_data = []
 
     def __init__(self, *args, **kwargs):
         super(Sailor, self).__init__()
@@ -29,26 +29,17 @@ class Sailor(object):
             self.controller = args[1]
             self.updater = args[2]
             self.navigator = args[3]
-            self.map = args[4]
+            self.chart = args[4]
         else:
             self.boat = kwargs['boat']
             self.controller = kwargs['controller']
             self.updater = kwargs['updater']
             self.navigator = kwargs['navigator']
-            self.map = kwargs['map']
+            try:
+                self.chart = kwargs['map']
+            except KeyError:
+                self.chart = kwargs['chart']
 
-    def __log(self, log_string):
-        self.__log_data.append((datetime.utcnow(), log_string))
-
-    def save_log(self, filename):
-        f = open(filename + '.txt', "w")
-        for record in self.__log_data:
-            f.write(str(record[0]) + " " + record[1] + "\n")
-        f.close()
-
-    def print_log(self):
-        for record in self.__log_data[-5:]:
-            print str(record[0]) + " " + record[1]
 
     def sail(self):
         try:
@@ -59,19 +50,19 @@ class Sailor(object):
             if abs(new_heading - self.boat.heading) > 0.002:
                 try: 
                     if is_direct:
-                        self.__log("Steering %.2f" % rad_to_deg(new_heading))
+                        self.log("Steering %.2f" % rad_to_deg(new_heading))
                         self.controller.steer_heading(new_heading)
                     else:
                         wind_angle = normalize_angle_pipi( \
                                 self.boat.condition.wind[0] - new_heading)
-                        self.__log("Steering wind angle %.2f" % rad_to_deg(wind_angle))
+                        self.log("Steering wind angle %.2f" % rad_to_deg(wind_angle))
                         self.controller.steer_wind_angle(wind_angle)
 
                 except ControllerError:
-                    self.__log("Failed to steer boat")
+                    self.log("Failed to steer boat")
         except:
-            self.__log("General failure while sailing")
-            self.__log(traceback.format_exc())
+            self.log("General failure while sailing")
+            self.log(traceback.format_exc())
                 
         return True
         
@@ -149,9 +140,9 @@ class Sailor(object):
             if (cross_track > 0) == (off_bearing_angle > 0):
                 # ...or tack/gybe when they don't
                 if approach_lt_45:
-                    self.__log("Tacked/gybed to assert <45 degree approach")
+                    self.log("Tacked/gybed to assert <45 degree approach")
                 else:
-                    self.__log("Tacked/gybed to reduce CTE: %.0f m" \
+                    self.log("Tacked/gybed to reduce CTE: %.0f m" \
                                % cross_track)
                 return True, normalize_angle_2pi(heading + 2 * wind_angle)
     
@@ -169,18 +160,18 @@ class Sailor(object):
         future_position = boat_position + sail_vector
         sail_line = Line(self.boat.position, future_position)
         # Check if the projected line hits land...
-        if self.map.hit(sail_line):
+        if self.chart.hit(sail_line):
             # ... and if so, tack or gybe away from it
             wind = self.boat.condition.wind
             wind_angle = normalize_angle_pipi(wind[0] - heading)
-            self.__log("Tacked/gybed to avoid hitting land")
+            self.log("Tacked/gybed to avoid hitting land")
             return True, normalize_angle_2pi(heading + 2 * wind_angle)
 
         # Also, we want to keep a clear line of sight to the waypoint
         track, waypoint = self.navigator.get_active_segment()
         bearing = waypoint - self.boat.position
         view_line = Line(self.boat.position, waypoint)
-        if self.map.hit(view_line):
+        if self.chart.hit(view_line):
             # The only way, we could have gotten something in the view
             # line is that we were reaching or tacking away from the
             # track. Tack or gybe now to get back.
@@ -191,7 +182,7 @@ class Sailor(object):
                 # ...or tack/gybe when they don't
                 wind = self.boat.condition.wind
                 wind_angle = normalize_angle_pipi(wind[0] - heading)
-                self.__log("Tacked/gybed to avoid land getting in line of sight")
+                self.log("Tacked/gybed to avoid land getting in line of sight")
                 return True, normalize_angle_2pi(heading + 2 * wind_angle)
 
         # Nothing needed to be done. Return the originally suggested heading

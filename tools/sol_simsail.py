@@ -66,7 +66,8 @@ while sailor.sail():
             boat.motion.velocity
     sys.stdout.flush()
 
-updater.save_log("track_log")
-sailor.save_log("sail_log")
+updater.save_log("track.log")
+updater.save_to_kml("track.kml")
+sailor.save_log("sail.log")
 
 print "Route completed!"

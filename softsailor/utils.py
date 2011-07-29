@@ -92,6 +92,9 @@ def to_float(value):
 def to_string(value):
     return str(value)
 
+def tim_to_str(value):
+    return value.strftime(time_format)
+
 def lat_to_str(value, unsigned=True):
     if value < 0 and unsigned:
         return u"%8.4f \u00B0S" % rad_to_deg(-value)
