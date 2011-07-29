@@ -11,25 +11,20 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 from softsailor.utils import *
 from softsailor.route import Waypoint
+from softsailor.course import *
 from geofun import Vector, Position, Line
 
-class Mark(Position):
-    on_land = False
-    to_port = False
-    target = Position()
+class SolMark(Mark):
     target_vector = Vector()
 
-class Course(object):
+class SolCourse(Course):
     def __init__(self, *args, **kwargs):
-        super(Course, self).__init__()
-        self._marks = []
-        waypoints = None
-        finish_width = 100
+        super(SolCourse, self).__init__()
         chart = None
         if len(args) > 0:
             waypoints = args[0]
         if len(args) > 1:
-            finish_width = args[1]
+            finish_radius = args[1]
         if len(args) > 2:
             chart = args[2]
         try:
@@ -37,7 +32,7 @@ class Course(object):
         except KeyError:
             pass
         try:
-            finish_width = kwargs['finish_width']
+            finish_radius = kwargs['finish_radius']
         except KeyError:
             pass
         try:
@@ -50,7 +45,9 @@ class Course(object):
             pass
         self._chart = chart
         self._start = Position(waypoints[0][0], waypoints[0][1])
-        self._finish = Position(waypoints[-1][0], waypoints[-1][1])
+        self._finish = Finish(waypoints[-1][0], waypoints[-1][1])
+
+        # Enrich waypoints to turn them into marks 
         for i in range(1, len(waypoints) - 1):
             prev = Position(waypoints[i - 1][0], waypoints[i - 1][1])
             mark = Mark(waypoints[i][0], waypoints[i][1])
@@ -79,19 +76,12 @@ class Course(object):
             else:
                 mark.target = mark + mark.target_vector * 42
             self._marks.append(mark)
-        self._finish_width = finish_width
 
-    @property
-    def marks(self):
-        return self._marks
+        # Construct finish line
+        finish_leg = self._finish - Position(waypoints[-2][0], waypoints[-2][1])
+        self._finish.left = self._finish + Vector(finish_leg.a - half_pi, finish_radius)
+        self._finish.right = self._finish + Vector(finish_leg.a + half_pi, finish_radius)
 
-    @property
-    def start(self):
-        return self._start
-
-    @property
-    def finish(self):
-        return self._finish, self._finish_width
 
     def get_on_land(self, position):
         if self._chart is not None:
@@ -139,6 +129,11 @@ class Course(object):
         finish.set_description('Finish')
         finish.set_styleurl('#default')
         marks.add_feature(finish)
+        p1 = list(self._finish.left)
+        p2 = list(self._finish.right)
+        ln = (rad_to_deg(p1), rad_to_deg(p2))
+        fl = create_line_placemark('Finish line', ln)
+        marks.add_feature(fl)
         
         description = 'Race marks'
         doc.set_description(description)

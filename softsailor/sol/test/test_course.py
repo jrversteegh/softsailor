@@ -40,7 +40,7 @@ class TestCourse(unittest.TestCase):
         dirname = os.path.dirname(os.path.abspath(__file__))
         chart.load(dirname + '/Gbr_Gtb.xml')
         waypoints = gen_waypoints()
-        self.crs = Course(waypoints, 1000, chart)
+        self.crs = SolCourse(waypoints, 1000, chart)
 
     def testOrientation(self):
         self.assertFalse(self.crs.marks[0].to_port)
@@ -61,7 +61,7 @@ class TestCourse2(unittest.TestCase):
     chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 25))
     def setUp(self):
         waypoints = gen_waypoints_pb3_2011()
-        self.crs = Course(waypoints, 1000, self.chart)
+        self.crs = SolCourse(waypoints, 1000, self.chart)
 
     def testOrientation(self):
         self.assertFalse(self.crs.marks[0].to_port)
