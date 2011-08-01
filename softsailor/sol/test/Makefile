@@ -9,3 +9,9 @@ map:
 
 course:
 	python test_course.py
+
+boatperformance:
+	python test_boatperformance.py
+
+router:
+	python test_router.py

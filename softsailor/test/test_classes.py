@@ -1,7 +1,7 @@
 import unittest
 import math
 
-import test_helper
+import testing_helper
 from softsailor.classes import *
 
 

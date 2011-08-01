@@ -1,15 +1,17 @@
 import os
 import unittest
-import test_utils
+import testing_helper
 
 
 from softsailor.utils import *
+from softsailor.route import Route
 from softsailor.sol.sol_map import *
 from softsailor.sol.sol_settings import Settings
 
 from geofun import Position, Vector
 
 dirname = os.path.dirname(os.path.abspath(__file__))
+online = False
 
 class TestFuncs(unittest.TestCase):
     def testIntersection(self):
@@ -41,8 +43,9 @@ class TestFuncs(unittest.TestCase):
 
 class TestMap(unittest.TestCase):
     def setUp(self):
-        self.map = Map()
+        self.map = SolMap()
 
+    @unittest.skipUnless(online == True, 'Requires sailonline connection')
     def testLoad(self):
         settings = Settings()
         if settings.map != '':
@@ -92,7 +95,7 @@ class TestMap(unittest.TestCase):
         hit = self.map.hit(segment)
         self.assertFalse(hit)
 
-    def testOuter(self):
+    def testOuterPoints(self):
         self.map.load(dirname + '/Canary_Brazil.xml')
         # Attempt to pass Sao Antao (Cabo Verde) from north to south
         pos_from = Position(0.297869, -0.43921) + Vector(0, 30000)
@@ -102,25 +105,39 @@ class TestMap(unittest.TestCase):
         hit = self.map.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
 
-        outer_points = self.map.outer(segment)
+        outer_points = self.map.outer_points_first(segment)
         self.assertEquals(2, len(outer_points))
         self.assertTrue(not outer_points[0] is None \
                         and not outer_points[1] is None, \
                         'Island, so expected two ways to pass (both sides)')
 
-        # ..now from south to north
-        pos_from = Position(0.297869, -0.43921) + Vector(math.pi, 30000)
+        # ..now from south to north and the start a little offset to the east
+        # so we'll also hit Sao Vicente
+        pos_from = Position(0.297869, -0.43921) + Vector(math.pi - 0.2, 35000)
         pos_to = Position(0.297869, -0.43921) + Vector(0, 30000)
         segment = Line(pos_from, pos_to)
         # First verify that we're hitting
         hit = self.map.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
 
-        outer_points = self.map.outer(segment)
+        outer_points = self.map.outer_points_first(segment)
         self.assertEquals(2, len(outer_points))
         self.assertTrue(not outer_points[0] is None \
                         and not outer_points[1] is None, \
                         'Island, so expected two ways to pass (both sides)')
+        route = Route(outer_points[0])
+        route.save_to_kml(dirname + '/outer_points_first_0.kml')
+        route = Route(outer_points[1])
+        route.save_to_kml(dirname + '/outer_points_first_1.kml')
+
+        outer_points = self.map.outer_points(segment)
+        self.assertEquals(3, len(outer_points), 'Expected 3 lines around both islands')
+        route = Route(outer_points[0])
+        route.save_to_kml(dirname + '/outer_points_0.kml')
+        route = Route(outer_points[1])
+        route.save_to_kml(dirname + '/outer_points_1.kml')
+        route = Route(outer_points[2])
+        route.save_to_kml(dirname + '/outer_points_2.kml')
 
     def testSaveToKml(self):
         self.map.load(dirname + '/Gbr_Gtb.xml')

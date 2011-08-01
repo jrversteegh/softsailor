@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
-import test_utils
+import testing_helper
 
 from softsailor.utils import *
 

@@ -47,8 +47,22 @@ class Logable(object):
     def records(self):
         return self._log_data
 
-class PolarData:
-    speeds = []
-    angles = []
-    data = []
+class PolarData(object):
+    def __init__(self, *args, **kwargs):
+        super(PolarData, self).__init__()
+        self.speeds = []
+        self.angles = []
+        # Data is organized as list of speeds per angle
+        self.data = []
+
+    def save_to_file(self, filename):
+        f = open(filename, "w")
+        for i, angle in enumerate(self.angles):
+            f.write('%.2f' % rad_to_deg(angle) + ':')
+            for j, wind_speed in enumerate(self.speeds):
+                f.write(' %.2f:%.2f' % (ms_to_kn(wind_speed),
+                                        ms_to_kn(self.data[i][j])))
+            f.write("\n")
+        f.close()
+
 

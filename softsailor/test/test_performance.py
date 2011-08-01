@@ -1,4 +1,5 @@
 import unittest
+import testing_helper
 
 from softsailor.performance import *
 
@@ -21,3 +22,6 @@ class TestPerformance(unittest.TestCase):
     def testHasGetOptimalAngles(self):
         self.assertTrue(hasattr(self.performance, 'get_optimal_angles'))
         self.assertTrue(hasattr(self.performance.get_optimal_angles, '__call__'))
+
+if __name__ == "__main__":
+    unittest.main()

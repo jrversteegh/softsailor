@@ -18,3 +18,4 @@ class Boat(SailBoat):
     def __init__(self, *args, **kwargs):
         super(Boat, self).__init__(*args, **kwargs)
         self.performance = Performance(get_settings().polar_data)
+        self.efficiency = 1

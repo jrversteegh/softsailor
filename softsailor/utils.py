@@ -18,6 +18,8 @@ import kmldom
 import kmlengine
 from itertools import chain
 
+from geofun import Position, Vector
+
 def get_config_dir():
     script_path = os.path.dirname(os.path.realpath(__file__))
     config_path = os.path.realpath(script_path + '/../etc')
@@ -279,4 +281,37 @@ def bearing_to_heading(bearing, speed, current):
         normalize_angle_2pi(result)
     return result
         
-
+def push_out(points, offset=42):
+    result = []
+    i = iter(points)
+    try:
+        cur = i.next()
+        result.append(Position(cur))
+        try:
+            nxt = i.next()
+            v_from = nxt - cur
+            try:
+                while True:
+                    prv = cur
+                    cur = nxt
+                    nxt = i.next()
+                    v_to = v_from
+                    v_from = nxt - cur
+                    ad = angle_diff(v_from.a, v_to.a)
+                    o = offset
+                    if ad > 0:
+                        a = normalize_angle_2pi(v_to.a + 0.5 * (ad - pi))
+                    elif ad < 0:
+                        a = normalize_angle_2pi(v_to.a + 0.5 * (ad + pi))
+                    else:
+                        a = 0
+                        o = 0
+                    v = Vector(a, o)
+                    result.append(cur + v)
+            except StopIteration:
+                result.append(Position(nxt))
+        except StopIteration:
+            pass
+    except StopIteration:
+        pass
+    return result

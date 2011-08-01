@@ -2,16 +2,25 @@ import unittest
 import math
 import tempfile
 
-import test_helper
+import testing_helper
 from softsailor.classes import *
 from softsailor.route import *
 
 class TestWaypoint(unittest.TestCase):
     def setUp(self):
         self.waypoint = Waypoint(1, 1)
+        self.waypoint.range = 18
+        self.waypoint.comment = "Test"
     
     def testBearing(self):
         self.assertAlmostEqual(math.pi, (self.waypoint - Position(1.1, 1))[0])
+
+    def testCopyConstruct(self):
+        wp = Waypoint(self.waypoint)
+        self.assertEqual(self.waypoint.lat, wp.lat)
+        self.assertEqual(self.waypoint.lon, wp.lon)
+        self.assertEqual(self.waypoint.range, wp.range)
+        self.assertEqual(self.waypoint.comment, wp.comment)
 
 class TestRoute(unittest.TestCase):
     def setUp(self):

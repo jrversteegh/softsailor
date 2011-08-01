@@ -1,5 +1,5 @@
 import unittest
-import test_utils
+import testing_helper
 
 from softsailor.boat import SailBoat 
 from softsailor.sol.sol_functions import *

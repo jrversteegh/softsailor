@@ -1,4 +1,5 @@
 import unittest
+import testing_helper
 
 from softsailor.boat import *
 
@@ -13,13 +14,16 @@ class TestBoatWind(unittest.TestCase):
         fetch_boat(boat)
         settings = Settings()
         performance = Performance(polar_data=settings.polar_data)
+        settings.polar_data.save_to_file('polar_data.txt')
 
         speed = performance.get_speed(boat.relative_wind)
         bs = ms_to_kn(boat.motion.speed)
-        cs = ms_to_kn(speed)
+        cs = ms_to_kn(speed) * boat.efficiency
         msg = 'Boat speed: ' + str(bs) + \
               '  Calc speed: ' + str(cs)
         
-        # Test boat performance accuracy. Should be within quarter knot.
-        self.failIf(abs(bs - cs) > 0.25, msg)
+        # Test boat performance accuracy. Should be within a tenth of a knot.
+        self.failIf(abs(bs - cs) > 0.1, msg)
     
+if __name__ == '__main__':
+    unittest.main()

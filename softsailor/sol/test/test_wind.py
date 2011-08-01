@@ -1,5 +1,5 @@
 import unittest
-import test_utils
+import testing_helper
 from datetime import datetime, timedelta
 
 from softsailor.utils import *

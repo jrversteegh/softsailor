@@ -14,6 +14,7 @@ from bisect import bisect, bisect_left, insort
 import numpy as np
 
 from softsailor.utils import *
+from softsailor.map import Map
 from sol_xmlutil import *
 
 from geofun import Position, Line
@@ -68,11 +69,19 @@ def side_of(b1, b2, right=False):
         return True
     if b1 is None:
         return True
-    left = angle_diff(b1.a, b2.a) < 0
+    da = angle_diff(b1.a, b2.a)
     if right:
-        return not left
+        return da > 0
     else:
-        return left
+        return da < 0
+
+def angle_bigger(a1, a2, right=True):
+    da = angle_diff(a1, a2)
+    if right:
+        return da > 0
+    else:
+        return da < 0
+
 
 # Sizes of cells in tile maps
 tile_cell_size = {'c': deg_to_rad(45), 
@@ -80,7 +89,7 @@ tile_cell_size = {'c': deg_to_rad(45),
                   'i': deg_to_rad(2), 
                   'l': deg_to_rad(10)}
 
-class Map:
+class SolMap(Map):
 
     def setup_cells(self):
         lat_cells = int(round((self.maxlat - self.minlat) / self.cellsize))
@@ -210,7 +219,7 @@ class Map:
         return result
 
     def __hit(self, line):
-        result = None
+        result = (None, None)
         # Maximum hit distance is the length of the line
         dist = line.v.r
         intersects = self.__intersects(line)
@@ -223,8 +232,8 @@ class Map:
         return result
 
     def hit(self, line):
-        intersect = self.__hit(line)
-        if intersect is not None:
+        segment, point = self.__hit(line)
+        if segment is not None:
             return True
         else:
             return False
@@ -239,51 +248,73 @@ class Map:
             result.append(point)
         return result
 
-    def outer(self, line):
+    def outer_points_first(self, line):
         poly_part, intersect = self.__hit(line)
-        p_outer = [None, None]
+        p_outer = [[line.p1], [line.p1]]
         if poly_part is not None:
             # Line intersects with land
-            p = [self.__find_point(poly_part.p1), \
-                 self.__find_point(poly_part.p2)]
-            p_from = Position(line.p1)
-            b = [p[0] - p_from, p[1] - p_from]
-            b_outer = [None, None]
-            if side_of(b[1], b[0], False):
-                direction = 1
-            else:
-                direction = 0
+            p_outer[False].append(intersect)
+            p_outer[True].append(intersect)
 
-            def trace_poly(forward, right):
-                #print "Trace forward: %d direct %d" % (forward, right)
-                p_cur = p[forward]
-                # Remember last point in order to maintain direction
-                p_last = p[1 - forward]
+            # Find the points of the map line that is being intersected
+            # (This should not really be necessary.. as the poly_part
+            #  could already contain this information, but doesn't at
+            #  the moment. The poly_part points are not MapPoints)
+            p1 = self.__find_point(poly_part.p1)
+            p2 = self.__find_point(poly_part.p2)
+            print 'Points', pos_to_str(p1), pos_to_str(p2)
+            b1 = p1 - line.p1
+            b2 = p2 - line.p1
+            right = side_of(b2, b1, True)
+
+            def trace_poly(p_last, p_cur, right):
+                p_start = p_last
+                left = not right
+                ps = p_outer[right]
+                a = line.v.a
+                b = a
+                a_maxs = [a]
+                b_max = b
                 # While there is a next point and we haven't gone completely round
-                while p_cur and not p_cur is p[1 - forward]:
-                    b_cur = p_cur - p_from
-                    #print p_last, p_cur, b_cur
-                    # Only when point is closer then line length, otherwise
-                    # the point will never be reached
-                    if b_cur[1] < line[1][1]:
-                        if side_of(b_cur, b_outer[right], right):
-                            b_outer[right] = b_cur
-                            p_outer[right] = p_cur
-                            #print 'Outer: ', p_outer[right], b_outer[right]
-                    else:
-                        pass
-                        #print "Out of reach"
+                while (p_cur is not None) and (p_cur is not p_start):
+                    # Cumulative angle
+                    ad = angle_diff((p_cur - ps[-1]).a, a)
+                    print 'Angle diff', ang_to_str(ad), 'Right', right
+                    b += angle_diff((line.p2 - p_cur).a, b)
+                    if angle_bigger(ad, 0, right) or angle_bigger(b, b_max, left):
+                        while a_maxs and angle_bigger(ad, 0, right):
+                            a_maxs.pop()
+                            ps.pop()
+                            try:
+                                a = a_maxs[-1]
+                            except IndexError:
+                                a = line.v.a
+                            ad = angle_diff((p_cur - ps[-1]).a, a)
+                        ps.append(p_cur)
+                        a += ad
+                        a_maxs.append(a)
+                        b_max = b
 
                     p_next = p_cur.other_link(p_last)
                     p_last = p_cur
                     p_cur = p_next
 
                 # Poly ended (edge of map?). That's not a way around
-                if not p_cur and p_last is p_outer[right]:
+                if not p_cur and p_last is ps[-1]:
                     p_outer[right] = None
+                else:
+                    ps.append(line.p2)
 
-            trace_poly(0, direction)
-            trace_poly(1, 1 - direction)
+            # Trace both directions
+            print 'Trace left', right
+            trace_poly(p1, p2, right)
+            print 'Trace left', not right
+            trace_poly(p2, p1, not right)
+            p_outer[False] = push_out(p_outer[False])
+            p_outer[True] = push_out(p_outer[True])
+        else:
+            p_outer[False].append(line.p2)
+            p_outer[True].append(line.p2)
 
         return p_outer
 

@@ -17,12 +17,25 @@ import kmlbase
 import kmldom
 
 class Waypoint(Position):
-    range = 100.0  # Default range for waypoint: 100m
+    range = 42.0  # Default range for waypoint: 42m
+    comment = ''
     def __init__(self, *args, **kwargs):
-        super(Waypoint, self).__init__(*args[:2], **kwargs)
+        if len(args) == 1:
+            lat, lon = args[0]
+        else:
+            lat, lon = args[:2]
+        super(Waypoint, self).__init__(lat, lon)
+        if len(args) > 0:
+            # Copy constructor
+            try:
+                self.range = args[0].range
+                self.comment = args[0].comment
+            except AttributeError:
+                pass
         if len(args) > 2:
-            self.range = args[2]
-        self.comment = ""
+            self.range = float(args[2])
+        if len(args) > 3:
+            self.comment = str(args[3])
 
     def is_reached(self, position):
         """Return whether the waypoint has been reached by object
@@ -36,9 +49,9 @@ class Route(object):
     def __init__(self, *args, **kwargs):
         super(Route, self).__init__()
         self.__waypoints = []
-        if len(args) > 0:
+        if len(args) == 1:
             for wp in args[0]:
-                self.add(wp)
+                self.__waypoints.append(Waypoint(wp))
 
     def __iter__(self):
         return iter(self.__waypoints)
@@ -63,6 +76,15 @@ class Route(object):
                 result += " " + wp.comment
             result += "\n"
         return result
+
+    def __iadd__(self, value):
+        for point in value:
+            self.__waypoints.append(Waypoint(point))
+
+    def __add__(self, value):
+        result = Route(self)
+        result += value
+        return result
                       
     @property
     def waypoints(self):
@@ -71,7 +93,7 @@ class Route(object):
     def waypoints(self, value):
         self.__waypoints = []
         for wp in value:
-            self.__waypoints.append(Waypoint(wp))
+            self.add(wp)
 
     @property
     def segments(self):
