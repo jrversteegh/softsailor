@@ -29,20 +29,12 @@ class Router(object):
     def construct_legs(self):
         self.legs = []
         for course_leg in self.course.legs:
-            outers = self.chart.outer_lines(course_leg)
-            if len(outers) > 0:
-                routes = []
-                for outer in outers:
-                    route = Route()
-                    route.add(course_leg.p1)
-                    for p in outer:
-                        route.add(p)
-                    route.add(course_leg.p2)
-                    router.append(route)
-                self.legs.append(min(routes, key=lambda r: r.length))
-            else:
-                route = Route((course_leg.p1, course_leg.p2))
-                self.legs.append(route)
+            outers = self.chart.outer_points(course_leg)
+            routes = []
+            for outer in outers:
+                route = Route(outer)
+                routes.append(route)
+            self.legs.append(min(routes, key=lambda r: r.length))
 
     def construct_course(self):
         self.course = Route()

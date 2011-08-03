@@ -24,8 +24,8 @@ class Mark(Position):
             return self
         else:
             return self._target
-    @target.setter
-    def target(self, value):
+
+    def set_target(self, value):
         self._target = value
 
 class Finish(Position):

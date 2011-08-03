@@ -131,7 +131,8 @@ class TestMap(unittest.TestCase):
         route.save_to_kml(dirname + '/outer_points_first_1.kml')
 
         outer_points = self.map.outer_points(segment)
-        self.assertEquals(3, len(outer_points), 'Expected 3 lines around both islands')
+        # Expected 3 lines around both islands
+        self.assertEquals(3, len(outer_points))
         route = Route(outer_points[0])
         route.save_to_kml(dirname + '/outer_points_0.kml')
         route = Route(outer_points[1])

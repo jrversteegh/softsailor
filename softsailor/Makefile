@@ -1,9 +1,7 @@
 all: test
 
-test: nosetests
-
-nosetests:
-	@nosetests
+.PHONY: test
+test: 
 
 clean:
 	rm *.pyc

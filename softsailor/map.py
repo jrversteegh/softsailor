@@ -16,6 +16,10 @@ class Map(object):
         """Returns whether the segment crosses a land boundary"""
         return False
 
+    def intersect(self, line):
+        """Returns segment and intersection point or None, None when not hitting"""
+        return (None, None)
+
     def outer_points_first(self, line):
         """Returns the two lines arount the first land hit"""    
         return ((line.p1, line.p2), (line.p1, line.p2))
@@ -27,10 +31,11 @@ class Map(object):
             outers.remove(None)
         except ValueError:
             pass
-        modified = True
-        while  modified:
+        def scan_sub_outers():
             modified = False
-            for outer in outers:
+            for num, outer in enumerate(outers):
+                if outer is None:
+                    raise Exception('Expected at least one path around land')
                 for i in xrange(1, len(outer)):
                     p1 = outer[i - 1]
                     p2 = outer[i]
@@ -42,15 +47,22 @@ class Map(object):
                         pass
                     outer_copy = None
                     for sub_outer in sub_outers:
+                        if sub_outer is None:
+                            raise Exception(
+                                'Expected at least one path around land in sub search')
                         sub_outer = sub_outer[1:-1]
                         if sub_outer:
-                            modified = True
                             if outer_copy:
                                 outer_copy[i:i] = sub_outer
                                 outers.append(outer_copy)
                             else:
                                 outer_copy = outer[:]
                                 outer[i:i] = sub_outer
+                            modified = True
+            return modified
+
+        while scan_sub_outers():
+            pass
 
         return outers
 

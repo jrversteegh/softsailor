@@ -12,9 +12,9 @@ class TestInterpolation(unittest.TestCase):
         tck = splrep(nx, ny)
         xs = np.linspace(0, 3, 20)
         ys = splev(xs, tck)
-        print xs, ys
-        for x, y in zip(xs, ys):
-            print "%.3f" % y 
+        #print xs, ys
+        #for x, y in zip(xs, ys):
+            #    print "%.3f" % y 
         
 
 if __name__ == '__main__':

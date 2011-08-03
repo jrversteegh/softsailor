@@ -50,7 +50,7 @@ class SolCourse(Course):
         # Enrich waypoints to turn them into marks 
         for i in range(1, len(waypoints) - 1):
             prev = Position(waypoints[i - 1][0], waypoints[i - 1][1])
-            mark = Mark(waypoints[i][0], waypoints[i][1])
+            mark = SolMark(waypoints[i][0], waypoints[i][1])
             nxt = Position(waypoints[i + 1][0], waypoints[i + 1][1])
             v1 = mark - prev
             v2 = nxt - mark
@@ -72,9 +72,9 @@ class SolCourse(Course):
                     if v.r > dist:
                         dist = v.r
                         intersection = intersect
-                mark.target = intersection + mark.target_vector * 42
+                mark.set_target(intersection + mark.target_vector * 42)
             else:
-                mark.target = mark + mark.target_vector * 42
+                mark.set_target(mark + mark.target_vector * 42)
             self._marks.append(mark)
 
         # Construct finish line

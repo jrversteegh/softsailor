@@ -17,8 +17,8 @@ from sol_settings import Settings
 from sol_xmlutil import *
 from sol_wind import *
 from sol_weather import *
-from sol_map import Map
-from sol_course import Course
+from sol_map import SolMap
+from sol_course import SolCourse
 
 from datetime import datetime
 
@@ -37,7 +37,7 @@ def get_settings():
 def get_map():
     global __sol_map_instance
     if __sol_map_instance is None:
-        __sol_map_instance = Map()
+        __sol_map_instance = SolMap()
         settings = get_settings()
         if settings.map != '':
             __sol_map_instance.load(get_settings().map)
@@ -61,9 +61,9 @@ def get_course():
     global __sol_course_instance
     if __sol_course_instance is None:
         settings = get_settings()
-        __sol_course_instance = Course(settings.course, 
-                                       settings.finish_radius, 
-                                       get_map()) 
+        __sol_course_instance = SolCourse(settings.course, 
+                                          settings.finish_radius, 
+                                          get_map()) 
     return __sol_course_instance
 
 def fetch_boat(boat):

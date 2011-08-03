@@ -12,12 +12,13 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 import math
 from bisect import bisect, bisect_left, insort
 import numpy as np
+import time
 
 from softsailor.utils import *
 from softsailor.map import Map
 from sol_xmlutil import *
 
-from geofun import Position, Line
+from geofun import Position, Line, floats_equal
 
 
 def poly_intersect(poly, line):
@@ -76,7 +77,7 @@ def side_of(b1, b2, right=False):
         return da < 0
 
 def angle_bigger(a1, a2, right=True):
-    da = angle_diff(a1, a2)
+    da = a1 - a2
     if right:
         return da > 0
     else:
@@ -101,25 +102,29 @@ class SolMap(Map):
         for poly in polys:
             pl = []
             points = get_elements(poly, 'point')
-            pos2 = None
+            if points:
+                point = points[-1]
+                lat = float(point.getAttribute('lat'))
+                lon = float(point.getAttribute('lon'))
+                pos2 = Position(deg_to_rad(lat), deg_to_rad(lon))
             for point in points:
                 lat = float(point.getAttribute('lat'))
                 lon = float(point.getAttribute('lon'))
                 pos1 = Position(deg_to_rad(lat), deg_to_rad(lon))
-                if not pos2 is None and not pos2 == pos1:
+                if not (pos2 == pos1):
                     # Avoid adding grid lines
                     looks_like_grid = False
-                    if pos1[0] == pos2[0]: 
+                    if pos1.lat == pos2.lat: 
                         # This line is horizontal
-                        rounded = round(pos1[0] / self.cellsize)
+                        rounded = round(pos1.lat / self.cellsize)
                         rounded *= self.cellsize
-                        if np.allclose(pos1[0], rounded):
+                        if floats_equal(pos1.lat, rounded):
                             looks_like_grid = True
-                    if pos1[1] == pos2[1]: 
+                    if pos1.lon == pos2.lon: 
                         # This line is vertical
-                        rounded = round(pos1[1] / self.cellsize)
+                        rounded = round(pos1.lon / self.cellsize)
                         rounded *= self.cellsize
-                        if np.allclose(pos1[1], rounded):
+                        if floats_equal(pos1.lon, rounded):
                             looks_like_grid = True
                     if not looks_like_grid:
                         pl.append(Line(pos1, pos2))
@@ -262,56 +267,76 @@ class SolMap(Map):
             #  the moment. The poly_part points are not MapPoints)
             p1 = self.__find_point(poly_part.p1)
             p2 = self.__find_point(poly_part.p2)
-            print 'Points', pos_to_str(p1), pos_to_str(p2)
             b1 = p1 - line.p1
             b2 = p2 - line.p1
             right = side_of(b2, b1, True)
 
             def trace_poly(p_last, p_cur, right):
                 p_start = p_last
-                left = not right
                 ps = p_outer[right]
+                b = line.v.a 
                 a = line.v.a
-                b = a
-                a_maxs = [a]
-                b_max = b
+                g = a
+                ans = [line.v.a]
+                def last_a():
+                    if ans:
+                        return ans[-1]
+                    else:
+                        return line.v.a
+                def new_a():
+                    return (p_cur - ps[-1]).a
+                def new_b():
+                    return (line.p2 - p_cur).a
+                def new_g():
+                    return (p_cur - p_last).a
                 # While there is a next point and we haven't gone completely round
                 while (p_cur is not None) and (p_cur is not p_start):
                     # Cumulative angle
-                    ad = angle_diff((p_cur - ps[-1]).a, a)
-                    print 'Angle diff', ang_to_str(ad), 'Right', right
-                    b += angle_diff((line.p2 - p_cur).a, b)
-                    if angle_bigger(ad, 0, right) or angle_bigger(b, b_max, left):
-                        while a_maxs and angle_bigger(ad, 0, right):
-                            a_maxs.pop()
-                            ps.pop()
-                            try:
-                                a = a_maxs[-1]
-                            except IndexError:
-                                a = line.v.a
-                            ad = angle_diff((p_cur - ps[-1]).a, a)
+                    a = last_a() + angle_diff(new_a(), last_a())
+                    b += angle_diff(new_b(), b)
+                    g += angle_diff(new_g(), g)
+                    # Remove points that lie in the convex hull upto
+                    # the current point
+                    while ans and \
+                            angle_bigger(a, last_a(), right) and \
+                            angle_bigger(a, b, right):
+                        ans.pop()
+                        ps.pop()
+                        a = last_a() + angle_diff(new_a(), last_a())
+                    # if this point 'hides' the last point, then replace the last
+                    # point with this one. This is a bit of a hack to get past 
+                    # inlets, which can make the convex hull upto the current 
+                    # point intersect with the land, causing the calculation 
+                    # of a to be off by 2 pi. 
+                    # TODO I think this could be done better by properly
+                    # calculating a instead, but that looks non-trivial
+                    if ans and math.fabs(a - g) > pi and ps[-1] == p_last:
+                        ans.pop()
+                        ps.pop()
+                        a = last_a() + angle_diff(new_a(), last_a())
                         ps.append(p_cur)
-                        a += ad
-                        a_maxs.append(a)
-                        b_max = b
+                        ans.append(a)
+                    # Only add this point 
+                    elif angle_bigger(a, b, right):
+                        ps.append(p_cur)
+                        ans.append(a)
 
                     p_next = p_cur.other_link(p_last)
                     p_last = p_cur
                     p_cur = p_next
 
-                # Poly ended (edge of map?). That's not a way around
-                if not p_cur and p_last is ps[-1]:
+                # Poly ended (edge of map?) and last point was part of the
+                # expected curve. This is a dead end...
+                if p_cur is None and p_last == ps[-1]:
                     p_outer[right] = None
                 else:
                     ps.append(line.p2)
 
             # Trace both directions
-            print 'Trace left', right
             trace_poly(p1, p2, right)
-            print 'Trace left', not right
             trace_poly(p2, p1, not right)
-            p_outer[False] = push_out(p_outer[False])
-            p_outer[True] = push_out(p_outer[True])
+            p_outer[False] = push_out(p_outer[False], chart=self)
+            p_outer[True] = push_out(p_outer[True], chart=self)
         else:
             p_outer[False].append(line.p2)
             p_outer[True].append(line.p2)

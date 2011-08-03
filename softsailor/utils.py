@@ -18,7 +18,7 @@ import kmldom
 import kmlengine
 from itertools import chain
 
-from geofun import Position, Vector
+from geofun import Line, Position, Vector
 
 def get_config_dir():
     script_path = os.path.dirname(os.path.realpath(__file__))
@@ -281,7 +281,9 @@ def bearing_to_heading(bearing, speed, current):
         normalize_angle_2pi(result)
     return result
         
-def push_out(points, offset=42):
+def push_out(points, offset=42, chart=None):
+    if points is None:
+        return None
     result = []
     i = iter(points)
     try:
@@ -307,7 +309,14 @@ def push_out(points, offset=42):
                         a = 0
                         o = 0
                     v = Vector(a, o)
-                    result.append(cur + v)
+                    p = cur + v
+                    if chart is not None:
+                        l = Line(cur + v * 0.01, p)
+                        segment, intersect = chart.intersect(l)
+                        if intersect is not None:
+                            p = cur + (intersect - cur) * 0.5
+
+                    result.append(p)
             except StopIteration:
                 result.append(Position(nxt))
         except StopIteration:
