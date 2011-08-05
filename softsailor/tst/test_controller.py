@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
+import testing_helper
 
 from softsailor.controller import *
 from softsailor.boat import SailBoat

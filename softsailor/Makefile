@@ -10,6 +10,3 @@ test_%:
 clean:
 	$(MAKE) -C .. $@
 
-.PHONY: test
-test:
-	$(MAKE) -C .. $@

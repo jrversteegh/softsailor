@@ -5,8 +5,5 @@ all:
 	$(MAKE) -C .. all
 
 sol_test_%:
-	$(MAKE) -C .. $@
+	$(MAKE) -C .. sol/$@
 
-.PHONY: test
-test:
-	$(MAKE) -C .. $@
