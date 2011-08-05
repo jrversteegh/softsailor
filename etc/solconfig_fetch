@@ -9,22 +9,25 @@ else
   arg=""
 fi
 
+echo "It requires a race update and may take a while."
+echo "Generally, it will help to avoid other network traffic."
 echo -n "Attempting to find SOL token in network traffic"
+
 token=""
 race=""
 start=`date +%s`
 while [ "X$token" = "X" ] && [ "X$race" = "X" ]; do
   # Need to be su on my system to capture packets
-  line=`sudo tcpdump -c 32 -A -s 4096 $arg 2>solconfig_fetch.log | grep "race_.*token" | awk 'NR == 1'`
+  line=`sudo tcpdump -c 64 -A -s 4096 $arg 2>solconfig_fetch.log | grep "race_.*token" | awk 'NR == 1'`
   token=`echo $line | sed 's/^.*token=\([0-9a-f]*\).*$/\1/'`
   race=`echo $line | sed 's/^.*race_\([0-9]*\).*$/\1/'`
   echo -n '.'
   now=`date +%s`
   diff=`expr $now - $start`
-  if [ $diff -gt 120 ]; then
+  if [ $diff -gt 300 ]; then
     echo
     echo "**** solconfig_fetch: no token found."
-    echo "Listened for 120 seconds. Race update should have been captured, but if you're sure" \
+    echo "Listened for 300 seconds. Race update should have been captured, but if you're sure" \
       "you're listening on the right interface, you could try simply running the script again."
     exit 1
   fi

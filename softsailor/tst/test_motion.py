@@ -1,5 +1,6 @@
 
 import unittest
+import testing_helper
 
 from motion import Motion
 

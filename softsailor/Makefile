@@ -1,7 +1,15 @@
-all: test
+%:
+	$(MAKE) -C .. $(notdir $(realpath .))/$@
 
-.PHONY: test
-test: 
+all:
+	$(MAKE) -C .. all
+
+test_%:
+	$(MAKE) -C .. $@
 
 clean:
-	rm *.pyc
+	$(MAKE) -C .. $@
+
+.PHONY: test
+test:
+	$(MAKE) -C .. $@

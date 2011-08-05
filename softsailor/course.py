@@ -33,11 +33,25 @@ class Finish(Position):
     right = Position()
 
 class Course(object):
+    mark_factory = Mark
     def __init__(self, *args, **kwargs):
         super(Course, self).__init__()
         self._marks = []
         self._start = Position()
         self._finish = Finish()
+        if len(args) > 0:
+            it = iter(args[0])
+            try:
+                p = it.next()
+                self._start = Position(p[0], p[1])
+                p = it.next()
+                while True:
+                    last_p = p
+                    p = it.next()
+                    self._marks.append(self.mark_factory(last_p[0], last_p[1]))
+            except StopIteration:
+                self._finish = Finish(p[0], p[1])
+           
         
     @property
     def legs(self):

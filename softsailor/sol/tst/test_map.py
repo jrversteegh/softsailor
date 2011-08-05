@@ -11,7 +11,11 @@ from softsailor.sol.sol_settings import Settings
 from geofun import Position, Vector
 
 dirname = os.path.dirname(os.path.abspath(__file__))
-online = False
+try:
+    value = os.environ['SOL_OFFLINE']
+    offline = True
+except KeyError:
+    offline = False
 
 class TestFuncs(unittest.TestCase):
     def testIntersection(self):
@@ -45,7 +49,7 @@ class TestMap(unittest.TestCase):
     def setUp(self):
         self.map = SolMap()
 
-    @unittest.skipUnless(online == True, 'Requires sailonline connection')
+    @unittest.skipIf(offline == True, 'Requires sailonline connection')
     def testLoad(self):
         settings = Settings()
         if settings.map != '':
@@ -105,7 +109,7 @@ class TestMap(unittest.TestCase):
         hit = self.map.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
 
-        outer_points = self.map.outer_points_first(segment)
+        outer_points = self.map._outer_points_first(segment)
         self.assertEquals(2, len(outer_points))
         self.assertTrue(not outer_points[0] is None \
                         and not outer_points[1] is None, \
@@ -120,7 +124,7 @@ class TestMap(unittest.TestCase):
         hit = self.map.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
 
-        outer_points = self.map.outer_points_first(segment)
+        outer_points = self.map._outer_points_first(segment)
         self.assertEquals(2, len(outer_points))
         self.assertTrue(not outer_points[0] is None \
                         and not outer_points[1] is None, \

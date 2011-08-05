@@ -1,7 +1,12 @@
-all: test
+%:
+	$(MAKE) -C .. $(notdir $(realpath .))/$@
 
-test: nosetests
+all:
+	$(MAKE) -C .. all
 
-nosetests:
-	@nosetests
+sol_test_%:
+	$(MAKE) -C .. $@
 
+.PHONY: test
+test:
+	$(MAKE) -C .. $@

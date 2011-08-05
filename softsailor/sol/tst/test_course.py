@@ -13,7 +13,7 @@ from geofun import Position, Vector
 
 class TestCourse(unittest.TestCase):
     def setUp(self):
-        chart = Map()
+        chart = SolMap()
         dirname = os.path.dirname(os.path.abspath(__file__))
         chart.load(dirname + '/Gbr_Gtb.xml')
         waypoints = gen_waypoints()
@@ -34,7 +34,7 @@ class TestCourse(unittest.TestCase):
         self.crs.save_to_kml(dirname + '/course.kml')
 
 class TestCourse2(unittest.TestCase):
-    chart = Map()
+    chart = SolMap()
     chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 25))
     def setUp(self):
         waypoints = gen_waypoints_pb3_2011()

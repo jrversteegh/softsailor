@@ -1,5 +1,5 @@
-.PHONY: test
-test:
+RUNP = cd $(dir $<) && python2.7 $(notdir $<)
 
-clean:
-	@find . -name "*.pyc" -exec rm {} \;
+include softsailor/module.mk
+
+include softsailor.mk

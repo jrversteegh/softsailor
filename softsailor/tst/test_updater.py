@@ -5,6 +5,8 @@ import unittest
 import tempfile
 from datetime import datetime, timedelta
 
+import testing_helper
+
 from softsailor.updater import *
 from softsailor.boat import SailBoat
 

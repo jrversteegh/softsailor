@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
+import testing_helper
 
 from softsailor.boat import Boat, SailBoat, Situation, Motion, Sails
 

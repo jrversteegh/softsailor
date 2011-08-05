@@ -17,7 +17,10 @@ class TestRouter(unittest.TestCase):
         router = Router(chart=chart, boat=None, course=course)
         router.course.save_to_kml('router_course.kml')
         for i, leg in enumerate(router.legs):
-            leg.save_to_kml('router_leg_%d.kml' % i)
+            for j, rt in enumerate(leg):
+                rt.save_to_kml('router_leg_%d_%d.kml' % (i, j))
+                if j > 4:
+                    break
 
 
 if __name__ == '__main__':

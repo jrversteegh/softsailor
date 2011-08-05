@@ -1,4 +1,5 @@
 import unittest
+import testing_helper
 
 from softsailor.boat import *
 from softsailor.utils import *

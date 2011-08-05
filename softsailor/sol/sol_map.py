@@ -65,18 +65,19 @@ class MapPoint(Position):
             return None
 
 
-def side_of(b1, b2, right=False):
-    if b2 is None:
+def side_of(v1, v2, right=False):
+    if v2 is None:
         return True
-    if b1 is None:
+    if v1 is None:
         return True
-    da = angle_diff(b1.a, b2.a)
+    da = angle_diff(v1.a, v2.a)
     if right:
         return da > 0
     else:
         return da < 0
 
 def angle_bigger(a1, a2, right=True):
+    # No angle_diff here as this functions compares absolute angles
     da = a1 - a2
     if right:
         return da > 0
@@ -253,10 +254,11 @@ class SolMap(Map):
             result.append(point)
         return result
 
-    def outer_points_first(self, line):
+    def _outer_points_first(self, line):
         poly_part, intersect = self.__hit(line)
-        p_outer = [[line.p1], [line.p1]]
+        p_outer = [[line.p1], None]
         if poly_part is not None:
+            p_outer[True] = [line.p1]
             # Line intersects with land
             p_outer[False].append(intersect)
             p_outer[True].append(intersect)
@@ -316,7 +318,10 @@ class SolMap(Map):
                         a = last_a() + angle_diff(new_a(), last_a())
                         ps.append(p_cur)
                         ans.append(a)
-                    # Only add this point 
+                    # Only add this point when going 'outside' of straight line
+                    # to p2, otherwise we apparently have a clear look at p2
+                    # and can go straight toward it. At least the way it looks
+                    # now
                     elif angle_bigger(a, b, right):
                         ps.append(p_cur)
                         ans.append(a)
@@ -339,7 +344,6 @@ class SolMap(Map):
             p_outer[True] = push_out(p_outer[True], chart=self)
         else:
             p_outer[False].append(line.p2)
-            p_outer[True].append(line.p2)
 
         return p_outer
 

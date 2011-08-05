@@ -1,4 +1,5 @@
 import unittest
+import testing_helper
 
 from softsailor.sol.sol_weather import Weather
 from softsailor.sol.sol_settings import Settings

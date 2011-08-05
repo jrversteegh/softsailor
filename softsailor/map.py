@@ -18,20 +18,24 @@ class Map(object):
 
     def intersect(self, line):
         """Returns segment and intersection point or None, None when not hitting"""
-        return (None, None)
+        return [None, None]
 
-    def outer_points_first(self, line):
+    def _outer_points_first(self, line):
         """Returns the two lines arount the first land hit"""    
-        return ((line.p1, line.p2), (line.p1, line.p2))
+        return [[line.p1, line.p2], None]
 
     def outer_points(self, line):
         """Returns a list of lines around land"""
-        outers = self.outer_points_first(line)
+        outers = self._outer_points_first(line)
         try:
             outers.remove(None)
         except ValueError:
             pass
         def scan_sub_outers():
+            """
+            Scan outers for hitting land and splitting the outer
+            around it in both directions when it does
+            """
             modified = False
             for num, outer in enumerate(outers):
                 if outer is None:
@@ -40,7 +44,7 @@ class Map(object):
                     p1 = outer[i - 1]
                     p2 = outer[i]
                     l = Line(p1, p2)
-                    sub_outers = self.outer_points_first(l)
+                    sub_outers = self._outer_points_first(l)
                     try:
                         sub_outers.remove(None)
                     except ValueError:
@@ -61,8 +65,17 @@ class Map(object):
                             modified = True
             return modified
 
+        def clean_outers():
+            """Try and remove points and still not hit land"""
+            for outer in outers:
+                for i in xrange(len(outer) - 2, 0, -1):
+                    l = Line(outer[i - 1], outer[i + 1])
+                    if not self.hit(l):
+                        outer.pop(i)
+
         while scan_sub_outers():
             pass
+        clean_outers()
 
         return outers
 
