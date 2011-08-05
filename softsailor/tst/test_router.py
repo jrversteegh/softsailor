@@ -30,6 +30,9 @@ class TestRouter(unittest.TestCase):
         router = Router(boat=boat, course=c, chart=chart)
         self.assertFalse(router.valid_route(r1))
         self.assertTrue(router.valid_route(r2))
+        c.marks[0].to_port = True
+        self.assertTrue(router.valid_route(r1))
+        self.assertFalse(router.valid_route(r2))
 
 
 if __name__ == '__main__':

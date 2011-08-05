@@ -12,7 +12,7 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 import os
 import datetime
 from utils import *
-from geofun import Position, Line
+from geofun import Position, Line, floats_equal
 import kmlbase
 import kmldom
 
@@ -49,7 +49,7 @@ class Route(object):
     def __init__(self, *args, **kwargs):
         super(Route, self).__init__()
         self.__waypoints = []
-        if len(args) == 1:
+        if len(args) > 0:
             for wp in args[0]:
                 self.__waypoints.append(Waypoint(wp))
 
@@ -85,6 +85,16 @@ class Route(object):
         result = Route(self)
         result += value
         return result
+
+    def __eq__(self, value):
+        if len(self) != len(value):
+            return False
+        if not floats_equal(self.length, value.length):
+            return False
+        for wp1, wp2 in zip(self.waypoints, value.waypoints):
+            if not (wp1 == wp2):
+                return False
+        return True
                       
     @property
     def waypoints(self):
@@ -146,6 +156,12 @@ class Route(object):
                 wp.comment = comment.strip()
                 self.__waypoints.append(wp)
         f.close()
+
+    def save_to_file(self, filename):
+        f = open(filename, "w")
+        # TODO
+        f.close()
+
 
     def save_to_kml(self, filename):
         filedir, file = os.path.split(filename)

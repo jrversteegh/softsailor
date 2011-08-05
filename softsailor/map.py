@@ -67,15 +67,19 @@ class Map(object):
 
         def clean_outers():
             """Try and remove points and still not hit land"""
+            modified = False
             for outer in outers:
                 for i in xrange(len(outer) - 2, 0, -1):
                     l = Line(outer[i - 1], outer[i + 1])
                     if not self.hit(l):
                         outer.pop(i)
+                        modified = True
+            return modified
 
         while scan_sub_outers():
             pass
-        clean_outers()
+        while clean_outers():
+            pass
 
         return outers
 

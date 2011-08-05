@@ -27,14 +27,14 @@ class Router(object):
 
         self.construct_legs()
 
-    def valid_route(self, route, marks=None):
-        if marks is None:
+    def valid_route(self, route, targets=None):
+        if targets is None:
             mks = self.course.marks
         else:
             mks = []
-            for mark in marks:
+            for target in targets:
                 for mk in self.course.marks:
-                    if mk == mark:
+                    if mk.target == target:
                         mks.append(mk)
         ans = [0 for mk in mks]
         for l in route.lines:
@@ -56,10 +56,13 @@ class Router(object):
             outers = self.chart.outer_points(course_leg)
             routes = []
             for outer in outers:
-                route = Route(outer, course_leg)
+                route = Route(outer)
                 if self.valid_route(route, (course_leg.p1, course_leg.p2)):
                     routes.append(route)
             routes.sort(key=lambda r: r.length)
+            for i in xrange(len(routes) - 2, -1, -1):
+                if routes[i] == routes[i + 1]:
+                    del routes[i]
             self.legs.append(routes)
 
     def construct_course(self):
