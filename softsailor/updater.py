@@ -47,16 +47,17 @@ class BoatUpdater(Updater):
             spd_to_str]
 
     def record(self):
-        self.log ('log',
-                  self.boat.time, 
-                  self.boat.position[0],
-                  self.boat.position[1], 
-                  self.boat.heading, 
-                  self.boat.speed, 
-                  self.boat.condition.wind[0], 
-                  self.boat.condition.wind[1])
+        self.log('log',
+                 self.boat.time, 
+                 self.boat.position[0],
+                 self.boat.position[1], 
+                 self.boat.heading, 
+                 self.boat.speed, 
+                 self.boat.condition.wind[0], 
+                 self.boat.condition.wind[1])
 
     def update(self):
+        super(BoatUpdater, self).update()
         self.record()
 
     def save_to_kml(self, filename):
@@ -123,9 +124,9 @@ class SimUpdater(BoatUpdater):
         boat.motion.course = normalize_angle_2pi( \
                 boat.heading - math.copysign(performance[0], boat.wind_angle))
 
-        boat.position += (boat.motion.velocity + boat.condition.current) * self.timestep
+        vog = boat.motion.velocity + boat.condition.current
+        boat.position += vog * timedelta_to_seconds(self.timestep)
         boat.time += self.timestep
-
         super(SimUpdater, self).update()
 
 

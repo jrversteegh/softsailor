@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 """
 This scripts sets a new online wind_angle (TWA) for configured sol boat

@@ -36,8 +36,8 @@ class Logable(object):
             f.write("\n")
         f.close()
 
-    def print_log(self):
-        for record in self._log_data:
+    def print_log(self, lines=0):
+        for record in self._log_data[-lines:]:
             fields = []
             for i, field in enumerate(record[2]):
                 fields.append(self.fmtrs[i](field))

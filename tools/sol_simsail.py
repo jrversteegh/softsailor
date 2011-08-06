@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 """
 This script makes the configured sol boat simulate the supplied route
@@ -32,12 +32,12 @@ from softsailor.route import *
 from softsailor.navigator import *
 
 import softsailor.sol.sol_world
-from softsailor.sol.sol_boat import Boat
-from softsailor.sol.sol_updater import SimUpdater
+from softsailor.sol.sol_boat import SolBoat
+from softsailor.sol.sol_updater import SolSimUpdater
 from softsailor.controller import BoatController
 from softsailor.sol.sol_functions import *
 
-boat = Boat()
+boat = SolBoat()
 chart = get_map()
 print "Map min lat: ", rad_to_deg(chart.minlat)
 print "Map max lat: ", rad_to_deg(chart.maxlat)
@@ -50,21 +50,31 @@ print "Route:"
 print route
 route.save_to_kml('active_route.kml')
 controller = BoatController(boat)
-updater = SimUpdater(boat)
+updater = SolSimUpdater(boat)
 # Set boat at start of route
 boat.position = route[0]
 navigator = Navigator(boat=boat, route=route)
 
-sailor = Sailor(boat=boat, navigator=navigator, map=chart, \
+sailor = Sailor(boat=boat, navigator=navigator, chart=chart, \
                 controller=controller, updater=updater)
 
 time.sleep(2)
+i = 0
 while sailor.sail():
-    print boat.time.strftime(time_format), \
-            boat.situation.position, \
-            "%4.1f" % rad_to_deg(boat.wind_angle), \
-            boat.motion.velocity
+    if i % 50 == 0:
+        print boat.time.strftime(time_format), \
+                vel_to_str(boat.motion.velocity)
+        # For checking exceptions...
+        #sailor.print_log()
+    i += 1
     sys.stdout.flush()
+
+print '%d steps' % i
+
+print boat.time.strftime(time_format), \
+        pos_to_str(boat.situation.position), \
+        ang_to_str(boat.wind_angle), \
+        vel_to_str(boat.motion.velocity)
 
 updater.save_log("track.log")
 updater.save_to_kml("track.kml")

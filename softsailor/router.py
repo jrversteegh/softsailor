@@ -49,7 +49,6 @@ class Router(object):
                 return False
         return True
 
-
     def construct_legs(self):
         self.legs = []
         for course_leg in self.course.legs:
@@ -65,8 +64,20 @@ class Router(object):
                     del routes[i]
             self.legs.append(routes)
 
-    def construct_course(self):
-        self.course = Route()
-        for leg in self.legs:
-            self.course += leg
+    @property
+    def course_routes(self):
+        if self.legs:
+            result = self.legs[0]
+            for leg in self.legs[1:]:
+                new_result = []
+                for res in result:
+                    for rt in leg:
+                        new_route = res + rt
+                        new_result.append(new_route)
+                result = new_result
+        else:
+            result = []
+        result.sort(key=lambda r: r.length)
+        return result
+
 

@@ -14,7 +14,7 @@ class TestBoatWind(unittest.TestCase):
         settings = Settings()
         weather = Weather()
         weather.load(settings)
-        wind = Wind(weather)
+        wind = SolWind(weather)
 
         boat = SailBoat()
         fetch_boat(boat)

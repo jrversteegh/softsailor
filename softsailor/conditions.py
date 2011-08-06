@@ -27,8 +27,8 @@ class Condition(object):
                 current = kwargs['current']
         else:
             wind = kwargs['wind']
-        self.wind = Vector(wind[0], wind[1])
-        self.current = Vector(current[0], current[1])
+        self.__wind = Vector(wind[0], wind[1])
+        self.__current = Vector(current[0], current[1])
 
     @property
     def wind(self):

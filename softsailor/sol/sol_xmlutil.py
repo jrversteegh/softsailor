@@ -29,14 +29,20 @@ def read_sol_document(handle):
 
 def fetch_sol_document_from_url(url):
     handle = urlopen(url)
-    return read_sol_document(handle)
+    try:
+        return read_sol_document(handle)
+    except BadToken as bt:
+        raise BadToken(str(bt) + '. Url: %s' % url)
 
-def fetch_sol_document(host, file):
+def fetch_sol_document(host, uri):
     conn = HTTPConnection(host, timeout=4)
-    conn.request("GET", file)
+    conn.request("GET", uri)
     conn.sock.settimeout(4)
     resp = conn.getresponse()
-    return read_sol_document(resp)
+    try:
+        return read_sol_document(resp)
+    except BadToken as bt:
+        raise BadToken(str(bt) + '. Host: %s, Uri: %s' % (host, uri))
 
 def get_element(parent, name):
     children = parent.getElementsByTagName(name)

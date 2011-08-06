@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 """
 This script makes the configured sol boat follow the supplied route
@@ -30,12 +30,12 @@ from softsailor.sailor import Sailor
 from softsailor.route import *
 from softsailor.navigator import *
 
-from softsailor.sol.sol_boat import Boat
-from softsailor.sol.sol_updater import Updater
+from softsailor.sol.sol_boat import SolBoat
+from softsailor.sol.sol_updater import SolUpdater
 from softsailor.sol.sol_controller import Controller
 from softsailor.sol.sol_functions import *
 
-boat = Boat()
+boat = SolBoat()
 chart = get_map()
 print "Map min lat: ", rad_to_deg(chart.minlat)
 print "Map max lat: ", rad_to_deg(chart.maxlat)
@@ -48,7 +48,7 @@ print "Route:"
 print route
 route.save_to_kml('active_route.kml')
 controller = Controller(boat)
-updater = Updater(boat)
+updater = SolUpdater(boat)
 # Update now so the boat has a proper initial position
 updater.update()
 navigator = Navigator(boat=boat, route=route)
@@ -60,34 +60,26 @@ logged = datetime.utcnow()
 
 while sailor.sail():
     print "Waypoint      : ", navigator.active_index
-    print "  Location    : ", navigator.active_waypoint
-    bearing = navigator.active_waypoint.get_bearing_from(boat.position)
-    print "  Bearing     : ", u"%10.2f\u00B0".encode('utf-8') \
-            % rad_to_deg(bearing[0])
-    print "  Distance    : ", "%10.2f nm" % (bearing[1] / 1852)
+    print "  Location    : ", pos_to_str(navigator.active_waypoint)
+    bearing = navigator.active_waypoint - boat.position
+    print "  Bearing     : ", ang_to_str(bearing[0])
+    print "  Distance    : ", dst_to_str(bearing[1])
     print "  Comment     : ", navigator.active_waypoint.comment
-    print "  CTE         : ", "%10.2f nm" % (navigator.get_cross_track() / 1852)
+    print "  CTE         : ", dst_to_str(navigator.get_cross_track())
     print "---"
     print "Boat time     : ", boat.situation.time.strftime(time_format)
-    print "Boat latitude : ", u"%10.4f\u00B0N".encode('utf-8') \
-            % rad_to_deg(boat.position[0])
-    print "Boat longitude: ", u"%10.4f\u00B0E".encode('utf-8') \
-            % rad_to_deg(boat.position[1])
-    print "Boat heading  : ", u"%10.2f\u00B0".encode('utf-8') \
-            % rad_to_deg(boat.heading)
-    print "Boat course   : ", u"%10.2f\u00B0".encode('utf-8') \
-            % rad_to_deg(boat.motion.course)
-    print "Boat speed    : ", "%10.2f kn" % ms_to_kn(boat.speed)
-    print "Wind direction: ", u"%10.2f\u00B0".encode('utf-8') \
-            % rad_to_deg(boat.condition.wind[0])
-    print "Wind angle    : ", u"%10.2f\u00B0".encode('utf-8') \
-            % rad_to_deg(boat.wind_angle)
-    print "Wind speed    : ", "%10.2f kn" % ms_to_kn(boat.condition.wind[1])
-    print "Apparent angle: ", u"%10.2f\u00B0".encode('utf-8') \
-            % rad_to_deg(boat.apparent_wind.sa)
-    print "Apparent speed: ", "%10.2f kn" % ms_to_kn(boat.apparent_wind[1])
+    print "Boat latitude : ", lat_to_str(boat.position[0])
+    print "Boat longitude: ", lon_to_str(boat.position[1])
+    print "Boat heading  : ", ang_to_str(boat.heading)
+    print "Boat course   : ", ang_to_str(boat.motion.course)
+    print "Boat speed    : ", spd_to_str(boat.speed)
+    print "Wind direction: ", ang_to_str(boat.condition.wind[0])
+    print "Wind angle    : ", ang_to_str(boat.wind_angle)
+    print "Wind speed    : ", spd_to_str(boat.condition.wind[1])
+    print "Apparent angle: ", ang_to_str(normalize_angle_pipi(boat.apparent_wind.a))
+    print "Apparent speed: ", ang_to_str(boat.apparent_wind[1])
     print "---"
-    sailor.print_log()
+    sailor.print_log(5)
     print "==="
     sys.stdout.flush()
     sys.stderr.flush()

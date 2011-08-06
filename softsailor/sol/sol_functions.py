@@ -54,7 +54,7 @@ def get_wind():
     if __sol_wind_instance is None:
         weather = Weather()
         weather.load(get_settings())
-        __sol_wind_instance = Wind(weather)
+        __sol_wind_instance = SolWind(weather)
     return __sol_wind_instance
 
 def get_course():

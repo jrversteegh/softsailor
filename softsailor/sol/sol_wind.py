@@ -16,16 +16,10 @@ import numpy as np
 from softsailor.utils import *
 
 def base_funcs_linear(laf, lof, tif, i, j, k):
-    laf = laf + (1 - 2 * laf) * i
-    lof = lof + (1 - 2 * lof) * j
-    tif = tif + (1 - 2 * tif) * k
-    lab = 1 - laf
-    lob = 1 - lof
-    tib = 1 - tif
-    la = 0
-    lo = 0
-    ti = 0
-    return lab * lob * tib, la, lo, ti
+    return ((1 - (laf + (1 - 2 * laf) * i)) * \
+            (1 - (lof + (1 - 2 * lof) * j)) * \
+            (1 - (tif + (1 - 2 * tif) * k)), 
+            0, 0, 0)
 
 def base_funcs_cubic(laf, lof, tif, i, j, k):
     laf = laf + (1 - 2 * laf) * i
@@ -39,7 +33,17 @@ def base_funcs_cubic(laf, lof, tif, i, j, k):
     ti = tif * (1 - tif)**2 * (1 - laf) * (1 - lof)
     return lab * lob * tib, la, lo, ti
 
-class Wind:
+_corners = (
+    (0, 0, 0),
+    (0, 0, 1),
+    (0, 1, 0),
+    (0, 1, 1),
+    (1, 0, 0),
+    (1, 0, 1),
+    (1, 1, 0),
+    (1, 1, 1),)
+
+class SolWind(object):
     def __init__(self, weather, base_funcs = base_funcs_linear):
         self.weather = weather
         self._last_verification = datetime.utcnow()
@@ -63,16 +67,16 @@ class Wind:
     def evaluate(self, laf, lof, tif):
         u = 0
         v = 0
-        for i in range(2):
-            for j in range(2):
-                for k in range(2):
-                    base = self.base_funcs(laf, lof, tif, i, j, k)
-                    u += self.u_slice[i, j, k] * base[0]
-                    for dim in range(3):
-                        u += self.du_slice[dim, i, j, k] * base[dim + 1]
-                    v += self.v_slice[i, j, k] * base[0]
-                    for dim in range(3):
-                        v += self.dv_slice[dim, i, j, k] * base[dim + 1]
+        for i, j, k in _corners:
+            base = self.base_funcs(laf, lof, tif, i, j, k)
+            u += self.u_slice[i, j, k] * base[0] + \
+                    self.du_slice[0, i, j, k] * base[1] + \
+                    self.du_slice[1, i, j, k] * base[2] + \
+                    self.du_slice[2, i, j, k] * base[3]
+            v += self.v_slice[i, j, k] * base[0] + \
+                    self.dv_slice[0, i, j, k] * base[1] + \
+                    self.dv_slice[1, i, j, k] * base[2] + \
+                    self.dv_slice[2, i, j, k] * base[3]
         return u, v
 
     def update_weather(self):

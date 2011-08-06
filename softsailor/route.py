@@ -78,8 +78,9 @@ class Route(object):
         return result
 
     def __iadd__(self, value):
-        for point in value:
+        for v, point in value.segments:
             self.__waypoints.append(Waypoint(point))
+        return self
 
     def __add__(self, value):
         result = Route(self)
@@ -159,7 +160,10 @@ class Route(object):
 
     def save_to_file(self, filename):
         f = open(filename, "w")
-        # TODO
+        for wp in self.__waypoints:
+            lat, lon = rad_to_deg(wp.lat, wp.lon)
+            line = '%f %f %f # %s\n' % (lat, lon, wp.range, wp.comment)
+            f.write(line)
         f.close()
 
 

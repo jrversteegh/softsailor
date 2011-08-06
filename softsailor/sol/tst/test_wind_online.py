@@ -16,7 +16,7 @@ class TestWindOnline(unittest.TestCase):
         settings = Settings()
         self.weather = Weather()
         self.weather.load(settings)
-        self.wind = Wind(self.weather)
+        self.wind = SolWind(self.weather)
 
     def tearDown(self):
         self.wind = None
