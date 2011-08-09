@@ -67,11 +67,18 @@ class Router(object):
     @property
     def course_routes(self):
         if self.legs:
-            result = self.legs[0]
+            route_count = 1
+            for leg in self.legs:
+                route_count *= len(leg)
+            count_divider = max(1, round(1024, 1 / len(self.legs)))
+            def max_routes(leg):
+                return max(2, len(leg) / count_divider)
+
+            result = self.legs[0][:max_routes(self.legs[0])]
             for leg in self.legs[1:]:
                 new_result = []
                 for res in result:
-                    for rt in leg:
+                    for rt in leg[:max_routes(leg)]:
                         new_route = res + rt
                         new_result.append(new_route)
                 result = new_result
