@@ -17,30 +17,36 @@ try:
 except KeyError:
     offline = False
 
+try:
+    value = os.environ['SOL_BROKEN_MAP']
+    mapbroken = True
+except KeyError:
+    mapbroken = False
+
 class TestFuncs(unittest.TestCase):
     def testIntersection(self):
         p1 = Position(0.99, 0.99)
         p2 = Position(0.99, 1.0)
         p3 = Position(1.0, 1.0)
         p4 = Position(1.0, 0.99) 
+        # Square
         line1 = Line(p1, p2)
         line2 = Line(p2, p3)
         line3 = Line(p3, p4)
         line4 = Line(p4, p1)
         line5 = Line(p1, p3)
+        # Cross
         line6 = Line(p2, p4)
         line7 = Line(p4, p2)
-        p = line1.intersection(line2)
-        b = p2 - p
-        self.assertTrue(b[1] < 200)
+
         pa = line5.intersection(line6)
         pb = line6.intersection(line5)
         pc = line5.intersection(line7)
         bb = pb - pa
         bc = pc - pa
-        #print pa
-        #print pb, bb
-        #print pc, bc
+        #print pos_to_str(pa)
+        #print pos_to_str(pb), vec_to_str(bb)
+        #print pos_to_str(pc), vec_to_str(bc)
         self.assertTrue(bb[1] < 200)
         self.assertTrue(bc[1] < 200)
         
@@ -49,7 +55,8 @@ class TestMap(unittest.TestCase):
     def setUp(self):
         self.map = SolMap()
 
-    @unittest.skipIf(offline == True, 'Requires sailonline connection')
+    @unittest.skipIf(mapbroken, "Don't test because of broken map")
+    @unittest.skipIf(offline, "Requires sailonline connection")
     def testLoad(self):
         settings = Settings()
         if settings.map != '':
@@ -61,7 +68,8 @@ class TestMap(unittest.TestCase):
             has_one_or_two_links = (len(point.links) == 1) \
                     or (len(point.links) == 2)
             self.assertTrue(has_one_or_two_links, \
-                            "Expected each point to have one or two links")
+                            "Expected each point to have one or two links: %s" % \
+                            pos_to_str(point))
 
     def testHit(self):
         self.map.load(dirname + '/Canary_Brazil.xml')
@@ -149,6 +157,15 @@ class TestMap(unittest.TestCase):
         self.map.save_to_kml(dirname + '/gbr_gtb.kml')
         self.map.load(dirname + '/Canary_Brazil.xml')
         self.map.save_to_kml(dirname + '/canary_brazil.kml')
+
+    def testOuterPointsFirst(self):
+        p1 = Position(*deg_to_rad(39.3082, 26.4316))
+        p2 = Position(*deg_to_rad(39.3365, 26.4245))
+        
+        self.map.load(dirname + '/Turkey.xml') 
+        l = Line(p1, p2)
+        self.map._outer_points_first(l)
+
 
 
 class TestMapPoint(unittest.TestCase):

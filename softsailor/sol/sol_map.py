@@ -16,6 +16,7 @@ import time
 
 from softsailor.utils import *
 from softsailor.map import Map
+from softsailor.route import Route
 from sol_xmlutil import *
 
 from geofun import Position, Line, floats_equal
@@ -262,6 +263,7 @@ class SolMap(Map):
             # Line intersects with land
             p_outer[False].append(intersect)
             p_outer[True].append(intersect)
+            #print pos_to_str(line.p1), pos_to_str(line.p2), pos_to_str(intersect)
 
             # Find the points of the map line that is being intersected
             # (This should not really be necessary.. as the poly_part
@@ -274,10 +276,12 @@ class SolMap(Map):
             right = side_of(b2, b1, True)
 
             def trace_poly(p_last, p_cur, right):
+                #print "============================================"
+                #print "Trace right", right
                 p_start = p_last
                 ps = p_outer[right]
                 b = line.v.a 
-                a = line.v.a
+                a = b
                 g = a
                 ans = [line.v.a]
                 def last_a():
@@ -294,17 +298,20 @@ class SolMap(Map):
                 # While there is a next point and we haven't gone completely round
                 while (p_cur is not None) and (p_cur is not p_start):
                     # Cumulative angle
-                    a = last_a() + angle_diff(new_a(), last_a())
+                    a += angle_diff(new_a(), a)
                     b += angle_diff(new_b(), b)
                     g += angle_diff(new_g(), g)
-                    # Remove points that lie in the convex hull upto
+                    # Remove points that lie within the convex hull upto
                     # the current point
+                    #print 'Cur', pos_to_str(p_cur), 'A: ', ang_to_str(a)
+                    #time.sleep(1)
                     while ans and \
                             angle_bigger(a, last_a(), right) and \
                             angle_bigger(a, b, right):
-                        ans.pop()
-                        ps.pop()
-                        a = last_a() + angle_diff(new_a(), last_a())
+                        #print "Removed. New len %d" % len(ps)
+                        la = ans.pop()
+                        lp = ps.pop()
+                        a = la + angle_diff(new_a(), la)
                     # if this point 'hides' the last point, then replace the last
                     # point with this one. This is a bit of a hack to get past 
                     # inlets, which can make the convex hull upto the current 
@@ -313,10 +320,12 @@ class SolMap(Map):
                     # TODO I think this could be done better by properly
                     # calculating a instead, but that looks non-trivial
                     if ans and math.fabs(a - g) > pi and ps[-1] == p_last:
-                        ans.pop()
-                        ps.pop()
-                        a = last_a() + angle_diff(new_a(), last_a())
+                        a = ans.pop()
+                        p = ps.pop()
+                        #print 'Popped %s %s %s' % (pos_to_str(p), ang_to_str(a), ang_to_str(g))
+                        a += angle_diff(new_a(), a)
                         ps.append(p_cur)
+                        #print 'Pushed %s %s' % (pos_to_str(p_cur), ang_to_str(a))
                         ans.append(a)
                     # Only add this point when going 'outside' of straight line
                     # to p2, otherwise we apparently have a clear look at p2
@@ -325,6 +334,8 @@ class SolMap(Map):
                     elif angle_bigger(a, b, right):
                         ps.append(p_cur)
                         ans.append(a)
+                        #else:
+                        #print "Not adding a: %s b: %s" % (ang_to_str(a), ang_to_str(b))
 
                     p_next = p_cur.other_link(p_last)
                     p_last = p_cur
@@ -332,7 +343,12 @@ class SolMap(Map):
 
                 # Poly ended (edge of map?) and last point was part of the
                 # expected curve. This is a dead end...
-                if p_cur is None and p_last == ps[-1]:
+                if p_cur is None and p_last == ps[-1] \
+                        or len(p_outer[right]) == 1:  
+                        # or when only the start point is still present
+                        # that might mean we arrived the wrong way around a bay
+                        # i.e. when the border is completely concave and hence
+                        # hence the convex hull empty
                     p_outer[right] = None
                 else:
                     ps.append(line.p2)
@@ -342,6 +358,48 @@ class SolMap(Map):
             trace_poly(p2, p1, not right)
             p_outer[False] = push_out(p_outer[False], chart=self)
             p_outer[True] = push_out(p_outer[True], chart=self)
+
+            def check_not_intersecting_self(p_list):
+                if p_list:
+                    p_l = p_list[0]
+                    for p in p_list[1:]:
+                        l = Line(p_l, p)
+
+                        t_l = p1
+                        t = p2
+                        while t and not (t == p1):
+                            r = Line(t_l, t)
+                            if r.intersects(l):
+                                return False
+                            t_o = t_l
+                            t_l = t
+                            t = t.other_link(t_o)
+
+                        t_l = p2
+                        t = p1
+                        while t and not (t == p2):
+                            r = Line(t_l, t)
+                            if r.intersects(l):
+                                return False
+                            t_o = t_l
+                            t_l = t
+                            t = t.other_link(t_o)
+
+                        p_l = p
+                return True
+
+            rt = None
+            if not check_not_intersecting_self(p_outer[False]):
+                rt = Route(p_outer[False])
+                s = 'Problem left'
+            if not check_not_intersecting_self(p_outer[True]):
+                rt = Route(p_outer[True])
+                s = 'Problem right'
+            if rt:
+                rt.save_to_kml('failed.kml')
+                rt.save_to_file('failed.txt')
+                raise Exception(s)
+                        
         else:
             p_outer[False].append(line.p2)
 

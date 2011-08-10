@@ -10,6 +10,7 @@ __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 from geofun import Line, Position
+from route import Route
 
 class Map(object):
     def hit(self, line):
@@ -37,7 +38,9 @@ class Map(object):
             around it in both directions when it does
             """
             modified = False
-            for num, outer in enumerate(outers):
+            for outer in reversed(outers):
+                if len(outers) > 1024:
+                    break
                 if outer is None:
                     raise Exception('Expected at least one path around land')
                 for i in xrange(1, len(outer)):
@@ -68,7 +71,14 @@ class Map(object):
         def clean_outers():
             """Try and remove points and still not hit land"""
             modified = False
-            for outer in outers:
+            for outer in reversed(outers):
+                for i in xrange(1, len(outer)):
+                    l = Line(outer[i - 1], outer[i])
+                    if self.hit(l):
+                        #print '.',
+                        outers.remove(outer)
+                        modified = True
+                        break
                 for i in xrange(len(outer) - 2, 0, -1):
                     l = Line(outer[i - 1], outer[i + 1])
                     if not self.hit(l):

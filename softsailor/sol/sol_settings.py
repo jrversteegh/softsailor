@@ -47,9 +47,9 @@ class Settings:
         
     def load_race(self):
         uri = self.race_url + '?token=' + self.token
-        dom = fetch_sol_document(self.host, uri)
+        self.dom = fetch_sol_document(self.host, uri)
         #print dom.toxml("utf-8")
-        root = dom.childNodes[0]
+        root = self.dom.childNodes[0]
         self.boat = get_child_text_value(root, 'boaturl')
         if self.boat == '':
             raise Exception('Failed to find boat location')
@@ -101,6 +101,10 @@ class Settings:
             if boat_speeds.strip() != '':
                 self.polar_data.data.append( \
                         list(kn_to_ms(boat_speeds.split(' '))))
+
+    def save_to_file(self, filename):
+        with open(filename, 'w') as f:
+            f.write(self.dom.toxml('utf-8'))
  
 
 

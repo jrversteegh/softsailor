@@ -11,14 +11,17 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.router import Router
-from softsailor.sol.sol_functions import get_map, get_course
+from softsailor.sol.sol_functions import get_map, get_course, get_settings
 
+sts = get_settings()
+sts.save_to_file('race.xml')
 chrt = get_map()
 crs = get_course()
-rtr = Router(chart=chrt, boat=None, course=crs)
-
 chrt.save_to_kml('map.kml')
 crs.save_to_kml('course.kml')
+
+rtr = Router(chart=chrt, boat=None, course=crs)
+
 for i, route in enumerate(rtr.course_routes):
     route.save_to_kml('route_%d.kml' % i)
     route.save_to_file('route_%d.txt' % i)

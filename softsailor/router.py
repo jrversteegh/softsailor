@@ -10,7 +10,7 @@ __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 from route import Route
-from utils import angle_diff
+from utils import angle_diff, pos_to_str
 
 class Router(object):
     def __init__(self, *args, **kwargs):
@@ -51,7 +51,8 @@ class Router(object):
 
     def construct_legs(self):
         self.legs = []
-        for course_leg in self.course.legs:
+        for i, course_leg in enumerate(self.course.legs):
+            #print i, pos_to_str(course_leg.p1), pos_to_str(course_leg.p2)
             outers = self.chart.outer_points(course_leg)
             routes = []
             for outer in outers:
@@ -59,9 +60,9 @@ class Router(object):
                 if self.valid_route(route, (course_leg.p1, course_leg.p2)):
                     routes.append(route)
             routes.sort(key=lambda r: r.length)
-            for i in xrange(len(routes) - 2, -1, -1):
-                if routes[i] == routes[i + 1]:
-                    del routes[i]
+            for j in xrange(len(routes) - 2, -1, -1):
+                if routes[j] == routes[j + 1]:
+                    del routes[j]
             self.legs.append(routes)
 
     @property

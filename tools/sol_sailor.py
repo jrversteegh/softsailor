@@ -73,11 +73,11 @@ while sailor.sail():
     print "Boat heading  : ", ang_to_str(boat.heading)
     print "Boat course   : ", ang_to_str(boat.motion.course)
     print "Boat speed    : ", spd_to_str(boat.speed)
-    print "Wind direction: ", ang_to_str(boat.condition.wind[0])
+    print "Wind direction: ", ang_to_str(boat.condition.wind.a)
     print "Wind angle    : ", ang_to_str(boat.wind_angle)
-    print "Wind speed    : ", spd_to_str(boat.condition.wind[1])
+    print "Wind speed    : ", spd_to_str(boat.condition.wind.r)
     print "Apparent angle: ", ang_to_str(normalize_angle_pipi(boat.apparent_wind.a))
-    print "Apparent speed: ", ang_to_str(boat.apparent_wind[1])
+    print "Apparent speed: ", spd_to_str(boat.apparent_wind.r)
     print "---"
     sailor.print_log(5)
     print "==="
