@@ -32,7 +32,7 @@ class Logable(object):
         for record in self._log_data:
             f.write(record[0].strftime(time_format) + ", " + record[1])
             for i, field in enumerate(record[2]):
-                f.write(", " + self.fmtrs[i](field).encode('utf-8'))
+                f.write(", " + self.fmtrs[i](field))
             f.write("\n")
         f.close()
 

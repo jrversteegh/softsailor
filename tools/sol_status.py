@@ -14,6 +14,7 @@ from softsailor.utils import *
 from softsailor.boat import SailBoat
 from softsailor.sol.sol_functions import fetch_boat, get_settings
 
+
 boat = SailBoat()
 fetch_boat(boat)
 

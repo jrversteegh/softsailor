@@ -20,6 +20,12 @@ from itertools import chain
 
 from geofun import Line, Position, Vector
 
+_output_encoding = 'utf-8'
+        
+def set_output_encoding(encoding):
+    global _output_encoding
+    _output_encoding = encoding
+
 def get_config_dir():
     script_path = os.path.dirname(os.path.realpath(__file__))
     config_path = os.path.realpath(script_path + '/../etc')
@@ -27,6 +33,14 @@ def get_config_dir():
 
 def timedelta_to_seconds(td):
     return td.days * 86400 + td.seconds + td.microseconds * 1E-6
+
+def encoded(func):
+    def decorated(*args, **kwargs):
+        if kwargs.has_key('noencode'):
+            return func(*args)
+        else:
+            return func(*args).encode(_output_encoding)
+    return decorated
 
 def array_func(func):
     """Decorator that creates a function wrapper that accepts multiple 
@@ -94,41 +108,55 @@ def to_float(value):
 def to_string(value):
     return str(value)
 
+@encoded
 def tim_to_str(value):
     return value.strftime(time_format)
 
+@encoded
 def lat_to_str(value, unsigned=True):
     if value < 0 and unsigned:
         return u"%8.4f \u00B0S" % rad_to_deg(-value)
     else:
         return u"%8.4f \u00B0N" % rad_to_deg(value)
 
+@encoded
 def lon_to_str(value, unsigned=True):
     if value < 0 and unsigned:
         return u"%8.4f \u00B0W" % rad_to_deg(-value)
     else:
         return u"%8.4f \u00B0E" % rad_to_deg(value)
 
+@encoded
 def pos_to_str(value, unsigned=True):
-    return lat_to_str(value[0], unsigned) + u', ' + lon_to_str(value[1], unsigned) 
+    return lat_to_str(value[0], unsigned, noencode=True) +  u', ' + \
+           lon_to_str(value[1], unsigned, noencode=True) 
 
+@encoded
 def ang_to_str(value):
     return u"%8.2f \u00B0" % rad_to_deg(value)
 
+@encoded
 def dst_to_str(value):
     return u"%8.2f nm" % m_to_nm(value)
 
+@encoded
 def spd_to_str(value):
     return u"%8.2f kn" % ms_to_kn(value)
 
+@encoded
 def vec_to_str(value):
-    return ang_to_str(value[0]) + u', ' + dst_to_str(value[1]) 
+    return ang_to_str(value[0], noencode=True) + u', ' + \
+           dst_to_str(value[1], noencode=True) 
 
+@encoded
 def vel_to_str(value):
-    return ang_to_str(value[0]) + u', ' + spd_to_str(value[1])
+    return ang_to_str(value[0], noencode=True) + u', ' + \
+           spd_to_str(value[1], noencode=True)
 
+@encoded
 def lin_to_str(value):
-    return pos_to_str(value[0]) + ' - ' + pos_to_str(value[2])
+    return pos_to_str(value[0], noencode=True) + ' - ' + \
+           pos_to_str(value[2], noencode=True)
 
 def add_element_with_text(dom, parent, name, text):
     """Adds an xml element with 'name' and containing 'text' to a existing
