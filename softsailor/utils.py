@@ -36,7 +36,7 @@ def timedelta_to_seconds(td):
 
 def encoded(func):
     def decorated(*args, **kwargs):
-        if kwargs.has_key('noencode'):
+        if kwargs.has_key('uni'):
             return func(*args)
         else:
             return func(*args).encode(_output_encoding)
@@ -128,8 +128,8 @@ def lon_to_str(value, unsigned=True):
 
 @encoded
 def pos_to_str(value, unsigned=True):
-    return lat_to_str(value[0], unsigned, noencode=True) +  u', ' + \
-           lon_to_str(value[1], unsigned, noencode=True) 
+    return lat_to_str(value[0], unsigned, uni=True) +  u', ' + \
+           lon_to_str(value[1], unsigned, uni=True) 
 
 @encoded
 def ang_to_str(value):
@@ -145,18 +145,18 @@ def spd_to_str(value):
 
 @encoded
 def vec_to_str(value):
-    return ang_to_str(value[0], noencode=True) + u', ' + \
-           dst_to_str(value[1], noencode=True) 
+    return ang_to_str(value[0], uni=True) + u', ' + \
+           dst_to_str(value[1], uni=True) 
 
 @encoded
 def vel_to_str(value):
-    return ang_to_str(value[0], noencode=True) + u', ' + \
-           spd_to_str(value[1], noencode=True)
+    return ang_to_str(value[0], uni=True) + u', ' + \
+           spd_to_str(value[1], uni=True)
 
 @encoded
 def lin_to_str(value):
-    return pos_to_str(value[0], noencode=True) + ' - ' + \
-           pos_to_str(value[2], noencode=True)
+    return pos_to_str(value[0], uni=True) + ' - ' + \
+           pos_to_str(value[2], uni=True)
 
 def add_element_with_text(dom, parent, name, text):
     """Adds an xml element with 'name' and containing 'text' to a existing

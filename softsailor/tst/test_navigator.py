@@ -34,3 +34,11 @@ class TestNavigator(unittest.TestCase):
 
     def testActiveIndex(self):
         self.assertEquals(2, self.navigator.active_index)
+
+    def testToTrack(self):
+        tt = self.navigator.to_track()
+        self.assertAlmostEqual(66924, tt[1], -1)
+        self.assertAlmostEqual(math.pi / 2, tt[0], 4)
+
+if __name__ == '__main__':
+    unittest.main()

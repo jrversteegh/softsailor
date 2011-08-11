@@ -50,6 +50,7 @@ class Sailor(Logable):
             if abs(new_heading - self.boat.heading) > 0.002:
                 try: 
                     if is_direct:
+                        new_heading = self.adjust_if_beaching(new_heading)
                         self.log("Steering %.2f" % rad_to_deg(new_heading))
                         self.controller.steer_heading(new_heading)
                     else:
@@ -188,4 +189,20 @@ class Sailor(Logable):
 
         # Nothing needed to be done. Return the originally suggested heading
         return False, heading
+
+    def adjust_if_beaching(self, heading):
+        track, waypoint = self.navigator.get_active_segment()
+        bearing = waypoint - self.boat.position
+        view_line = Line(self.boat.position, waypoint)
+        if self.chart.hit(view_line):
+            # Actually, this shouldn't have happened as "prevent_beaching" should
+            # have kept a clear view line already, but a verification won't hurt
+            # when actually steering a direct course .
+            # Steer towards the track perpendicularly to reduce the cte. 
+            # When the track itself hits land, we're fsckd, but that is someone
+            # elses error and cannot be corrected for here
+            return self.navigator.to_track()[0]
+        else:
+            return heading
+        
 

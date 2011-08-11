@@ -14,3 +14,6 @@ class TestWeather(unittest.TestCase):
         self.assertEqual(weather.lat_n, len(weather.frames[0]))
         self.assertTrue(weather.lon_n > 0)
         self.assertEqual(weather.lon_n, len(weather.frames[0][0]))
+
+if __name__ == '__main__':
+    unittest.main()

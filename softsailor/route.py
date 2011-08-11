@@ -191,10 +191,9 @@ class Route(object):
             p1 = list(ln.p1)
             p2 = list(ln.p2)
             ln = (rad_to_deg(p1), rad_to_deg(p2))
-            line = create_line_placemark('Track ' + str(i), ln)
-            description = u'Bearing: ' + u"%.2f\u00B0" % rad_to_deg(vec.a) \
-                    + u'  Length: ' + u"%.2f nm" % (vec.r / 1852)
-            line.set_description(description.encode("utf-8"))
+            line = create_line_placemark('Segment ' + str(i), ln)
+            description = 'Vector: ' + vec_to_str(vec) 
+            line.set_description(description)
             lines.add_feature(line)
 
         description = 'UTC: ' + str(datetime.datetime.utcnow())

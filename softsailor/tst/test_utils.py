@@ -26,3 +26,5 @@ class TestUtils(unittest.TestCase):
         heading = bearing_to_heading(bearing, speed, current)
         self.assertAlmostEqual(math.atan(4.0/3.0), heading)
 
+if __name__ == '__main__':
+    unittest.main()

@@ -454,12 +454,12 @@ class SolMap(Map):
                         ln = (rad_to_deg(p1), rad_to_deg(p2))
                         line = create_line_placemark('Segment ' + str(i), ln)
                         description = pos_to_str(p1) + ' - ' + pos_to_str(p2)
-                        line.set_description(description.encode("utf-8"))
+                        line.set_description(description)
                         lines.add_feature(line)
 
         description = pos_to_str((self.minlat, self.minlon)) + ' - ' \
                     + pos_to_str((self.maxlat, self.maxlon))
-        doc.set_description(description.encode("utf-8"))
+        doc.set_description(description)
         doc.add_feature(lines)
         
         save_kml_document(kml, filename)

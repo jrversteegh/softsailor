@@ -17,3 +17,6 @@ class TestPerformance(unittest.TestCase):
         self.assertTrue(angles[0] > 0)
         self.assertTrue(angles[0] < math.pi * 0.333)
         self.assertTrue(angles[1] > math.pi * 0.666)
+
+if __name__ == '__main__':
+    unittest.main()

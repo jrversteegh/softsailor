@@ -42,5 +42,7 @@ class TestSailor(unittest.TestCase):
         h = self.sailor.get_heading()
 
 
+if __name__ == '__main__':
+    unittest.main()
 
 	

@@ -80,13 +80,13 @@ class BoatUpdater(Updater):
             ts = factory.CreateTimeStamp()
             ts.set_when(fields[0].isoformat())
             pm.set_timeprimitive(ts)
-            descr = u'Time: ' + tim_to_str(fields[0]) + "\n" \
-                    + u'Heading: ' + ang_to_str(fields[3]) \
-                    + u'Speed : ' + spd_to_str(fields[4]) \
-                    + u'Wind direction: ' + ang_to_str(fields[5]) \
-                    + u'Wind speed    : ' + spd_to_str(fields[6])  
+            descr = 'Time: ' + tim_to_str(fields[0]) + "\n" \
+                  + 'Heading: ' + ang_to_str(fields[3]) + "\n" \
+                  + 'Speed: ' + spd_to_str(fields[4]) + "\n" \
+                  + 'Wind dir: ' + ang_to_str(fields[5]) + "\n" \
+                  + 'Wind spd: ' + spd_to_str(fields[6])  
         
-            pm.set_description(descr.encode('utf-8'))
+            pm.set_description(descr)
             doc.add_feature(pm)
 
         save_kml_document(kml, filename)

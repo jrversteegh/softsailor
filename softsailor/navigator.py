@@ -85,8 +85,22 @@ class Navigator(object):
             return Vector(0, 0), Waypoint(0, 0)
 
     def get_cross_track(self):
+        """Returns distance to track. Not accurate for larget distances"""
         sg = self.get_active_segment()
         tr = sg[0]
         br = self.get_bearing()
         return br[1] * math.sin(tr[0] - br[0])
+
+    def to_track(self):
+        """Return vector to track"""
+        sg = self.get_active_segment()
+        tr = sg[0]
+        tr.r = 1
+        br = self.get_bearing()
+        cs = -br.r * math.cos(tr.a - br.a)
+        # Position projected on track line
+        pr = sg[1] + tr * cs
+        return pr - self.boat.position
+        
+
 
