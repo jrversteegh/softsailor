@@ -150,9 +150,10 @@ class Sailor(Logable):
         # Nothing needed to be done. Return the originally suggested heading
         return False, heading
 
-    def prevent_beaching(self, heading, look_ahead = None):
+    def prevent_beaching(self, heading, look_ahead=None):
         if look_ahead == None:
-            look_ahead = 250
+            # 20 seconds of sailing
+            look_ahead = self.boat.motion.speed * 20
         # We'll construct a future course line...
         boat_position = self.boat.position
         # ... project it ahead...
