@@ -50,7 +50,7 @@ class Sailor(Logable):
             if abs(new_heading - self.boat.heading) > 0.002:
                 try: 
                     if is_direct:
-                        new_heading = self.adjust_if_beaching(new_heading)
+                        adjusted, new_heading = self.adjust_if_beaching(new_heading)
                         self.log("Steering %.2f" % rad_to_deg(new_heading))
                         self.controller.steer_heading(new_heading)
                     else:
@@ -96,7 +96,7 @@ class Sailor(Logable):
         else:
             abs_wind_angle = wind_angle
             sign = 1
-        opt_angles = self.boat.performance.get_optimal_angles(wind[1])
+        opt_angles = self.navigator.get_optimal_angles(wind[1])
         # Clip the wind angle to the optimal range...
         if abs_wind_angle < opt_angles[0]:
             new_wind_angle = opt_angles[0] * sign
@@ -201,8 +201,9 @@ class Sailor(Logable):
             # Steer towards the track perpendicularly to reduce the cte. 
             # When the track itself hits land, we're fsckd, but that is someone
             # elses error and cannot be corrected for here
-            return self.navigator.to_track()[0]
+            self.log("Navigate to track to avoid land")
+            return True, self.navigator.to_track()[0]
         else:
-            return heading
+            return False, heading
         
 
