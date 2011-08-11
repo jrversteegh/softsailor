@@ -359,6 +359,8 @@ class SolMap(Map):
             p_outer[False] = push_out(p_outer[False], chart=self)
             p_outer[True] = push_out(p_outer[True], chart=self)
 
+            """
+            Check for debuggging
             def check_not_intersecting_self(p_list):
                 if p_list:
                     p_l = p_list[0]
@@ -399,6 +401,7 @@ class SolMap(Map):
                 rt.save_to_kml('failed.kml')
                 rt.save_to_file('failed.txt')
                 raise Exception(s)
+            """
                         
         else:
             p_outer[False].append(line.p2)
