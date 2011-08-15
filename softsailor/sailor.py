@@ -30,6 +30,7 @@ class Sailor(Logable):
             self.updater = args[2]
             self.navigator = args[3]
             self.chart = args[4]
+            self.course = args[5]
         else:
             self.boat = kwargs['boat']
             self.controller = kwargs['controller']
@@ -39,6 +40,10 @@ class Sailor(Logable):
                 self.chart = kwargs['map']
             except KeyError:
                 self.chart = kwargs['chart']
+            try:
+                self.course = kwargs['course']
+            except KeyError:
+                self.course = None
 
 
     def sail(self):
@@ -47,6 +52,7 @@ class Sailor(Logable):
             if self.navigator.is_complete:
                 return False
             new_heading, is_direct = self.get_heading()
+            new_heading = self.adjust_if_invalid_course(new_heading)
             if abs(new_heading - self.boat.heading) > 0.002:
                 try: 
                     if is_direct:
@@ -205,5 +211,23 @@ class Sailor(Logable):
             return True, self.navigator.to_track()[0]
         else:
             return False, heading
+
+    def adjust_if_invalid_course(self, heading):
+        if self.course is not None:
+            for mark in self.course.marks: 
+                mark_bearing = mark - self.boat.position
+                if mark_bearing.r < 210:
+                    ad = angle_diff(mark_bearing.a, heading)
+                    if mark.to_port:
+                        if ad > 0 and ad < 1:
+                            heading = normalize_angle_2pi(heading + ad + 0.03)
+                            self.log('Adjusted heading to keep mark to port')
+                    else:
+                        if ad < 0 and ad > -1:
+                            heading = normalize_angle_2pi(heading + ad - 0.03)
+                            self.log('Adjusted heading to keep mark to starboard')
+
+        return heading
+
         
 

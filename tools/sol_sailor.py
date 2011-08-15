@@ -52,9 +52,10 @@ updater = SolUpdater(boat)
 # Update now so the boat has a proper initial position
 updater.update()
 navigator = Navigator(boat=boat, route=route)
+course = get_course()
 
 sailor = Sailor(boat=boat, navigator=navigator, map=chart, \
-                controller=controller, updater=updater)
+                controller=controller, updater=updater, course=course)
 
 logged = datetime.utcnow()
 
