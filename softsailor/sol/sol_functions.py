@@ -22,6 +22,10 @@ from sol_course import SolCourse
 
 from datetime import datetime
 
+from geofun import set_earth_model
+
+set_earth_model('spherical')
+
 # Some global singletons required by the functions
 __sol_settings_instance = None
 __sol_wind_instance = None
