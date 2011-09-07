@@ -263,7 +263,9 @@ class SolMap(Map):
             # Line intersects with land
             p_outer[False].append(intersect)
             p_outer[True].append(intersect)
+            #print "****************************************************"
             #print pos_to_str(line.p1), pos_to_str(line.p2), pos_to_str(intersect)
+            #print "****************************************************"
 
             # Find the points of the map line that is being intersected
             # (This should not really be necessary.. as the poly_part
@@ -334,8 +336,9 @@ class SolMap(Map):
                     elif angle_bigger(a, b, right):
                         ps.append(p_cur)
                         ans.append(a)
-                        #else:
+                    else:
                         #print "Not adding a: %s b: %s" % (ang_to_str(a), ang_to_str(b))
+                        pass
 
                     p_next = p_cur.other_link(p_last)
                     p_last = p_cur

@@ -52,7 +52,6 @@ class Router(object):
     def construct_legs(self):
         self.legs = []
         for i, course_leg in enumerate(self.course.legs):
-            #print i, pos_to_str(course_leg.p1), pos_to_str(course_leg.p2)
             outers = self.chart.outer_points(course_leg)
             routes = []
             for outer in outers:
@@ -63,6 +62,8 @@ class Router(object):
             for j in xrange(len(routes) - 2, -1, -1):
                 if routes[j] == routes[j + 1]:
                     del routes[j]
+            if not routes:
+                raise Exception('Failed to find route on leg %d' % i)
             self.legs.append(routes)
 
     @property
