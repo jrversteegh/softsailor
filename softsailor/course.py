@@ -42,16 +42,28 @@ class Course(object):
         if len(args) > 0:
             it = iter(args[0])
             try:
-                p = it.next()
-                self._start = Position(p[0], p[1])
+                prev_p = it.next()
+                self._start = Position(prev_p[0], prev_p[1])
                 p = it.next()
                 while True:
-                    last_p = p
-                    p = it.next()
-                    self._marks.append(self.mark_factory(last_p[0], last_p[1]))
+                    next_p = it.next()
+                    mark = self.mark_factory(p[0], p[1])
+                    s1 = p - prev_p
+                    s2 = next_p - p
+                    s3 = next_p - prev_p
+                    mark.to_port = angle_diff(s1.a, s3.a) >= 0
+                    if mark.to_port:
+                        s3.a = s3.a + half_pi
+                    else:
+                        s3.a = s3.a - half_pi
+                    s3.r = 1
+                    mark.set_target(mark + s3)
+
+                    self._marks.append(mark)
+                    prev_p = p
+                    p = next_p
             except StopIteration:
                 self._finish = Finish(p[0], p[1])
-           
         
     @property
     def legs(self):

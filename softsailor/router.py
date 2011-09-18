@@ -58,6 +58,9 @@ class Router(object):
                 route = Route(outer)
                 if self.valid_route(route, (course_leg.p1, course_leg.p2)):
                     routes.append(route)
+                else:
+                    pass
+                    #print "Route not valid"
             routes.sort(key=lambda r: r.length)
             for j in xrange(len(routes) - 2, -1, -1):
                 if routes[j] == routes[j + 1]:
