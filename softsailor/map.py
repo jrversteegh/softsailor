@@ -9,6 +9,8 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
+import heapq
+
 from geofun import Line, Position
 from route import Route
 
@@ -21,12 +23,12 @@ class Map(object):
         """Returns segment and intersection point or None, None when not hitting"""
         return [None, None]
 
-    def _outer_points_first(self, line):
-        """Returns the two lines arount the first land hit"""    
+    def outer_points(self, line):
+        """Returns the first pair of convex parts around land hit"""    
         return [[line.p1, line.p2], None]
 
-    def outer_points(self, line):
-        """Returns a list of lines around land"""
+    def find_paths(self, line, max_paths=32):
+        """Returns a heap of lines around land given the input line"""
         def scan_sub_outers():
             """
             Scan outers for hitting land and splitting the outer
@@ -67,7 +69,7 @@ class Map(object):
                             modified = True
             return modified
 
-        def clean_outers():
+        def clean_paths():
             """Try and remove points and still not hit land"""
             modified = False
             for outer in outers:
@@ -75,23 +77,14 @@ class Map(object):
                     l = Line(outer[i - 1], outer[i + 1])
                     if not self.hit(l):
                         outer.pop(i)
+
                         modified = True
             return modified
 
-        def remove_invalid():
-            for outer in reversed(outers):
-                for i in xrange(1, len(outer)):
-                    l = Line(outer[i - 1], outer[i])
-                    if self.hit(l):
-                        outers.remove(outer)
-                        #print "Removed invalid"
-                        break
 
-        def reduce_outers():
-            while len(outers) > 128:
-                outers.pop()
-                #print "Reduced"
-
+        
+        clear_paths = []
+        paths = [line]
         outers = self._outer_points_first(line)
         #print "Outers 1:", len(outers)
         try:
@@ -102,10 +95,7 @@ class Map(object):
         while scans < 32 and scan_sub_outers():
             while clean_outers():
                 pass
-            reduce_outers()
             scans += 1
-        remove_invalid()
 
-        #print "Outers 2:", len(outers)
         return outers
 
