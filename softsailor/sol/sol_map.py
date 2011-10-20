@@ -15,7 +15,7 @@ import numpy as np
 import time
 
 from softsailor.utils import *
-from softsailor.map import Map
+from softsailor.map import Path, Map
 from softsailor.route import Route
 from sol_xmlutil import *
 
@@ -255,161 +255,83 @@ class SolMap(Map):
             result.append(point)
         return result
 
-    def _outer_points_first(self, line):
+    def route_around(self, line):
         poly_part, intersect = self.__hit(line)
-        p_outer = [[line.p1], None]
-        if poly_part is not None:
-            p_outer[True] = [line.p1]
-            # Line intersects with land
-            p_outer[False].append(intersect)
-            p_outer[True].append(intersect)
-            #print "****************************************************"
-            #print pos_to_str(line.p1), pos_to_str(line.p2), pos_to_str(intersect)
-            #print "****************************************************"
+        if poly_part is None:
+            return [Path([line.p1, line.p2])]
 
-            # Find the points of the map line that is being intersected
-            # (This should not really be necessary.. as the poly_part
-            #  could already contain this information, but doesn't at
-            #  the moment. The poly_part points are not MapPoints)
-            p1 = self.__find_point(poly_part.p1)
-            p2 = self.__find_point(poly_part.p2)
-            b1 = p1 - line.p1
-            b2 = p2 - line.p1
-            right = side_of(b2, b1, True)
+        # We're hitting so set up left and right around as
+        # the line sections from current position to hit point
+        result = [[line.p1, intersect], [line.p1, intersect]]
+        
+        #print "****************************************************"
+        #print pos_to_str(line.p1), pos_to_str(line.p2), pos_to_str(intersect)
+        #print "****************************************************"
 
-            def trace_poly(p_last, p_cur, right):
-                #print "============================================"
-                #print "Trace right", right
-                p_start = p_last
-                ps = p_outer[right]
-                b = line.v.a 
-                a = b
-                g = a
-                ans = [line.v.a]
-                def last_a():
-                    if ans:
-                        return ans[-1]
-                    else:
-                        return line.v.a
-                def new_a():
-                    return (p_cur - ps[-1]).a
-                def new_b():
-                    return (line.p2 - p_cur).a
-                def new_g():
-                    return (p_cur - p_last).a
-                # While there is a next point and we haven't gone completely round
-                while (p_cur is not None) and (p_cur is not p_start):
-                    # Cumulative angle
-                    a += angle_diff(new_a(), a)
-                    b += angle_diff(new_b(), b)
-                    g += angle_diff(new_g(), g)
-                    # Remove points that lie within the convex hull upto
-                    # the current point
-                    #print 'Cur', pos_to_str(p_cur), 'A: ', ang_to_str(a)
-                    #time.sleep(1)
-                    while ans and \
-                            angle_bigger(a, last_a(), right) and \
-                            angle_bigger(a, b, right):
-                        #print "Removed. New len %d" % len(ps)
-                        la = ans.pop()
-                        lp = ps.pop()
-                        a = la + angle_diff(new_a(), la)
-                    # if this point 'hides' the last point, then replace the last
-                    # point with this one. This is a bit of a hack to get past 
-                    # inlets, which can make the convex hull upto the current 
-                    # point intersect with the land, causing the calculation 
-                    # of a to be off by 2 pi. 
-                    # TODO I think this could be done better by properly
-                    # calculating a instead, but that looks non-trivial
-                    if ans and math.fabs(a - g) > pi and ps[-1] == p_last:
-                        a = ans.pop()
-                        p = ps.pop()
-                        #print 'Popped %s %s %s' % (pos_to_str(p), ang_to_str(a), ang_to_str(g))
-                        a += angle_diff(new_a(), a)
-                        ps.append(p_cur)
-                        #print 'Pushed %s %s' % (pos_to_str(p_cur), ang_to_str(a))
-                        ans.append(a)
-                    # Only add this point when going 'outside' of straight line
-                    # to p2, otherwise we apparently have a clear look at p2
-                    # and can go straight toward it. At least the way it looks
-                    # now
-                    elif angle_bigger(a, b, right):
-                        ps.append(p_cur)
-                        ans.append(a)
-                    else:
-                        #print "Not adding a: %s b: %s" % (ang_to_str(a), ang_to_str(b))
-                        pass
+        # Find the points of the map line that is being intersected
+        # (This should not really be necessary.. as the poly_part
+        #  could already contain this information, but doesn't at
+        #  the moment. The poly_part points are not MapPoints)
+        p1 = self.__find_point(poly_part.p1)
+        p2 = self.__find_point(poly_part.p2)
+        b1 = p1 - line.p1
+        b2 = p2 - line.p1
+        right = side_of(b2, b1, True)
 
-                    p_next = p_cur.other_link(p_last)
-                    p_last = p_cur
-                    p_cur = p_next
-
-                # Poly ended (edge of map?) and last point was part of the
-                # expected curve. This is a dead end...
-                if p_cur is None and p_last == ps[-1] \
-                        or len(p_outer[right]) == 1:  
-                        # or when only the start point is still present
-                        # that might mean we arrived the wrong way around a bay
-                        # i.e. when the border is completely concave and hence
-                        # hence the convex hull empty
-                    p_outer[right] = None
+        def trace_poly(p_last, p_cur, right):
+            #print "============================================"
+            #print "Trace right", right
+            p_start = p_last
+            points = result[right]
+            a = line.v.a 
+            b = a
+            ans = [a]
+            def last_a():
+                if ans:
+                    return ans[-1]
                 else:
-                    ps.append(line.p2)
+                    return line.v.a
+            def new_a():
+                return (p_cur - ps[-1]).a
+            def new_b():
+                return (line.p2 - p_cur).a
+            # While there is a next point and we haven't gone completely round
+            while True:
+                # Poly ended (edge of map?) or looped back to start
+                if p_cur is None or p_cur == line.p1:
+                    # ... that means this is not a way around
+                    result[right] = None
+                    return
 
-            # Trace both directions
-            trace_poly(p1, p2, right)
-            trace_poly(p2, p1, not right)
-            p_outer[False] = push_out(p_outer[False], chart=self)
-            p_outer[True] = push_out(p_outer[True], chart=self)
+                # Cumulative angle
+                a += angle_diff(new_a(), a)
+                b += angle_diff(new_b(), b)
 
-            """
-            Check for debuggging
-            def check_not_intersecting_self(p_list):
-                if p_list:
-                    p_l = p_list[0]
-                    for p in p_list[1:]:
-                        l = Line(p_l, p)
+                # The next point is not part of the convex hull. We're done (for now)
+                if not angle_bigger(a, b, right):
+                    break
 
-                        t_l = p1
-                        t = p2
-                        while t and not (t == p1):
-                            r = Line(t_l, t)
-                            if r.intersects(l):
-                                return False
-                            t_o = t_l
-                            t_l = t
-                            t = t.other_link(t_o)
+                # "a" should be decreasing for a convex hull
+                # Pop of previous points until it is
+                while ans and angle_bigger(a, last_a(), right):
+                    #print "Removed. New len %d" % len(ps)
+                    la = ans.pop()
+                    lp = ps.pop()
+                    a = la + angle_diff(new_a(), la)
 
-                        t_l = p2
-                        t = p1
-                        while t and not (t == p2):
-                            r = Line(t_l, t)
-                            if r.intersects(l):
-                                return False
-                            t_o = t_l
-                            t_l = t
-                            t = t.other_link(t_o)
+                p_next = p_cur.other_link(p_last)
+                p_last = p_cur
+                p_cur = p_next
 
-                        p_l = p
-                return True
+            ps.append(line.p2)
 
-            rt = None
-            if not check_not_intersecting_self(p_outer[False]):
-                rt = Route(p_outer[False])
-                s = 'Problem left'
-            if not check_not_intersecting_self(p_outer[True]):
-                rt = Route(p_outer[True])
-                s = 'Problem right'
-            if rt:
-                rt.save_to_kml('failed.kml')
-                rt.save_to_file('failed.txt')
-                raise Exception(s)
-            """
-                        
-        else:
-            p_outer[False].append(line.p2)
+        # Trace both directions
+        trace_poly(p1, p2, right)
+        trace_poly(p2, p1, not right)
+        result[False] = push_out(result[False], chart=self)
+        result[True] = push_out(result[True], chart=self)
 
-        return p_outer
+        return result
 
                 
 
