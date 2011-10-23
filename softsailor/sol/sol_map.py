@@ -285,11 +285,11 @@ class SolMap(Map):
             points = result[right]
             a = line.v.a  # Angle of line from last point to current point
             b = a         # Angle of line from last point to goal
-            ans = [a]
+            angles = [a]
             def new_a():
-                return (p_cur - ps[-1]).a
+                return (p_cur - points[-1]).a
             def new_b():
-                return (line.p2 - ps[-1]).a
+                return (line.p2 - points[-1]).a
             # While there is a next point and we haven't gone completely round
             while True:
                 # Poly ended (edge of map?) or looped back to start
@@ -302,26 +302,27 @@ class SolMap(Map):
                 a += angle_diff(new_a(), a)
                 b += angle_diff(new_b(), b)
 
-                # The next point is not part of the convex hull. We're done (for now)
+                # The next point is not part of the convex hull. 
+                # We're done (for now)
                 if not angle_bigger(a, b, right):
                     break
 
                 # "a" should be decreasing for a convex hull
                 # Pop off previous points until it is
-                while ans and angle_bigger(a, ans[-1], right):
+                while angles and angle_bigger(a, angles[-1], right):
                     #print "Removed. New len %d" % len(ps)
-                    la = ans.pop()
-                    lp = ps.pop()
+                    la = angles.pop()
+                    lp = points.pop()
                     a = la + angle_diff(new_a(), la)
 
-                ps.append(p_cur)
-                ans.append(a)
+                points.append(p_cur)
+                angles.append(a)
 
                 p_next = p_cur.other_link(p_last)
                 p_last = p_cur
                 p_cur = p_next
 
-            ps.append(line.p2)
+            points.append(line.p2)
 
         # Trace both directions
         trace_poly(p1, p2, right)

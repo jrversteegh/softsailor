@@ -9,7 +9,7 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
-import heapq
+from heapq import *
 import functools
 
 from geofun import Line, Position

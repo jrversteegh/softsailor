@@ -11,11 +11,6 @@ from softsailor.sol.sol_settings import Settings
 from geofun import Position, Vector
 
 dirname = os.path.dirname(os.path.abspath(__file__))
-try:
-    value = os.environ['SOL_OFFLINE']
-    offline = True
-except KeyError:
-    offline = False
 
 try:
     value = os.environ['SOL_BROKEN_MAP']
@@ -56,7 +51,7 @@ class TestMap(unittest.TestCase):
         self.map = SolMap()
 
     @unittest.skipIf(mapbroken, "Don't test because of broken map")
-    @unittest.skipIf(offline, "Requires sailonline connection")
+    @unittest.skipIf(testing_helper.offline, "Requires sailonline connection")
     def testLoad(self):
         settings = Settings()
         if settings.map != '':
@@ -117,7 +112,7 @@ class TestMap(unittest.TestCase):
         hit = self.map.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
 
-        outer_points = self.map._outer_points_first(segment)
+        outer_points = self.map.route_around(segment)
         self.assertEquals(2, len(outer_points))
         self.assertTrue(not outer_points[0] is None \
                         and not outer_points[1] is None, \
@@ -132,17 +127,14 @@ class TestMap(unittest.TestCase):
         hit = self.map.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
 
-        outer_points = self.map._outer_points_first(segment)
+        outer_points = self.map.route_around(segment)
         self.assertEquals(2, len(outer_points))
-        self.assertTrue(not outer_points[0] is None \
-                        and not outer_points[1] is None, \
-                        'Island, so expected two ways to pass (both sides)')
         route = Route(outer_points[0])
         route.save_to_kml(dirname + '/outer_points_first_0.kml')
         route = Route(outer_points[1])
         route.save_to_kml(dirname + '/outer_points_first_1.kml')
 
-        outer_points = self.map.outer_points(segment)
+        outer_points = self.map.find_paths(segment)
         # Expected 3 lines around both islands
         self.assertEquals(3, len(outer_points))
         route = Route(outer_points[0])
@@ -158,13 +150,13 @@ class TestMap(unittest.TestCase):
         self.map.load(dirname + '/Canary_Brazil.xml')
         self.map.save_to_kml(dirname + '/canary_brazil.kml')
 
-    def testOuterPointsFirst(self):
+    def testRouteAround(self):
         p1 = Position(*deg_to_rad(39.3082, 26.4316))
         p2 = Position(*deg_to_rad(39.3365, 26.4245))
         
         self.map.load(dirname + '/Turkey.xml') 
         l = Line(p1, p2)
-        self.map._outer_points_first(l)
+        self.map.route_around(l)
 
 
 
