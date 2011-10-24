@@ -52,7 +52,7 @@ class Router(object):
     def construct_legs(self):
         self.legs = []
         for i, course_leg in enumerate(self.course.legs):
-            outers = self.chart.outer_points(course_leg)
+            outers = self.chart.find_paths(course_leg)
             routes = []
             for outer in outers:
                 route = Route(outer)
