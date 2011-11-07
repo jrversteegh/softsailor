@@ -137,7 +137,7 @@ class SolMap(Map):
 
     def load(self, mapurl):
         self.tiles = None
-        dom = fetch_sol_document_from_url(mapurl)
+        dom = fetch_sol_document_from_url(mapurl, cached=True)
         root = dom.childNodes[0]
 
         cellmap = get_element(root, 'cellmap')
@@ -163,7 +163,7 @@ class SolMap(Map):
     def load_tile_dom(self, host, lati, loni):
         uri = '/site_media/maps/tiles/%s/%d_%d.xml.z' % (self.tiles, loni, lati)
         url = 'http://' + host + uri
-        return fetch_sol_document_from_url(url)
+        return fetch_sol_document_from_url(url, cached=True)
 
     def load_tiles(self, host, tiles, loadarea=None):
         self.tiles = tiles
