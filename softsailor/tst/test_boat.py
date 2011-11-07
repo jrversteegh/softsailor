@@ -5,8 +5,6 @@ import testing_helper
 
 from softsailor.boat import Boat, SailBoat, Situation, Motion, Sails
 
-    
-
 class TestBoat(unittest.TestCase):
     """ Test a boat for required properties and functionality """
     def setUp(self):

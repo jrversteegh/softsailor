@@ -9,8 +9,45 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
+from heapq import *
+import functools
+
 from geofun import Line, Position
 from route import Route
+
+class Path(list):
+    @property
+    def length(self):
+        l = 0
+        for segment in self.segments:
+            l += segment.v.r
+        return l
+
+    @property
+    def segments(self):
+        prev_p = None
+        for p in self:
+            if prev_p is not None:
+                yield Line(prev_p, p)
+            prev_p = p
+
+    def __eq__(self, other):
+        return self.length == other.length
+
+    def __ne__(self, other):
+        return self.length != other.length
+
+    def __gt__(self, other):
+        return self.length > other.length
+
+    def __lt__(self, other):
+        return self.length < other.length
+    
+    def __ge__(self, other):
+        return self.length >= other.length
+
+    def __le__(self, other):
+        return self.length <= other.length
 
 class Map(object):
     def hit(self, line):
@@ -21,75 +58,49 @@ class Map(object):
         """Returns segment and intersection point or None, None when not hitting"""
         return [None, None]
 
-    def _outer_points_first(self, line):
-        """Returns the two lines arount the first land hit"""    
-        return [[line.p1, line.p2], None]
+    def route_around(self, line):
+        """Returns convex paths around land hit"""    
+        return [Path([line.p1, line.p2])]
 
-    def outer_points(self, line):
-        """Returns a list of lines around land"""
-        outers = self._outer_points_first(line)
-        try:
-            outers.remove(None)
-        except ValueError:
-            pass
-        def scan_sub_outers():
-            """
-            Scan outers for hitting land and splitting the outer
-            around it in both directions when it does
-            """
-            modified = False
-            for outer in reversed(outers):
-                if len(outers) > 1024:
-                    break
-                if outer is None:
-                    raise Exception('Expected at least one path around land')
-                for i in xrange(1, len(outer)):
-                    p1 = outer[i - 1]
-                    p2 = outer[i]
-                    l = Line(p1, p2)
-                    sub_outers = self._outer_points_first(l)
-                    try:
-                        sub_outers.remove(None)
-                    except ValueError:
-                        pass
-                    outer_copy = None
-                    for sub_outer in sub_outers:
-                        if sub_outer is None:
-                            raise Exception(
-                                'Expected at least one path around land in sub search')
-                        sub_outer = sub_outer[1:-1]
-                        if sub_outer:
-                            if outer_copy:
-                                outer_copy[i:i] = sub_outer
-                                outers.append(outer_copy)
-                            else:
-                                outer_copy = outer[:]
-                                outer[i:i] = sub_outer
-                            modified = True
-            return modified
+    def find_paths(self, line, max_paths=32):
+        """Returns a heap of lines around land given the input line"""
 
-        def clean_outers():
+        def clean_path(path):
             """Try and remove points and still not hit land"""
-            modified = False
-            for outer in reversed(outers):
-                for i in xrange(1, len(outer)):
-                    l = Line(outer[i - 1], outer[i])
-                    if self.hit(l):
-                        #print '.',
-                        outers.remove(outer)
-                        modified = True
-                        break
-                for i in xrange(len(outer) - 2, 0, -1):
-                    l = Line(outer[i - 1], outer[i + 1])
-                    if not self.hit(l):
-                        outer.pop(i)
-                        modified = True
-            return modified
+            prev_len = len(path)
+            for i in xrange(len(path) - 2, 0, -1):
+                l = Line(path[i - 1], path[i + 1])
+                if not self.hit(l):
+                    path.pop(i)
 
-        while scan_sub_outers():
-            pass
-        while clean_outers():
-            pass
+            return len(path) != prev_len
+        
+        result = []
+        paths = []
+        heappush(paths, Path([line.p1, line.p2]))
 
-        return outers
+        while len(result) < max_paths and len(paths) > 0:
+            path = heappop(paths)
+            path_clear = True
+            for i, segment in enumerate(path.segments):
+                if not self.hit(segment):
+                    continue
+                path_clear = False
+                detours = self.route_around(segment)
+                new_path = None
+                for detour in detours:
+                    if new_path is not None:
+                        path = new_path
+                    new_path = Path(path)
+                    path[i:i+2] = detour
+                    heappush(paths, path)
+                break
+            if path_clear:
+                heappush(result, path)
+
+        for path in result:
+            while clean_path(path):
+                pass
+        result.sort()
+        return result
 

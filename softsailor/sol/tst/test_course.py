@@ -35,17 +35,20 @@ class TestCourse(unittest.TestCase):
 
 class TestCourse2(unittest.TestCase):
     chart = SolMap()
-    chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 25))
+    if not testing_helper.offline:
+        chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 25))
     def setUp(self):
         waypoints = gen_waypoints_pb3_2011()
         self.crs = SolCourse(waypoints, 1000, self.chart)
 
+    @unittest.skipIf(testing_helper.offline, "Can't load maptiles offline")
     def testOrientation(self):
         self.assertFalse(self.crs.marks[0].to_port)
         self.assertTrue(self.crs.marks[1].to_port)
         self.assertFalse(self.crs.marks[2].to_port)
         self.assertFalse(self.crs.marks[3].to_port)
 
+    @unittest.skipIf(testing_helper.offline, "Can't load maptiles offline")
     def testOnLand(self):
         self.assertTrue(self.crs.marks[0].on_land)
         self.assertFalse(self.crs.marks[1].on_land)

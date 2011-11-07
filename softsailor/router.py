@@ -52,12 +52,15 @@ class Router(object):
     def construct_legs(self):
         self.legs = []
         for i, course_leg in enumerate(self.course.legs):
-            outers = self.chart.outer_points(course_leg)
+            outers = self.chart.find_paths(course_leg)
             routes = []
             for outer in outers:
                 route = Route(outer)
                 if self.valid_route(route, (course_leg.p1, course_leg.p2)):
                     routes.append(route)
+                else:
+                    pass
+                    #print "Route not valid"
             routes.sort(key=lambda r: r.length)
             for j in xrange(len(routes) - 2, -1, -1):
                 if routes[j] == routes[j + 1]:

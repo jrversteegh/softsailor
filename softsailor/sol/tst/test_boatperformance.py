@@ -9,6 +9,7 @@ from softsailor.sol.sol_performance import *
 
 
 class TestBoatWind(unittest.TestCase):
+    @unittest.skipIf(testing_helper.offline, "Can't compare boat performance offline")
     def testBoatSpeedVersusPerformance(self):
         boat = SailBoat()
         fetch_boat(boat)

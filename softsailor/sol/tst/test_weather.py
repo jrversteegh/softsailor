@@ -5,6 +5,7 @@ from softsailor.sol.sol_weather import Weather
 from softsailor.sol.sol_settings import Settings
 
 class TestWeather(unittest.TestCase):
+    @unittest.skipIf(testing_helper.offline, "Can't get settings and weather offline")
     def testLoad(self):
         settings = Settings()
         weather = Weather()

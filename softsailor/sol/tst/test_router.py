@@ -10,6 +10,7 @@ from softsailor.router import *
 from courses import *
 
 class TestRouter(unittest.TestCase):
+    @unittest.skipIf(testing_helper.offline, "Can't get map tiles offline")
     def testPB3(self):
         chart = SolMap()
         chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 25))

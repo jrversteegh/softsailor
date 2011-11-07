@@ -10,6 +10,7 @@ from softsailor.sol.sol_settings import *
 from softsailor.sol.sol_wind import *
 
 class TestBoatWind(unittest.TestCase):
+    @unittest.skipIf(testing_helper.offline, "Can't compare wind offline")
     def testBoatWindVersusWeather(self):
         settings = Settings()
         weather = Weather()

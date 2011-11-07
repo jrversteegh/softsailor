@@ -5,6 +5,7 @@ from softsailor.boat import SailBoat
 from softsailor.sol.sol_functions import *
 
 class TestSol(unittest.TestCase):
+    @unittest.skipIf(testing_helper.offline, "Can't fetch boat offline")
     def testGetBoat(self):
         boat = SailBoat()
         boat.heading = -1

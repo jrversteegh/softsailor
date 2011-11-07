@@ -22,6 +22,8 @@ class TestWindOnline(unittest.TestCase):
         self.wind = None
         self.weather = None
 
+
+    @unittest.skipIf(testing_helper.offline, "Can't get wind and boat offline")
     def testBoatWind(self):
         pass
 
