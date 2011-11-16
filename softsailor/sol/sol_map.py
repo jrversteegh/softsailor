@@ -12,7 +12,7 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 import math
 from bisect import bisect, bisect_left, insort
 import numpy as np
-import time
+from time import sleep
 
 from softsailor.utils import *
 from softsailor.map import Path, Map
@@ -278,60 +278,57 @@ class SolMap(Map):
         b2 = p2 - line.p1
         right = side_of(b2, b1, True)
 
-        def trace_poly(p_last, p_cur, right):
-            #print "============================================"
-            #print "Trace right", right
-            p_start = p_last
+        def trace_poly(p_last, p, right):
+            print "============================================"
+            print "Trace right", right
             points = result[right]
+            # Pop off the intersection
+            points.pop()
             a = line.v.a  # Angle of line from last point to current point
-            b = a         # Angle of line from last point to goal
-            angles = [a]
+            a_max = a
             def new_a():
-                return (p_cur - points[-1]).a
-            def new_b():
-                return (line.p2 - points[-1]).a
+                return (p - points[-1]).a
+
             # While there is a next point and we haven't gone completely round
             while True:
                 # Poly ended (edge of map?) or looped back to start
-                if p_cur is None or p_cur == line.p1:
-                    # ... that means this is not a way around
-                    result[right] = None
-                    return
-
-                # Cumulative angle
-                a += angle_diff(new_a(), a)
-                b += angle_diff(new_b(), b)
-
-                # The next point is not part of the convex hull. 
-                # We're done (for now)
-                if not angle_bigger(a, b, right):
+                if p is None or p == line.p1:
+                    if points[-1] == p_last:
+                        # .. means this is not a way around
+                        result[right] = None
                     break
 
-                # "a" should be decreasing for a convex hull
-                # Pop off previous points until it is
-                while angles and angle_bigger(a, angles[-1], right):
-                    #print "Removed. New len %d" % len(ps)
-                    la = angles.pop()
-                    lp = points.pop()
-                    a = la + angle_diff(new_a(), la)
+                try:
+                    # Cumulative angle
+                    a += angle_diff(new_a(), a)
 
-                points.append(p_cur)
-                angles.append(a)
+                    if angle_bigger(a, a_max, right):
+                        a_max = a
+                        p_max = Position(p)
+                finally:
+                    p_next = p.other_link(p_last)
+                    p_last = p
+                    p = p_next
 
-                p_next = p_cur.other_link(p_last)
-                p_last = p_cur
-                p_cur = p_next
-
+            v = p_max - line.p1
+            veer = veer_vector(v, right)
+            p_new = p_max + veer
+            points.append(p_new)
             points.append(line.p2)
+            assert(len(points) == 3)
 
         # Trace both directions
         trace_poly(p1, p2, right)
         trace_poly(p2, p1, not right)
-        result[False] = push_out(result[False], chart=self)
-        result[True] = push_out(result[True], chart=self)
+
+        try:
+            result.remove(None)
+            result.remove(None)
+            raise Exception('Expected at least one route around')
+        except ValueError:
+            pass
 
         return result
-
                 
 
     def __find_point(self, point):

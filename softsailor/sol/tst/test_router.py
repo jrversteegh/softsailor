@@ -14,6 +14,7 @@ class TestRouter(unittest.TestCase):
     def testPB3(self):
         chart = SolMap()
         chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 25))
+        chart.save_to_kml('chart.kml')
         course = SolCourse(gen_waypoints_pb3_2011(), 200, chart)
         router = Router(chart=chart, boat=None, course=course)
         router.course.save_to_kml('router_course.kml')

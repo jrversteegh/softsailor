@@ -44,6 +44,7 @@ class Waypoint(Position):
         v = self - position
         return (v[1] < self.range)
 
+#TODO: Route should be based on map.Path
 class Route(object):
     """Object that contains a list of waypoints"""
     def __init__(self, *args, **kwargs):

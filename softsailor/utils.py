@@ -352,3 +352,15 @@ def push_out(points, offset=42, chart=None):
     except StopIteration:
         pass
     return result
+
+def veer_vector(vec, right, distance=42):
+    result = Vector(vec)
+    result.r = distance
+    if right:
+        result.a += 0.5 * pi
+    else:
+        result.a -= 0.5 * pi
+    return result
+
+
+
