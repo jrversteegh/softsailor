@@ -255,7 +255,7 @@ class SolMap(Map):
             result.append(point)
         return result
 
-    def route_around(self, line):
+    def route_around(self, line, distance_hint=1E8):
         poly_part, intersect = self.__hit(line)
         if poly_part is None:
             return [[Position(line.p1), Position(line.p2)]]
@@ -279,39 +279,46 @@ class SolMap(Map):
         right = side_of(b2, b1, True)
 
         def trace_poly(p_last, p, right):
-            print "============================================"
-            print "Trace right", right, \
-                    rad_to_deg(line.p1.lat, line.p1.lon), \
-                    rad_to_deg(line.p2.lat, line.p2.lon) 
+            #print "============================================"
+            #print "Trace right", right, \
+                    #        rad_to_deg(line.p1.lat, line.p1.lon), \
+                    #        rad_to_deg(line.p2.lat, line.p2.lon) 
             points = result[right]
             a = line.v.a  # Angle of line from last point to current point
             b = a
             a_max = a
             p_max = None
-            p_start = p_last
+            p_start = p
             p_next = None
-            def new_a():
-                return (p - line.p1).a
-            def new_b():
-                return (line.p2 - p).a
 
             while True:
                 # Poly ended (edge of map?) or looped back to start
-                if p is None or p == p_start:
-                    if points[-1] == p_last:
-                        # .. means this is not a way around
-                        print 'Dead end'
+                if p is None or ((p_next is not None) and (p == p_start)):
+                    if p_max == p_last:
+                        #print 'Dead end'
                         result[right] = None
                     break
 
                 try:
-                    # Cumulative angle
-                    a += angle_diff(new_a(), a)
-                    b += angle_diff(new_b(), b)
-                    if abs(b - line.v.a) > pi:
-                        print 'Gone behind'
+                    # Cumulative angles
+                    ar = p - line.p1
+                    a += angle_diff(ar.a, a)
+                    br = line.p2 - p  # Target bearing
+                    b += angle_diff(br.a, b)
+
+                    # Distance to target exceeds distance hint, invalidate this
+                    # solution
+                    if br.r > distance_hint:
+                        result[right] = None
                         break
 
+                    # We've gone more than halfway around the target: stop for
+                    # now
+                    if abs(b - line.v.a) > pi:
+                        #print 'Gone behind'
+                        break
+
+                    # Check if we've found a new 'outer' point
                     if angle_bigger(a, a_max, right):
                         a_max = a
                         #print 'MAX', a_max
@@ -321,11 +328,10 @@ class SolMap(Map):
                     p_last = p
                     p = p_next
 
-            assert p_max is not None, '%f %f %f' % (line.v.a, a, a_max)
+            assert p_max is not None, '%f %f %f %s' % (line.v.a, a, a_max, str(right))
             v = p_max - line.p1
-            veer = veer_vector(v, right)
-            p_new = p_max + veer
-            points.append(Position(p_new))
+            p = p_max + veer_vector(v, right)
+            points.append(Position(p))
             points.append(Position(line.p2))
 
         # Trace both directions
