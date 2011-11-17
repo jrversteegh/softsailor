@@ -9,9 +9,10 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
-from bisect import bisect_left
+from bisect import bisect
 import math
 
+from softsailor.utils import *
 from softsailor.classes import PolarData
 from scipy import interpolate
 
@@ -49,14 +50,14 @@ class Performance(object):
 
         angle = abs(relative_wind[0])
         speed = relative_wind[1]
-        angle_i = bisect_left(angles, angle)
-        angle_j = angle_i + 1
+        angle_j = bisect(angles, angle)
+        angle_i = angle_j - 1
         while angle_j >= len(angles):
             angle_j -= 1
             angle_i -= 1
 
-        speed_i = bisect_left(speeds, speed)
-        speed_j = speed_i + 1
+        speed_j = bisect(speeds, speed)
+        speed_i = speed_j - 1
         while speed_j >= len(speeds):
             speed_j -= 1
             speed_i -= 1
