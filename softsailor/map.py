@@ -36,10 +36,14 @@ class Path(list):
             prev_p = p
 
     def __eq__(self, other):
-        return self.length == other.length
+        if other is None:
+            return False
+        return abs(self.length - other.length) < 1.0
 
     def __ne__(self, other):
-        return self.length != other.length
+        if other is None:
+            return True
+        return abs(self.length - other.length) >= 1.0
 
     def __gt__(self, other):
         return self.length > other.length
@@ -121,6 +125,8 @@ class Map(object):
 
         it_count = -1
         while len(result) < max_paths and len(paths) > 0:
+            if len(result) > 0 and it_count > 128:
+                break
             path = heappop(paths)
             it_count += 1
             path.save_to_kml('path_%.4d.kml' % it_count)
@@ -151,11 +157,14 @@ class Map(object):
             # When a path was walked without hitting anything, we got a winner. 
             # Add it to the result
             if path_clear:
-                heappush(result, path)
+                while clean_path(path):
+                    pass
+                try:
+                    # Avoid duplicates
+                    result.index(path)
+                except ValueError:
+                    result.append(path)
 
-        for path in result:
-            while clean_path(path):
-                pass
         result.sort()
         return result
 

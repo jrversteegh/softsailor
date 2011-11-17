@@ -92,8 +92,8 @@ class Performance(object):
         """Return wind angles for min and max VMG at wind_speed"""
         opt_angles = [0, 0]
         speeds = self.polar_data.speeds
-        speed_i = bisect_left(speeds, wind_speed)
-        speed_j = speed_i + 1
+        speed_j = bisect(speeds, wind_speed)
+        speed_i = speed_j - 1
         speed_range = speeds[speed_j] - speeds[speed_i]
         speed_frac = (wind_speed - speeds[speed_i]) / speed_range
 

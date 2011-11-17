@@ -258,11 +258,11 @@ class SolMap(Map):
     def route_around(self, line):
         poly_part, intersect = self.__hit(line)
         if poly_part is None:
-            return [Path([line.p1, line.p2])]
+            return [[Position(line.p1), Position(line.p2)]]
 
         # We're hitting so set up left and right around as
         # the line sections from current position to hit point
-        result = [[line.p1, intersect], [line.p1, intersect]]
+        result = [[Position(line.p1)], [Position(line.p1)]]
         
         #print "****************************************************"
         #print pos_to_str(line.p1), pos_to_str(line.p2), pos_to_str(intersect)
@@ -280,42 +280,53 @@ class SolMap(Map):
 
         def trace_poly(p_last, p, right):
             print "============================================"
-            print "Trace right", right
+            print "Trace right", right, \
+                    rad_to_deg(line.p1.lat, line.p1.lon), \
+                    rad_to_deg(line.p2.lat, line.p2.lon) 
             points = result[right]
-            # Pop off the intersection
-            points.pop()
             a = line.v.a  # Angle of line from last point to current point
+            b = a
             a_max = a
+            p_max = None
+            p_start = p_last
+            p_next = None
             def new_a():
-                return (p - points[-1]).a
+                return (p - line.p1).a
+            def new_b():
+                return (line.p2 - p).a
 
-            # While there is a next point and we haven't gone completely round
             while True:
                 # Poly ended (edge of map?) or looped back to start
-                if p is None or p == line.p1:
+                if p is None or p == p_start:
                     if points[-1] == p_last:
                         # .. means this is not a way around
+                        print 'Dead end'
                         result[right] = None
                     break
 
                 try:
                     # Cumulative angle
                     a += angle_diff(new_a(), a)
+                    b += angle_diff(new_b(), b)
+                    if abs(b - line.v.a) > pi:
+                        print 'Gone behind'
+                        break
 
                     if angle_bigger(a, a_max, right):
                         a_max = a
-                        p_max = Position(p)
+                        #print 'MAX', a_max
+                        p_max = p
                 finally:
                     p_next = p.other_link(p_last)
                     p_last = p
                     p = p_next
 
+            assert p_max is not None, '%f %f %f' % (line.v.a, a, a_max)
             v = p_max - line.p1
             veer = veer_vector(v, right)
             p_new = p_max + veer
-            points.append(p_new)
-            points.append(line.p2)
-            assert(len(points) == 3)
+            points.append(Position(p_new))
+            points.append(Position(line.p2))
 
         # Trace both directions
         trace_poly(p1, p2, right)
