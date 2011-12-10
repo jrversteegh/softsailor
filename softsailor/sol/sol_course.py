@@ -63,15 +63,21 @@ class SolCourse(Course):
                 a2 = normalize_angle_2pi(v1.a + 0.5 * (a1 - pi))
             mark.target_vector = Vector(a2, 1)
             if mark.on_land:
+                intersection = None
                 dist = 0
-                for i in range(-49, 50):
-                    a = a2 + i * (0.01 + 0.003 * math.fabs(a1))
-                    perp = Line(mark, mark + Vector(a, 25000))
+                for j in range(-49, 50):
+                    a = a2 + j * (0.01 + 0.003 * math.fabs(a1))
+                    perp = Line(mark, mark + Vector(a, 42000))
                     chart_segment, intersect = self._chart.intersect(perp)
-                    v = intersect - mark
-                    if v.r > dist:
-                        dist = v.r
-                        intersection = intersect
+                    # We may not find an intersection for all angles
+                    if intersect is not None:
+                        v = intersect - mark
+                        if v.r > dist:
+                            dist = v.r
+                            intersection = intersect
+                if intersection is None:
+                    raise Exception(
+                        'No waterfront found for Mark %d. Mark far inland?' % i)
                 mark.set_target(intersection + mark.target_vector * 42)
             else:
                 mark.set_target(mark + mark.target_vector * 42)

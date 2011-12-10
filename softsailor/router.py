@@ -66,7 +66,7 @@ class Router(object):
                 if routes[j] == routes[j + 1]:
                     del routes[j]
             if not routes:
-                raise Exception('Failed to find route on leg %d' % i)
+                raise Exception('Failed to find route on leg %d' % i + 1)
             self.legs.append(routes)
 
     @property
