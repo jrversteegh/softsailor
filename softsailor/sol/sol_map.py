@@ -219,10 +219,18 @@ class SolMap(Map):
         max_j = max(j1, j2)
         for i in range(min_i, max_i + 1):
             for j in range(min_j, max_j + 1):   
-                for pl in self.cells[i][j]:
-                    intersects = poly_intersect(pl, line) 
-                    for intersect in intersects:
-                        result.append(intersect)
+                try:
+                    for pl in self.cells[i][j]:
+                        intersects = poly_intersect(pl, line) 
+                        for intersect in intersects:
+                            result.append(intersect)
+                except IndexError:
+                    raise Exception('Line %s outside of map: %f, %f - %f, %f' \
+                                    % (str(line), 
+                                       self.minlat, 
+                                       self.minlon,
+                                       self.maxlat,
+                                       self.maxlon))
         return result
 
     def __hit(self, line):

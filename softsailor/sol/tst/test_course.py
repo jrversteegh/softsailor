@@ -36,7 +36,7 @@ class TestCourse(unittest.TestCase):
 class TestCourse2(unittest.TestCase):
     chart = SolMap()
     if not testing_helper.offline:
-        chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 25))
+        chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 28))
     def setUp(self):
         waypoints = gen_waypoints_pb3_2011()
         self.crs = SolCourse(waypoints, 1000, self.chart)
