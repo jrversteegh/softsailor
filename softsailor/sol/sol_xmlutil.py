@@ -11,7 +11,7 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 from httplib import HTTPConnection
 from urllib import urlopen
-from xml.dom.minidom import parseString, getDOMImplementation
+from xml.dom.minidom import parseString, Node 
 from xml.parsers.expat import ExpatError
 from zlib import decompress
 
@@ -64,6 +64,11 @@ def get_element(parent, name):
         return children[0]
     except IndexError:
         return None
+
+def get_first_element(parent):
+    for child in parent.childNodes:
+        if child.nodeType == Node.ELEMENT_NODE:
+            return child
 
 def get_elements(parent, name):
     children = parent.getElementsByTagName(name)

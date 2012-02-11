@@ -91,12 +91,18 @@ tile_cell_size = {'c': deg_to_rad(45),
                   'h': deg_to_rad(1), 
                   'i': deg_to_rad(2), 
                   'l': deg_to_rad(10)}
+tile_cell_count = {'c': 360 / 45, 
+                   'h': 360, 
+                   'i': 360 / 2, 
+                   'l': 360 / 10}
 
 class SolMap(Map):
 
     def setup_cells(self):
         lat_cells = int(round((self.maxlat - self.minlat) / self.cellsize))
         lon_cells = int(round((self.maxlon - self.minlon) / self.cellsize))
+        #print 'Range', self.minlat, self.maxlat, self.minlon, self.maxlon
+        #print 'Cells', lat_cells, lon_cells
         self.cells = [[[] for i in range(lon_cells)] for j in range(lat_cells)]
 
     def load_cell(self, cell_elem, cell):
@@ -155,15 +161,19 @@ class SolMap(Map):
             cell_minlon = deg_to_rad(float(cell.getAttribute('minlon')))
             lat_i = int(round((cell_minlat - self.minlat) / self.cellsize))
             lon_i = int(round((cell_minlon - self.minlon) / self.cellsize))
-            self.load_cell(cell, self.cells[lat_i][lon_i])
+            try:
+                self.load_cell(cell, self.cells[lat_i][lon_i])
+            except Exception as e:
+                raise Exception('Error in ' + mapurl + '. ' + str(e))
 
         dom.unlink()
         self.__connect()
 
     def load_tile_dom(self, host, lati, loni):
+        loni %= tile_cell_count[self.tiles]
         uri = '/site_media/maps/tiles/%s/%d_%d.xml.z' % (self.tiles, loni, lati)
         url = 'http://' + host + uri
-        return fetch_sol_document_from_url(url, cached=True)
+        return fetch_sol_document_from_url(url, cached=True), url
 
     def load_tiles(self, host, tiles, loadarea=None):
         self.tiles = tiles
@@ -195,13 +205,16 @@ class SolMap(Map):
 
         for i, row in enumerate(self.cells):
             for j, cell in enumerate(row):
-                lati = min_i + i
+                lati = min_i + i 
                 loni = min_j + j
-                dom = self.load_tile_dom(host, lati, loni)
-                root = dom.childNodes[0]
+                dom, mapurl = self.load_tile_dom(host, lati, loni)
+                root = get_first_element(dom)
 
                 cell_elem = get_element(root, 'cell')
-                self.load_cell(cell_elem, cell)
+                try:
+                    self.load_cell(cell_elem, cell)
+                except Exception as e:
+                    raise Exception('Error in ' + mapurl + '. ' + str(e))
 
                 dom.unlink()
 
