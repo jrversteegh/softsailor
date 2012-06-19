@@ -97,10 +97,21 @@ tile_cell_count = {'c': 360 / 45,
                    'l': 360 / 10}
 
 class SolMap(Map):
+    @property
+    def lat_range(self):
+        return self.maxlat - self.minlat
+
+    @property
+    def lon_range(self):
+        return normalize_angle_2pi(self.maxlon - self.minlon)
+
+    def cell_offset(self, lat, lon):
+        return int(round((lat - self.minlat) / self.cellsize)), \
+               int(round(normalize_angle_2pi(lon - self.minlon) / self.cellsize))
 
     def setup_cells(self):
-        lat_cells = int(round((self.maxlat - self.minlat) / self.cellsize))
-        lon_cells = int(round((self.maxlon - self.minlon) / self.cellsize))
+        lat_cells = int(round(self.lat_range / self.cellsize))
+        lon_cells = int(round(self.lon_range / self.cellsize))
         #print 'Range', self.minlat, self.maxlat, self.minlon, self.maxlon
         #print 'Cells', lat_cells, lon_cells
         self.cells = [[[] for i in range(lon_cells)] for j in range(lat_cells)]
@@ -159,8 +170,7 @@ class SolMap(Map):
         for cell in cells:
             cell_minlat = deg_to_rad(float(cell.getAttribute('minlat')))
             cell_minlon = deg_to_rad(float(cell.getAttribute('minlon')))
-            lat_i = int(round((cell_minlat - self.minlat) / self.cellsize))
-            lon_i = int(round((cell_minlon - self.minlon) / self.cellsize))
+            lat_i, lon_i = self.cell_offset(cell_minlat, cell_minlon)
             try:
                 self.load_cell(cell, self.cells[lat_i][lon_i])
             except Exception as e:
@@ -175,28 +185,38 @@ class SolMap(Map):
         url = 'http://' + host + uri
         return fetch_sol_document_from_url(url, cached=True), url
 
-    def load_tiles(self, host, tiles, loadarea=None):
-        self.tiles = tiles
+    def get_chart_size(self, load_area):
+        # Initialize to world...
         self.minlat = -half_pi
         self.maxlat =  half_pi 
-        self.minlon = -pi 
-        self.maxlon =  pi 
+        self.minlon = -2 * pi 
+        self.maxlon =  2 * pi 
+        if load_area is not None:
+            # ... and shrink to sailing arena
+            while self.minlat <= load_area[0]:
+                self.minlat += self.cellsize
+            while self.maxlat >= load_area[1]:
+                self.maxlat -= self.cellsize
+            while self.minlon <= normalize_angle_pipi(load_area[2]):
+                self.minlon += self.cellsize
+            while self.maxlon >= normalize_angle_pipi(load_area[3]):
+                self.maxlon -= self.cellsize
+        # .. and add a border of 1, because we shrunk to inside the arena
+        self.minlat -= self.cellsize
+        self.maxlat += self.cellsize
+        self.minlon -= self.cellsize
+        self.maxlon += self.cellsize
+
+    def load_tiles(self, host, tiles, load_area=None):
+        self.tiles = tiles
 
         self.cellsize = tile_cell_size[tiles]
 
-        if loadarea is not None:
-            while self.minlat <= loadarea[0]:
-                self.minlat += self.cellsize
-            while self.maxlat >= loadarea[1]:
-                self.maxlat -= self.cellsize
-            while self.minlon <= loadarea[2]:
-                self.minlon += self.cellsize
-            while self.maxlon >= loadarea[3]:
-                self.maxlon -= self.cellsize
-            self.minlat -= self.cellsize
-            self.maxlat += self.cellsize
-            self.minlon -= self.cellsize
-            self.maxlon += self.cellsize
+        self.get_chart_size(load_area)
+
+        print 'Race area:', load_area
+
+        print 'Map Lat:', self.minlat, self.maxlat, ' Lon: ', self.minlon, self.maxlon
 
         min_i = int(round((half_pi + self.minlat) / self.cellsize))
         min_j = int(round((pi + self.minlon) / self.cellsize))

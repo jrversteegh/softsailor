@@ -156,6 +156,14 @@ class TestMap(unittest.TestCase):
         l = Line(p1, p2)
         self.map.route_around(l)
 
+    def testGetChartSize(self):
+        load_area = (-0.1, 0.2, 3.0, -3.1)
+        self.map.cellsize = 0.01 * pi
+        self.map.get_chart_size(load_area)
+        self.assertTrue(0.3 <= self.map.lat_range)
+        self.assertTrue(0.363 > self.map.lat_range)
+        self.assertTrue(0.18 <= self.map.lon_range)
+        self.assertTrue(0.243 > self.map.lon_range)
 
 
 class TestMapPoint(unittest.TestCase):
