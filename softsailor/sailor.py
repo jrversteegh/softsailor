@@ -206,7 +206,7 @@ class Sailor(Logable):
             # when actually steering a direct course .
             # Steer towards the track perpendicularly to reduce the cte. 
             # When the track itself hits land, we're fsckd, but that is someone
-            # elses error and cannot be corrected for here
+            # elses error and cannot be corrected here
             self.log("Navigate to track to avoid land")
             return True, self.navigator.to_track()[0]
         else:

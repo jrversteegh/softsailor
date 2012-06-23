@@ -23,10 +23,10 @@ class Controller(BoatController):
         # Stop when tacking or also when gybing in case we're already down on
         # efficiency. This may lead to an overall performance gain
         boat = self.boat
+        # If wind angle changed sign: either tack or gybe
         if (wind_angle * boat.wind_angle) < 0:
-            # Wind angle changed sign: either tack or gybe
-            if abs(wind_angle) < 1.5 or boat.efficiency < 0.96: 
-                # It was either a tack or the boat performance was already down
+            # If the boat performance was already down, reset it by stopping
+            if boat.efficiency < 0.96: 
                 self.stop()
 
     def steer_heading(self, value):
