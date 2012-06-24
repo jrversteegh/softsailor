@@ -13,6 +13,8 @@ from geofun import Position, Vector
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 
+testing_helper.setup_log('test_map')
+
 try:
     value = os.environ['SOL_BROKEN_MAP']
     mapbroken = True

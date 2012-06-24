@@ -13,6 +13,8 @@ import math
 from bisect import bisect, bisect_left, insort
 import numpy as np
 from time import sleep
+from logging import getLogger
+_log = getLogger('softsailor.sol.sol_map')
 
 from softsailor.utils import *
 from softsailor.map import Path, Map
@@ -112,8 +114,12 @@ class SolMap(Map):
     def setup_cells(self):
         lat_cells = int(round(self.lat_range / self.cellsize))
         lon_cells = int(round(self.lon_range / self.cellsize))
-        #print 'Range', self.minlat, self.maxlat, self.minlon, self.maxlon
-        #print 'Cells', lat_cells, lon_cells
+        _log.info('Map range: %f %f %f %f' % ( 
+                  rad_to_deg(self.minlat), 
+                  rad_to_deg(self.maxlat), 
+                  rad_to_deg(self.minlon), 
+                  rad_to_deg(self.maxlon)))
+        _log.info('Cells: %d %d' % (lat_cells, lon_cells))
         self.cells = [[[] for i in range(lon_cells)] for j in range(lat_cells)]
 
     def load_cell(self, cell_elem, cell):
@@ -214,9 +220,7 @@ class SolMap(Map):
 
         self.get_chart_size(load_area)
 
-        print 'Race area:', load_area
-
-        print 'Map Lat:', self.minlat, self.maxlat, ' Lon: ', self.minlon, self.maxlon
+        _log.info('Race area: %s' % str(rad_to_deg(load_area)))
 
         min_i = int(round((half_pi + self.minlat) / self.cellsize))
         min_j = int(round((pi + self.minlon) / self.cellsize))

@@ -1,7 +1,7 @@
 """
 Sol xml util module
 
-Contains xml interfacing with sol server
+Contains xml interfacing with sol server and generic xml utilities
 """
 __author__ = "J.R. Versteegh"
 __copyright__ = "Copyright 2011, J.R. Versteegh"
@@ -14,6 +14,11 @@ from urllib import urlopen
 from xml.dom.minidom import parseString, Node 
 from xml.parsers.expat import ExpatError
 from zlib import decompress
+from datetime import datetime, timedelta
+from time import time
+from logging import getLogger
+
+_log = getLogger('softsailor.sol.sol_xmlutil')
 
 import os
 
@@ -25,6 +30,7 @@ def read_sol_document(handle, cache_file=None):
     if data.find('Bad token') >= 0:
         raise BadToken('Bad token while fetching boat from sailonline')
     if cache_file:
+        _log.info('Writing to cache: %s' % cache_file)
         with open(cache_file, 'w') as f:
             f.write(data)
     if data.startswith('x'):
@@ -40,8 +46,15 @@ def fetch_sol_document_from_url(url, cached=False):
             os.makedirs(sol_dir)
         cache_file = sol_dir + '/' + url.replace('/', '_')
         if os.path.exists(cache_file):
-            url = cache_file
-            cache_file = None
+            _log.info('Cache file exists: %s' % cache_file)
+            fileage = time() - os.stat(cache_file).st_mtime
+            if fileage > 86400 * 30:
+                _log.info('Cache file age is: %d days' % int(fileage / 86400))
+                url = cache_file
+                cache_file = None
+            else:
+                _log.info('Cache file out of date: %s' % cache_file)
+    _log.info('Reading file: %s' % url) 
     handle = urlopen(url)
     try:
         return read_sol_document(handle, cache_file)
