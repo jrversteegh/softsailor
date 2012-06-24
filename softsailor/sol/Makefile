@@ -4,6 +4,6 @@
 all:
 	$(MAKE) -C .. all
 
-sol_test_%:
-	$(MAKE) -C .. sol/$@
+test_%:
+	$(MAKE) -C .. $@
 
