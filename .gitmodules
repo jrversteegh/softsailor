@@ -1,0 +1,3 @@
+[submodule "deps/geofun"]
+	path = deps/geofun
+	url = git://github.com/jrversteegh/geofun.git
