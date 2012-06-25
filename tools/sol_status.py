@@ -19,13 +19,13 @@ boat = SailBoat()
 fetch_boat(boat)
 
 settings = get_settings()
-if settings.map == '':
+if settings.chart == '':
     area = settings.area
     print "Map tiles     : ", settings.tilemap, \
         lat_to_str(area[0]), lat_to_str(area[1]), \
         lon_to_str(area[2]), lon_to_str(area[3])
 else:
-    print "Map           : ", settings.map
+    print "Chart          : ", settings.chart
 
 print "Weather       : ", settings.weather
 
