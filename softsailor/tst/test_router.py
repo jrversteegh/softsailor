@@ -1,7 +1,7 @@
 import unittest
 import testing_helper
 
-from softsailor.map import Map
+from softsailor.chart import Chart
 from softsailor.course import Course
 from softsailor.boat import SailBoat
 from softsailor.router import *
@@ -12,7 +12,7 @@ class TestRouter(unittest.TestCase):
     def testConstruction(self):
         boat = SailBoat()
         course = Course()
-        chart = Map()
+        chart = Chart()
         router = Router(boat=boat, course=course, chart=chart)
         self.assertEqual(1, len(router.legs))
 
@@ -26,7 +26,7 @@ class TestRouter(unittest.TestCase):
         r2 = Route((p1, pt2, p3))
         c = Course((p1, p2, p3))
         boat = SailBoat()
-        chart = Map()
+        chart = Chart()
         router = Router(boat=boat, course=c, chart=chart)
         self.assertFalse(router.valid_route(r1))
         self.assertTrue(router.valid_route(r2))

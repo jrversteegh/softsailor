@@ -17,7 +17,7 @@ from sol_settings import Settings
 from sol_xmlutil import *
 from sol_wind import *
 from sol_weather import *
-from sol_map import SolMap
+from sol_chart import SolChart
 from sol_course import SolCourse
 
 from datetime import datetime
@@ -29,7 +29,7 @@ set_earth_model('spherical')
 # Some global singletons required by the functions
 __sol_settings_instance = None
 __sol_wind_instance = None
-__sol_map_instance = None
+__sol_chart_instance = None
 __sol_course_instance = None
 
 def get_settings():
@@ -38,20 +38,20 @@ def get_settings():
         __sol_settings_instance = Settings()
     return __sol_settings_instance
 
-def get_map():
-    global __sol_map_instance
-    if __sol_map_instance is None:
-        __sol_map_instance = SolMap()
+def get_chart():
+    global __sol_chart_instance
+    if __sol_chart_instance is None:
+        __sol_chart_instance = SolChart()
         settings = get_settings()
-        if settings.map != '':
-            __sol_map_instance.load(get_settings().map)
+        if settings.chart != '':
+            __sol_chart_instance.load(get_settings().chart)
         else:
             settings = get_settings()
-            __sol_map_instance.load_tiles(
+            __sol_chart_instance.load_tiles(
                 settings.host,
                 settings.tilemap,
                 settings.area)
-    return __sol_map_instance
+    return __sol_chart_instance
 
 def get_wind():
     global __sol_wind_instance
@@ -67,7 +67,7 @@ def get_course():
         settings = get_settings()
         __sol_course_instance = SolCourse(settings.course, 
                                           settings.finish_radius, 
-                                          get_map()) 
+                                          get_chart()) 
     return __sol_course_instance
 
 def fetch_boat(boat):

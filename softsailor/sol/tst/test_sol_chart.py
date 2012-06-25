@@ -5,15 +5,15 @@ import testing_helper
 
 from softsailor.utils import *
 from softsailor.route import Route
-from softsailor.map import Path
-from softsailor.sol.sol_map import *
+from softsailor.chart import Path
+from softsailor.sol.sol_chart import *
 from softsailor.sol.sol_settings import Settings
 
 from geofun import Position, Vector
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 
-testing_helper.setup_log('test_map')
+testing_helper.setup_log('test_sol_chart')
 
 try:
     value = os.environ['SOL_BROKEN_MAP']
@@ -49,20 +49,20 @@ class TestFuncs(unittest.TestCase):
         self.assertTrue(bc[1] < 200)
         
 
-class TestMap(unittest.TestCase):
+class TestChart(unittest.TestCase):
     def setUp(self):
-        self.map = SolMap()
+        self.chart = SolChart()
 
     @unittest.skipIf(mapbroken, "Don't test because of broken map")
     @unittest.skipIf(testing_helper.offline, "Requires sailonline connection")
     def testLoad(self):
         settings = Settings()
-        if settings.map != '':
-            self.map.load(settings.map)
+        if settings.chart != '':
+            self.chart.load(settings.map)
         else:
             self.assertTrue(settings.area[0] > -half_pi)
-            self.map.load_tiles(settings.host, settings.tilemap, settings.area)
-        for point in self.map.points:
+            self.chart.load_tiles(settings.host, settings.tilemap, settings.area)
+        for point in self.chart.points:
             has_one_or_two_links = (len(point.links) == 1) \
                     or (len(point.links) == 2)
             self.assertTrue(has_one_or_two_links, \
@@ -70,52 +70,52 @@ class TestMap(unittest.TestCase):
                             pos_to_str(point))
 
     def testHit(self):
-        self.map.load(dirname + '/Canary_Brazil.xml')
+        self.chart.load(dirname + '/Canary_Brazil.xml')
 
         # Attempt to hit Sao Antao (Cabo Verde) from all sides
         pos_to = Position(0.297869, -0.43921)
         bearing = Vector(0, 30000)
         pos_from = pos_to - bearing
         segment = Line(pos_from, pos_to)
-        hit = self.map.hit(segment)
+        hit = self.chart.hit(segment)
         self.assertTrue(hit)
 
         bearing = Vector(1.57, 25000)
         pos_from = pos_to - bearing
         segment = Line(pos_from, pos_to)
-        hit = self.map.hit(segment)
+        hit = self.chart.hit(segment)
         self.assertTrue(hit)
 
         bearing = Vector(3.14, 25000)
         pos_from = pos_to - bearing
         segment = Line(pos_from, pos_to)
-        hit = self.map.hit(segment)
+        hit = self.chart.hit(segment)
         self.assertTrue(hit)
 
         bearing = Vector(4.71, 30000)
         pos_from = pos_to - bearing
         segment = Line(pos_from, pos_to)
-        hit = self.map.hit(segment)
+        hit = self.chart.hit(segment)
         self.assertTrue(hit)
 
         # This point is not on the island
         pos1 = Position(0.3019, -0.4363)
         pos2 = pos1 - bearing
         segment = Line(pos1, pos2)
-        hit = self.map.hit(segment)
+        hit = self.chart.hit(segment)
         self.assertFalse(hit)
 
     def testOuterPoints(self):
-        self.map.load(dirname + '/Canary_Brazil.xml')
+        self.chart.load(dirname + '/Canary_Brazil.xml')
         # Attempt to pass Sao Antao (Cabo Verde) from north to south
         pos_from = Position(0.297869, -0.43921) + Vector(0, 30000)
         pos_to = Position(0.297869, -0.43921) + Vector(math.pi, 30000)
         segment = Line(pos_from, pos_to)
         # First verify that we're hitting
-        hit = self.map.hit(segment)
+        hit = self.chart.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
 
-        outer_points = self.map.route_around(segment)
+        outer_points = self.chart.route_around(segment)
         self.assertEquals(2, len(outer_points))
         self.assertTrue(not outer_points[0] is None \
                         and not outer_points[1] is None, \
@@ -127,17 +127,17 @@ class TestMap(unittest.TestCase):
         pos_to = Position(0.297869, -0.43921) + Vector(0, 30000)
         segment = Line(pos_from, pos_to)
         # First verify that we're hitting
-        hit = self.map.hit(segment)
+        hit = self.chart.hit(segment)
         self.assertTrue(hit, 'Expected island hit')
 
-        outer_points = self.map.route_around(segment)
+        outer_points = self.chart.route_around(segment)
         self.assertEquals(2, len(outer_points))
         route = Route(outer_points[0])
         route.save_to_kml(dirname + '/outer_points_first_0.kml')
         route = Route(outer_points[1])
         route.save_to_kml(dirname + '/outer_points_first_1.kml')
 
-        outer_points = self.map.find_paths(segment)
+        outer_points = self.chart.find_paths(segment)
         for i, points in enumerate(outer_points):
             path = Path(points)
             path.save_to_kml('result_%d.kml' % i)
@@ -145,36 +145,36 @@ class TestMap(unittest.TestCase):
         self.assertTrue(len(outer_points) >= 3)
 
     def testSaveToKml(self):
-        self.map.load(dirname + '/Gbr_Gtb.xml')
-        self.map.save_to_kml(dirname + '/gbr_gtb.kml')
-        self.map.load(dirname + '/Canary_Brazil.xml')
-        self.map.save_to_kml(dirname + '/canary_brazil.kml')
+        self.chart.load(dirname + '/Gbr_Gtb.xml')
+        self.chart.save_to_kml(dirname + '/gbr_gtb.kml')
+        self.chart.load(dirname + '/Canary_Brazil.xml')
+        self.chart.save_to_kml(dirname + '/canary_brazil.kml')
 
     def testRouteAround(self):
         p1 = Position(*deg_to_rad(39.3082, 26.4316))
         p2 = Position(*deg_to_rad(39.3365, 26.4245))
         
-        self.map.load(dirname + '/Turkey.xml') 
+        self.chart.load(dirname + '/Turkey.xml') 
         l = Line(p1, p2)
-        self.map.route_around(l)
+        self.chart.route_around(l)
 
     def testGetChartSize(self):
         load_area = (-0.1, 0.2, 3.0, -3.1)
-        self.map.cellsize = 0.01 * pi
-        self.map.get_chart_size(load_area)
-        self.assertTrue(0.3 <= self.map.lat_range)
-        self.assertTrue(0.363 > self.map.lat_range)
-        self.assertTrue(0.18 <= self.map.lon_range)
-        self.assertTrue(0.243 > self.map.lon_range)
+        self.chart.cellsize = 0.01 * pi
+        self.chart.get_chart_size(load_area)
+        self.assertTrue(0.3 <= self.chart.lat_range)
+        self.assertTrue(0.363 > self.chart.lat_range)
+        self.assertTrue(0.18 <= self.chart.lon_range)
+        self.assertTrue(0.243 > self.chart.lon_range)
 
 
-class TestMapPoint(unittest.TestCase):
+class TestChartPoint(unittest.TestCase):
     def setUp(self):
-        self.point = MapPoint(0.5, 0.5)
+        self.point = ChartPoint(0.5, 0.5)
 
     def testOtherLink(self):
-        p1 = MapPoint(0.55, 0.5)
-        p2 = MapPoint(0.5, 0.55)
+        p1 = ChartPoint(0.55, 0.5)
+        p2 = ChartPoint(0.5, 0.55)
         self.point.links.append(p1)
         self.point.links.append(p2)
         p = self.point.other_link(p1)

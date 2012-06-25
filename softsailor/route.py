@@ -16,6 +16,8 @@ from geofun import Position, Line, floats_equal
 import kmlbase
 import kmldom
 
+from softsailor.classes import Path
+
 class Waypoint(Position):
     range = 42.0  # Default range for waypoint: 42m
     comment = ''
@@ -44,43 +46,24 @@ class Waypoint(Position):
         v = self - position
         return (v[1] < self.range)
 
-#TODO: Route should be based on map.Path
-class Route(object):
+class Route(Path):
     """Object that contains a list of waypoints"""
     def __init__(self, *args, **kwargs):
-        super(Route, self).__init__()
-        self.__waypoints = []
-        if len(args) > 0:
-            for wp in args[0]:
-                self.__waypoints.append(Waypoint(wp))
+        super(Route, self).__init__(*args, **kwargs)
 
-    def __iter__(self):
-        return iter(self.__waypoints)
-    def __getitem__(self, index):
-        return self.__waypoints[index]
     def __setitem__(self, index, value):
-        while len(self.__waypoints) < index:
-            self.__waypoints.append(Waypoint(0, 0))
-        if index < len(self.__waypoints):
-            self.__waypoints[index] = Waypoint(value)
+        while len(self) < index:
+            self.append(Waypoint(0, 0))
+        if index < len(self):
+            super(Route, self).__setitem__(index, Waypoint(value))
         else:
-            self.__waypoints.append(Waypoint(value))
-    def __len__(self):
-        return len(self.__waypoints)
+            self.append(Waypoint(value))
 
-    def __str__(self):
-        result =  ""
-        for wp in self:
-            deg_wp = rad_to_deg(wp)
-            result += "%f, %f %5.0f" % (deg_wp[0], deg_wp[1], wp.range)
-            if hasattr(wp, 'comment'):
-                result += " " + wp.comment
-            result += "\n"
-        return result
 
     def __iadd__(self, value):
-        for v, point in value.segments:
-            self.__waypoints.append(Waypoint(point))
+        # Ignore the first point
+        for point in value[1:]:
+            self.append(Waypoint(point))
         return self
 
     def __add__(self, value):
@@ -89,60 +72,37 @@ class Route(object):
         return result
 
     def __eq__(self, value):
+        if value is None:
+            return False
         if len(self) != len(value):
             return False
         if not floats_equal(self.length, value.length):
             return False
-        for wp1, wp2 in zip(self.waypoints, value.waypoints):
+        for wp1, wp2 in zip(self, value):
             if not (wp1 == wp2):
                 return False
         return True
                       
     @property
     def waypoints(self):
-        return self.__waypoints
+        return self
     @waypoints.setter
     def waypoints(self, value):
-        self.__waypoints = []
+        del self[:]
         for wp in value:
             self.add(wp)
 
-    @property
-    def segments(self):
-        wp = iter(self.__waypoints)
-        wp_from = wp.next()
-        while True:
-            wp_to = wp.next()
-            yield wp_to - wp_from, wp_to
-            wp_from = wp_to
-
-    @property
-    def lines(self):
-        wp = iter(self.__waypoints)
-        wp_from = wp.next()
-        while True:
-            wp_to = wp.next()
-            yield Line(wp_from, wp_to)
-            wp_from = wp_to
-
-    @property
-    def length(self):
-        l = 0
-        for segment in self.segments:
-            l += segment[0].r
-        return l
-
     @vec_func
     def add(self, lat, lon):
-        self.__waypoints.append(Waypoint(lat, lon))
+        self.append(Waypoint(lat, lon))
 
     @vec_func
     def insert(self, index, lat, lon):
-        self.__waypoints.insert(index, Waypoint(lat, lon))
+        self.insert(index, Waypoint(lat, lon))
 
     def load_from_file(self, filename):
         f = open(filename, "r")
-        self.__waypoints = []
+        del self[:]
         for line in f:
             # Split off comments
             line, sep, comment = line.partition("#")
@@ -156,52 +116,15 @@ class Route(object):
                     ra = Waypoint.range
                 wp = Waypoint(la, lo, ra)
                 wp.comment = comment.strip()
-                self.__waypoints.append(wp)
+                self.append(wp)
         f.close()
 
     def save_to_file(self, filename):
         f = open(filename, "w")
-        for wp in self.__waypoints:
+        for wp in self:
             lat, lon = rad_to_deg(wp.lat, wp.lon)
             line = '%f %f %f # %s\n' % (lat, lon, wp.range, wp.comment)
             f.write(line)
         f.close()
 
-
-    def save_to_kml(self, filename):
-        filedir, file = os.path.split(filename)
-        filebase, fileext = os.path.splitext(file)
-
-        kml, doc = create_kml_document('Route: ' + filebase)
-
-        factory = kmldom.KmlFactory_GetFactory()
-        
-        waypoints = factory.CreateFolder()
-        waypoints.set_name('Waypoints')
-        for i, wp in enumerate(self.waypoints):
-            waypoint = create_point_placemark('Waypoint ' + str(i), \
-                    rad_to_deg(wp[0]), rad_to_deg(wp[1]))
-            waypoint.set_description(wp.comment)
-            waypoint.set_styleurl('#default')
-            waypoints.add_feature(waypoint)
-
-        lines = factory.CreateFolder()
-        lines.set_name('Track')
-        for i, ln in enumerate(self.lines):
-            vec = ln.v
-            p1 = list(ln.p1)
-            p2 = list(ln.p2)
-            ln = (rad_to_deg(p1), rad_to_deg(p2))
-            line = create_line_placemark('Segment ' + str(i), ln)
-            description = 'Vector: ' + vec_to_str(vec) 
-            line.set_description(description)
-            lines.add_feature(line)
-
-        description = 'UTC: ' + str(datetime.datetime.utcnow())
-        description += ' Length: ' + str(int(self.length / 1852)) + ' nm'
-        doc.set_description(description)
-        doc.add_feature(waypoints)
-        doc.add_feature(lines)
-        
-        save_kml_document(kml, filename)
 

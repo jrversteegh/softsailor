@@ -47,7 +47,7 @@ class TestRoute(unittest.TestCase):
         except TypeError:
             self.fail('Segments iterable check')
         sg = self.route.segments.next()
-        self.assertAlmostEqual(math.pi, sg[0].a)
+        self.assertAlmostEqual(math.pi, sg.v.a)
 
     def testLength(self):
         #TODO

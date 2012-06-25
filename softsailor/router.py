@@ -37,7 +37,7 @@ class Router(object):
                     if mk.target == target:
                         mks.append(mk)
         ans = [0 for mk in mks]
-        for l in route.lines:
+        for l in route.segments:
             for i, mk in enumerate(mks):
                 v1 = mk - l.p1
                 v2 = mk - l.p2

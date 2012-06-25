@@ -1,7 +1,7 @@
 """
-Map module
+Chart module
 
-Contains an interface for a map provider 
+Contains an interface for a chart provider 
 """
 __author__ = "J.R. Versteegh"
 __copyright__ = "Copyright 2011, J.R. Versteegh"
@@ -14,86 +14,14 @@ import functools
 
 from datetime import datetime
 from geofun import Line, Position
-from route import Route
-from utils import *
 import kmlbase
 import kmldom
 
-class Path(list):
-    @property
-    def length(self):
-        l = 0
-        for segment in self.segments:
-            l += segment.v.r
-        return l
+from softsailor.route import Route
+from softsailor.utils import *
+from softsailor.classes import Path
 
-    @property
-    def segments(self):
-        prev_p = None
-        for p in self:
-            if prev_p is not None:
-                yield Line(prev_p, p)
-            prev_p = p
-
-    def __eq__(self, other):
-        if other is None:
-            return False
-        return abs(self.length - other.length) < 1.0
-
-    def __ne__(self, other):
-        if other is None:
-            return True
-        return abs(self.length - other.length) >= 1.0
-
-    def __gt__(self, other):
-        return self.length > other.length
-
-    def __lt__(self, other):
-        return self.length < other.length
-    
-    def __ge__(self, other):
-        return self.length >= other.length
-
-    def __le__(self, other):
-        return self.length <= other.length
-
-    def save_to_kml(self, filename):
-        filedir, file = os.path.split(filename)
-        filebase, fileext = os.path.splitext(file)
-
-        kml, doc = create_kml_document('Path: ' + filebase)
-
-        factory = kmldom.KmlFactory_GetFactory()
-        
-        points = factory.CreateFolder()
-        points.set_name('Points')
-        for i, p in enumerate(self):
-            point = create_point_placemark('Point ' + str(i), \
-                    rad_to_deg(p[0]), rad_to_deg(p[1]))
-            point.set_styleurl('#default')
-            points.add_feature(point)
-
-        lines = factory.CreateFolder()
-        lines.set_name('Track')
-        for i, ln in enumerate(self.segments):
-            vec = ln.v
-            p1 = list(ln.p1)
-            p2 = list(ln.p2)
-            ln = (rad_to_deg(p1), rad_to_deg(p2))
-            line = create_line_placemark('Segment ' + str(i), ln)
-            description = 'Vector: ' + vec_to_str(vec) 
-            line.set_description(description)
-            lines.add_feature(line)
-
-        description = 'UTC: ' + str(datetime.utcnow())
-        description += ' Length: ' + str(int(self.length / 1852)) + ' nm'
-        doc.set_description(description)
-        doc.add_feature(points)
-        doc.add_feature(lines)
-        
-        save_kml_document(kml, filename)
-
-class Map(object):
+class Chart(object):
     def hit(self, line):
         """Returns whether the segment crosses a land boundary"""
         return False

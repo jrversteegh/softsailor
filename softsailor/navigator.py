@@ -36,11 +36,10 @@ class Navigator(object):
             self.__next()
             try:
                 sg = segments.next()
-                tr = sg[0]
-                br = sg[1] - self.boat.position
+                br = sg.p2 - self.boat.position
                 # We're looking for a waypoint that has a bearing
                 # along the track
-                cs = math.cos(tr[0] - br[0]) 
+                cs = math.cos(sg.v.a - br.a) 
                 if cs > 0.7:
                     break
             except StopIteration:
@@ -54,11 +53,13 @@ class Navigator(object):
         return self.__active_index
 
     @property
-    def active_waypoint(self):
+    def active_leg(self):
         if self.__active_index < len(self.route):
-            return self.route[self.__active_index]
+            return (self.route[self.__active_index] - \
+                        self.route[self.__active_index - 1],
+                    self.route[self.__active_index])
         else:
-            return Waypoint(0.0, 0.0)
+            return Vector(), Waypoint()
 
     @property
     def is_complete(self):
@@ -67,40 +68,40 @@ class Navigator(object):
     def get_bearing(self):
         if self.is_complete:
             return Vector(0.0, 0.0)
-        segment, waypoint = self.get_active_segment()
+        course, waypoint = self.active_leg
         bearing = waypoint - self.boat.position
-        # If if waypoint has been reached or has been 'overshot'...
+        # If waypoint has been reached or has been 'overshot'...
         if waypoint.is_reached(self.boat.position) \
-                or math.cos(segment[0] - bearing[0]) < 0.0:
+                or math.cos(course.a - bearing.a) < 0.0:
             # ... go to the next waypoint
             self.__next()
             return self.get_bearing()
         return bearing
 
-    def get_active_segment(self):
-        if self.active_index > 0 \
-                and self.active_index < len(self.route):
-            wp = self.route[self.__active_index]
-            return wp - self.route[self.__active_index - 1], wp
+    @property
+    def active_segment(self):
+        if self.active_index > 0 and self.active_index < len(self.route):
+            return Line(self.route[self.__active_index - 1],
+                        self.route[self.__active_index])
         else:
-            return Vector(0, 0), Waypoint(0, 0)
+            return Line()
+
 
     def get_cross_track(self):
-        """Returns distance to track. Not accurate for larget distances"""
-        sg = self.get_active_segment()
-        tr = sg[0]
+        """Returns distance to track. Not accurate for large distances"""
+        sg = self.active_segment
         br = self.get_bearing()
-        return br[1] * math.sin(tr[0] - br[0])
+        return br.r * math.sin(sg.v.a - br.a)
 
     def to_track(self):
         """Return vector to track"""
-        sg = self.get_active_segment()
-        tr = sg[0]
+        sg = self.active_segment
+        tr = sg.v
         tr.r = 1
         br = self.get_bearing()
         cs = -br.r * math.cos(tr.a - br.a)
         # Position projected on track line
-        pr = sg[1] + tr * cs
+        pr = sg.p2 + tr * cs
         return pr - self.boat.position
 
     def get_optimal_angles(self, wind_speed):

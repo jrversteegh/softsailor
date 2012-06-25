@@ -14,31 +14,43 @@ class TestNavigator(unittest.TestCase):
         self.assertTrue(hasattr(self.navigator, 'get_bearing'))
         self.assertTrue(hasattr(self.navigator.get_bearing, '__call__'))
 
-    def testHasActiveWaypoint(self):
-        wp = self.navigator.active_waypoint
+    def testHasActiveSegment(self):
+        l = self.navigator.active_segment
+        self.assertEquals(3, len(l))
 
-    def testHasActiveIndex(self):
-        i = self.navigator.active_index
+    def testHasActiveLeg(self):
+        l = self.navigator.active_leg
+        self.assertEquals(2, len(l))
 
     def testHasIsComplete(self):
         b = self.navigator.is_complete
+        self.assertFalse(b)
 
     def testGetBearing(self):
+        self.assertFalse(self.navigator.is_complete)
         br = self.navigator.get_bearing()
-        self.assertAlmostEqual(3.046, br[0], 3)
-        self.assertEqual(768884, round(br[1]))
+        self.assertFalse(self.navigator.is_complete)
+        self.assertAlmostEqual(3.046, br.a, 3)
+        self.assertEqual(768884, round(br.r))
 
     def testCrossTrack(self):
+        self.assertEquals(3, len(self.route))
+        self.assertFalse(self.navigator.is_complete)
         cte = self.navigator.get_cross_track()
+        self.assertEquals(3, len(self.route))
+        self.assertEquals(2, self.navigator.active_index)
+        self.assertFalse(self.navigator.is_complete)
         self.assertEqual(73100, round(cte))
 
     def testActiveIndex(self):
         self.assertEquals(2, self.navigator.active_index)
 
     def testToTrack(self):
+        self.assertFalse(self.navigator.is_complete)
         tt = self.navigator.to_track()
-        self.assertAlmostEqual(66924, tt[1], -1)
-        self.assertAlmostEqual(math.pi / 2, tt[0], 4)
+        self.assertFalse(self.navigator.is_complete)
+        self.assertAlmostEqual(66924, tt.r, -1)
+        self.assertAlmostEqual(math.pi / 2, tt.a, 4)
 
 if __name__ == '__main__':
     unittest.main()

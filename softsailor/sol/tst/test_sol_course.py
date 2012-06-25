@@ -6,14 +6,14 @@ from courses import *
 
 from softsailor.utils import *
 from softsailor.sol.sol_course import *
-from softsailor.sol.sol_map import *
+from softsailor.sol.sol_chart import *
 
 from geofun import Position, Vector
 
 
 class TestCourse(unittest.TestCase):
     def setUp(self):
-        chart = SolMap()
+        chart = SolChart()
         dirname = os.path.dirname(os.path.abspath(__file__))
         chart.load(dirname + '/Gbr_Gtb.xml')
         waypoints = gen_waypoints()
@@ -34,7 +34,7 @@ class TestCourse(unittest.TestCase):
         self.crs.save_to_kml(dirname + '/course.kml')
 
 class TestCourse2(unittest.TestCase):
-    chart = SolMap()
+    chart = SolChart()
     if not testing_helper.offline:
         chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 28))
     def setUp(self):

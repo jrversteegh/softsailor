@@ -9,9 +9,9 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 from softsailor.world import world
-from sol_functions import get_wind, get_map
+from sol_functions import get_wind, get_chart
 
 world.wind = get_wind()
-world.map = get_map()
+world.chart = get_chart()
 
 

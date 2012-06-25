@@ -49,11 +49,11 @@ def fetch_sol_document_from_url(url, cached=False):
             _log.info('Cache file exists: %s' % cache_file)
             fileage = time() - os.stat(cache_file).st_mtime
             if fileage > 86400 * 30:
+                _log.info('Cache file out of date, age: %d days' % int(fileage / 86400))
+            else:
                 _log.info('Cache file age is: %d days' % int(fileage / 86400))
                 url = cache_file
                 cache_file = None
-            else:
-                _log.info('Cache file out of date: %s' % cache_file)
     _log.info('Reading file: %s' % url) 
     handle = urlopen(url)
     try:

@@ -117,7 +117,7 @@ class Sailor(Logable):
     def handle_tacking_and_gybing(self, heading, bearing):
         wind = self.boat.condition.wind
         wind_angle = normalize_angle_pipi(wind[0] - heading)
-        track, waypoint = self.navigator.get_active_segment()
+        track, waypoint = self.navigator.active_leg
 
         if (wind_angle < 0) != (self.boat.wind_angle < 0):
             # A tack or gybe is apparently suggested...
@@ -176,7 +176,7 @@ class Sailor(Logable):
             return True, normalize_angle_2pi(heading + 2 * wind_angle)
 
         # Also, we want to keep a clear line of sight to the waypoint
-        track, waypoint = self.navigator.get_active_segment()
+        track, waypoint = self.navigator.active_leg
         bearing = waypoint - self.boat.position
         view_line = Line(self.boat.position, waypoint)
         if self.chart.hit(view_line):
@@ -197,7 +197,7 @@ class Sailor(Logable):
         return False, heading
 
     def adjust_if_beaching(self, heading):
-        track, waypoint = self.navigator.get_active_segment()
+        track, waypoint = self.navigator.active_leg
         bearing = waypoint - self.boat.position
         view_line = Line(self.boat.position, waypoint)
         if self.chart.hit(view_line):

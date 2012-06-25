@@ -1,7 +1,7 @@
 """
-Sol map module
+Sol chart module
 
-Contains sol map implementation
+Contains sol chart implementation
 """
 __author__ = "J.R. Versteegh"
 __copyright__ = "Copyright 2011, J.R. Versteegh"
@@ -14,10 +14,10 @@ from bisect import bisect, bisect_left, insort
 import numpy as np
 from time import sleep
 from logging import getLogger
-_log = getLogger('softsailor.sol.sol_map')
+_log = getLogger('softsailor.sol.sol_chart')
 
 from softsailor.utils import *
-from softsailor.map import Path, Map
+from softsailor.chart import Path, Chart
 from softsailor.route import Route
 from sol_xmlutil import *
 
@@ -36,14 +36,14 @@ def poly_intersect(poly, line):
         result.append((poly_part, intersect_point))
     return result
 
-class MapPoint(Position):
+class ChartPoint(Position):
     def __init__(self, *args, **kwargs):
         if len(args) > 1:
-            super(MapPoint, self).__init__(args[0], args[1])
+            super(ChartPoint, self).__init__(args[0], args[1])
         elif len(args) > 0:
-            super(MapPoint, self).__init__(args[0][0], args[0][1])
+            super(ChartPoint, self).__init__(args[0][0], args[0][1])
         else:
-            super(MapPoint, self).__init__()
+            super(ChartPoint, self).__init__()
 
         self.links = []
 
@@ -98,7 +98,7 @@ tile_cell_count = {'c': 360 / 45,
                    'i': 360 / 2, 
                    'l': 360 / 10}
 
-class SolMap(Map):
+class SolChart(Chart):
     @property
     def lat_range(self):
         return self.maxlat - self.minlat
@@ -114,7 +114,7 @@ class SolMap(Map):
     def setup_cells(self):
         lat_cells = int(round(self.lat_range / self.cellsize))
         lon_cells = int(round(self.lon_range / self.cellsize))
-        _log.info('Map range: %f %f %f %f' % ( 
+        _log.info('Chart range: %f %f %f %f' % ( 
                   rad_to_deg(self.minlat), 
                   rad_to_deg(self.maxlat), 
                   rad_to_deg(self.minlon), 
@@ -316,7 +316,7 @@ class SolMap(Map):
         # Find the points of the map line that is being intersected
         # (This should not really be necessary.. as the poly_part
         #  could already contain this information, but doesn't at
-        #  the moment. The poly_part points are not MapPoints)
+        #  the moment. The poly_part points are not ChartPoints)
         p1 = self.__find_point(poly_part.p1)
         p2 = self.__find_point(poly_part.p2)
         b1 = p1 - line.p1
@@ -409,10 +409,10 @@ class SolMap(Map):
                         p1 = self.__find_point(poly_part.p1)
                         p2 = self.__find_point(poly_part.p2)
                         if p1 is None:
-                            p1 = MapPoint(poly_part.p1)
+                            p1 = ChartPoint(poly_part.p1)
                             insort(self.points, p1)
                         if p2 is None:
-                            p2 = MapPoint(poly_part.p2)
+                            p2 = ChartPoint(poly_part.p2)
                             insort(self.points, p2)
                         p1.links.append(p2)
                         p2.links.append(p1)
@@ -421,12 +421,12 @@ class SolMap(Map):
         filedir, file = os.path.split(filename)
         filebase, fileext = os.path.splitext(file)
 
-        kml, doc = create_kml_document('Map: ' + filebase)
+        kml, doc = create_kml_document('Chart: ' + filebase)
 
         factory = kmldom.KmlFactory_GetFactory()
         
         lines = factory.CreateFolder()
-        lines.set_name('Map')
+        lines.set_name('Chart')
         for i, row in enumerate(self.cells):
             for j, cell in enumerate(row):
                 for poly in cell:

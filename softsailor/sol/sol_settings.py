@@ -27,7 +27,7 @@ class Settings:
     race_url = ''
     boat = ''
     weather = ''
-    map = ''
+    chart = ''
     def __init__(self):
         self.polar_data = PolarData()
         self.load_file()
@@ -57,8 +57,8 @@ class Settings:
         if self.weather == '':
             raise Exception('Failed to find weather location')
         self.tilemap = get_child_text_value(root, 'tilemap')
-        self.map = get_child_text_value(root, 'mapurl')
-        if self.map == '' and self.tilemap == '':
+        self.chart = get_child_text_value(root, 'mapurl')
+        if self.chart == '' and self.tilemap == '':
             raise Exception('Failed to find map location')
         self.area = [-half_pi, half_pi, -pi, pi]
         minlat = get_child_text_value(root, 'minlat')

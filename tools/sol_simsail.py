@@ -38,7 +38,7 @@ from softsailor.controller import BoatController
 from softsailor.sol.sol_functions import *
 
 boat = SolBoat()
-chart = get_map()
+chart = get_chart()
 print "Map min lat: ", rad_to_deg(chart.minlat)
 print "Map max lat: ", rad_to_deg(chart.maxlat)
 print "Map min lon: ", rad_to_deg(chart.minlon)

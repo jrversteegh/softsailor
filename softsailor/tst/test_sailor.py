@@ -7,7 +7,7 @@ from softsailor.controller import *
 from softsailor.updater import *
 from softsailor.route import *
 from softsailor.navigator import *
-from softsailor.map import *
+from softsailor.chart import *
 
 class TestSailor(unittest.TestCase):
     def setUp(self):
@@ -15,11 +15,11 @@ class TestSailor(unittest.TestCase):
         self.boat.position = (1.0, 1.0)
         self.controller = BoatController(self.boat)
         self.updater = BoatUpdater(self.boat)
-        self.map = Map()
+        self.chart = Chart()
         self.route = Route(((1.0, 1.0), (0.9, 1.0)))
         self.navigator = Navigator(route=self.route, boat=self.boat)
         self.sailor = Sailor(boat=self.boat, controller=self.controller, \
-                updater=self.updater, navigator=self.navigator, map=self.map)
+                updater=self.updater, navigator=self.navigator, chart=self.chart)
 
     def testHasSail(self):
         self.assertTrue(hasattr(self.sailor, 'sail'))
