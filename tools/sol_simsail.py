@@ -6,7 +6,7 @@ This script makes the configured sol boat simulate the supplied route
 Author: Jaap Versteegh <j.r.versteegh@gmail.com>
 """
 
-import time
+from time import sleep
 import sys
 import os
 from datetime import datetime, timedelta
@@ -58,7 +58,7 @@ navigator = Navigator(boat=boat, route=route)
 sailor = Sailor(boat=boat, navigator=navigator, chart=chart, \
                 controller=controller, updater=updater)
 
-time.sleep(2)
+sleep(2)
 i = 0
 while sailor.sail():
     if i % 50 == 0:
