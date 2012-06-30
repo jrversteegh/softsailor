@@ -97,18 +97,21 @@ class Path(list):
         prev_p = None
         for p in self:
             if prev_p is not None:
-                yield Line(Position(*prev_p), Position(*p))
+                yield Line(prev_p, p)
             prev_p = p
 
     def __eq__(self, other):
         if other is None:
             return False
-        return abs(self.length - other.length) < 1.0
+        if len(self) != len(other):
+            return False
+        for i in xrange(len(self)):
+            if self[i] != other[i]:
+                return False
+        return True
 
     def __ne__(self, other):
-        if other is None:
-            return True
-        return abs(self.length - other.length) >= 1.0
+        return not self.__eq__(other)
 
     def __gt__(self, other):
         return self.length > other.length

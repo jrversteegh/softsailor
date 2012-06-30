@@ -11,6 +11,7 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 import os
 import math
+import logging
 from xml.dom.minidom import parseString, getDOMImplementation
 # These are from libkml. You may need to install these
 import kmlbase
@@ -363,4 +364,12 @@ def veer_vector(vec, right, distance=42):
     return result
 
 
-
+def setup_log(logname, level=logging.INFO):
+    try:
+        os.remove(logname)
+    except:
+        pass
+    logging.basicConfig(filename=logname + '.log', 
+                        level=level,
+                        filemode='w', 
+                        format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')

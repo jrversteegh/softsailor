@@ -49,9 +49,12 @@ class Chart(object):
         
         result = []
         paths = []
-        heappush(paths, Path([line.p1, line.p2]))
+        path = Path((line.p1, line.p2))
+        path.clear_upto = 0
+        heappush(paths, path)
 
         c = 0
+        last_path = None
         while len(result) < max_paths and len(paths) > 0:
             best = 1E8
             c += 1
@@ -59,27 +62,34 @@ class Chart(object):
             #path.save_to_kml('path_%.4d.kml' % c)
             # Don't consider paths that are longer than twice the best result
             if path.length > 2 * best:
-                break
+                continue
+
+            if path == last_path:
+                print "Path duplicate"
+                continue
+            last_path = path
+
+            # We'll have to stop at some point, when we have a valid result at
+            # least
             if len(result) > 0 and c > 512:
                 break
 
             path_clear = True
             for i, segment in enumerate(path.segments):
+                if i < path.clear_upto:
+                    continue
                 if not self.hit(segment):
+                    path.clear_upto = i
                     continue
                 path_clear = False
                 detours = self.route_around(segment, best)
-                new_path = None
-                # There can be 2 detours
                 for detour in detours:
-                    if new_path is not None:
-                        path = new_path
-                    # create a copy of the original in case there are indeed two detours    
                     new_path = Path(path)
+                    new_path.clear_upto = path.clear_upto
                     # Fit the detour into the existing path
-                    path[i:i+2] = detour
+                    new_path[i:i+2] = detour
                     # And push it back onto the path heap
-                    heappush(paths, path)
+                    heappush(paths, new_path)
                 break
             # When a path was walked without hitting anything, we got a winner. 
             # Add it to the result

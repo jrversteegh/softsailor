@@ -1,5 +1,6 @@
 import os
 import unittest
+import logging
 import testing_helper
 
 from softsailor.utils import *
@@ -8,6 +9,8 @@ from softsailor.sol.sol_course import *
 from softsailor.router import *
 
 from courses import *
+
+setup_log('test_sol_router', logging.DEBUG)
 
 class TestRouter(unittest.TestCase):
     @unittest.skipIf(testing_helper.offline, "Can't get map tiles offline")
@@ -18,6 +21,7 @@ class TestRouter(unittest.TestCase):
         course = SolCourse(gen_waypoints_pb3_2011(), 200, chart)
         course.save_to_kml('estonia_course.kml')
         router = Router(chart=chart, boat=None, course=course)
+        router.construct_legs()
         router.course.save_to_kml('router_course.kml')
         for i, leg in enumerate(router.legs):
             for j, rt in enumerate(leg):

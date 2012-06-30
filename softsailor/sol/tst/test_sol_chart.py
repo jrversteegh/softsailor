@@ -63,8 +63,8 @@ class TestChart(unittest.TestCase):
             self.assertTrue(settings.area[0] > -half_pi)
             self.chart.load_tiles(settings.host, settings.tilemap, settings.area)
         for point in self.chart.points:
-            has_one_or_two_links = (len(point.links) == 1) \
-                    or (len(point.links) == 2)
+            has_one_or_two_links = point.link1 is not None \
+                    or point.link2 is not None
             self.assertTrue(has_one_or_two_links, \
                             "Expected each point to have one or two links: %s" % \
                             pos_to_str(point))
@@ -155,8 +155,10 @@ class TestChart(unittest.TestCase):
         p2 = Position(*deg_to_rad(39.3365, 26.4245))
         
         self.chart.load(dirname + '/Turkey.xml') 
+        self.chart.save_to_kml(dirname + '/Turkey.kml')
         l = Line(p1, p2)
-        self.chart.route_around(l)
+        routes = self.chart.route_around(l)
+        self.assertTrue(routes)
 
     def testGetChartSize(self):
         load_area = (-0.1, 0.2, 3.0, -3.1)
@@ -175,10 +177,44 @@ class TestChartPoint(unittest.TestCase):
     def testOtherLink(self):
         p1 = ChartPoint(0.55, 0.5)
         p2 = ChartPoint(0.5, 0.55)
-        self.point.links.append(p1)
-        self.point.links.append(p2)
+        self.point.set_link(p1)
+        self.point.set_link(p2)
         p = self.point.other_link(p1)
         self.assertTrue(p is p2, "Expected p2 to be the other link point")
+
+    def testSetLink(self):
+        point = ChartPoint(0.5, 0.5)
+        p1 = ChartPoint(0.55, 0.5)
+        p2 = ChartPoint(0.5, 0.55)
+        p3 = ChartPoint(0.55, 0.55)
+        point.set_link(p1)
+        point.set_link(p2)
+        point.set_link(p3)
+        point.set_link(p1)
+        self.assertEquals(p3, point.link1)
+        self.assertEquals(p2, point.link2)
+        point = ChartPoint(0.5, 0.5)
+        point.set_link(p1)
+        point.set_link(p1)
+        point.set_link(p2)
+        point.set_link(p3)
+        self.assertEquals(p2, point.link1)
+        self.assertEquals(p3, point.link2)
+        point = ChartPoint(0.5, 0.5)
+        point.set_link(p2)
+        point.set_link(p1)
+        point.set_link(p1)
+        point.set_link(p3)
+        self.assertEquals(p2, point.link1)
+        self.assertEquals(p3, point.link2)
+        point = ChartPoint(0.5, 0.5)
+        point.set_link(p2)
+        point.set_link(p3)
+        point.set_link(p1)
+        point.set_link(p1)
+        self.assertEquals(p2, point.link1)
+        self.assertEquals(p3, point.link2)
+
 
 if __name__ == '__main__':
     unittest.main()

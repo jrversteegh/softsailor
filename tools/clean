@@ -1,0 +1,3 @@
+#!/bin/sh
+
+rm -f *.log *.txt *.kml *.xml nohup.out sail_log track_log

@@ -14,6 +14,7 @@ class TestRouter(unittest.TestCase):
         course = Course()
         chart = Chart()
         router = Router(boat=boat, course=course, chart=chart)
+        router.construct_legs()
         self.assertEqual(1, len(router.legs))
 
     def testValidRoute(self):

@@ -36,7 +36,25 @@ def poly_intersect(poly, line):
         result.append((poly_part, intersect_point))
     return result
 
+def trace_poly(point, first=True):
+    if first:
+        p = point.link1
+    else:
+        p = point.link2
+    last_p = point
+    while p is not None and p is not point:
+        yield p
+        new_p = p.other_link(last_p)
+        last_p = p
+        p = new_p
+
+class ChartPointException(Exception):
+    pass
+
 class ChartPoint(Position):
+    link1 = None
+    link2 = None
+    section = -1
     def __init__(self, *args, **kwargs):
         if len(args) > 1:
             super(ChartPoint, self).__init__(args[0], args[1])
@@ -45,27 +63,47 @@ class ChartPoint(Position):
         else:
             super(ChartPoint, self).__init__()
 
-        self.links = []
-
     def other_link(self, point):
-        for link_point in self.links:
-            if not link_point is point:
-                return link_point
-        return None
-
-    @property
-    def link1(self):
-        if len(self.links) > 0:
-            return self.links[0]
+        if point is self.link1:
+            return self.link2
+        elif point is self.link2:
+            return self.link1
         else:
-            return None
+            raise ChartPointException('Parameter "point" should be one of the two links')
 
-    @property
-    def link2(self):
-        if len(self.links) > 1:
-            return self.links[1]
+    def set_link(self, point):
+        if self.link1 is None:
+            self.link1 = point
+        elif self.link2 is None:
+            if point is self.link1:
+                self.link1 = None
+            else:
+                self.link2 = point
         else:
-            return None
+            if point is self.link1:
+                try:
+                    self.link1 = self.link3
+                    del self.link3
+                except AttributeError:
+                    self.link1 = None
+            elif point is self.link2:
+                self.link2 = None
+            else:
+                try:
+                    if point is self.link3:
+                        del self.link3
+                    else:
+                        raise ChartPointException(
+                            'Point already fully linked: %s -> 1: %s 2: %s 3: %s new: %s' % \
+                              (str(self), 
+                               str(self.link1), str(self.link2), str(self.link3), 
+                               str(point)))
+                except AttributeError:
+                    self.link3 = self.link1
+                    self.link1 = point
+
+    def is_degenerate(self):
+        return self.link1 == self.link2
 
 
 def side_of(v1, v2, right=False):
@@ -128,14 +166,16 @@ class SolChart(Chart):
             pl = []
             points = get_elements(poly, 'point')
             if points:
+                # Start with the last point
                 point = points[-1]
                 lat = float(point.getAttribute('lat'))
                 lon = float(point.getAttribute('lon'))
-                pos2 = Position(deg_to_rad(lat), deg_to_rad(lon))
+                pos1 = Position(deg_to_rad(lat), deg_to_rad(lon))
             for point in points:
                 lat = float(point.getAttribute('lat'))
                 lon = float(point.getAttribute('lon'))
-                pos1 = Position(deg_to_rad(lat), deg_to_rad(lon))
+                pos2 = Position(deg_to_rad(lat), deg_to_rad(lon))
+                # There are duplicates in the list (why is a bit unclear to me)
                 if not (pos2 == pos1):
                     # Avoid adding grid lines
                     looks_like_grid = False
@@ -153,7 +193,7 @@ class SolChart(Chart):
                             looks_like_grid = True
                     if not looks_like_grid:
                         pl.append(Line(pos1, pos2))
-                pos2 = pos1
+                pos1 = pos2
             if len(pl) > 0:
                 cell.append(pl)
 
@@ -184,6 +224,7 @@ class SolChart(Chart):
 
         dom.unlink()
         self.__connect()
+        self.__setup_sections()
 
     def load_tile_dom(self, host, lati, loni):
         loni %= tile_cell_count[self.tiles]
@@ -243,6 +284,7 @@ class SolChart(Chart):
                 dom.unlink()
 
         self.__connect()
+        self.__setup_sections()
 
     def __intersects(self, line):
         result = []
@@ -303,20 +345,20 @@ class SolChart(Chart):
     def route_around(self, line, distance_hint=1E8):
         poly_part, intersect = self.__hit(line)
         if poly_part is None:
+            # We didn't hit anything :)
             return [[Position(line.p1), Position(line.p2)]]
+
+        _log.debug('routing line %s - %s around %s' % ( 
+            str(line.p1), str(line.p2), str(intersect)))
 
         # We're hitting so set up left and right around as
         # the line sections from current position to hit point
         result = [[Position(line.p1)], [Position(line.p1)]]
         
-        #print "****************************************************"
-        #print pos_to_str(line.p1), pos_to_str(line.p2), pos_to_str(intersect)
-        #print "****************************************************"
-
         # Find the points of the map line that is being intersected
         # (This should not really be necessary.. as the poly_part
-        #  could already contain this information, but doesn't at
-        #  the moment. The poly_part points are not ChartPoints)
+        # could already contain this information, but doesn't at
+        # the moment. The poly_part points are not ChartPoints)
         p1 = self.__find_point(poly_part.p1)
         p2 = self.__find_point(poly_part.p2)
         b1 = p1 - line.p1
@@ -324,10 +366,6 @@ class SolChart(Chart):
         right = side_of(b2, b1, True)
 
         def trace_poly(p_last, p, right):
-            #print "============================================"
-            #print "Trace right", right, \
-                    #        rad_to_deg(line.p1.lat, line.p1.lon), \
-                    #        rad_to_deg(line.p2.lat, line.p2.lon) 
             points = result[right]
             a = line.v.a  # Angle of line from last point to current point
             b = a
@@ -340,7 +378,6 @@ class SolChart(Chart):
                 # Poly ended (edge of map?) or looped back to start
                 if p is None or ((p_next is not None) and (p == p_start)):
                     if p_max == p_last:
-                        #print 'Dead end'
                         result[right] = None
                     break
 
@@ -360,13 +397,11 @@ class SolChart(Chart):
                     # We've gone more than halfway around the target: stop for
                     # now
                     if abs(b - line.v.a) > pi:
-                        #print 'Gone behind'
                         break
 
                     # Check if we've found a new 'outer' point
                     if angle_bigger(a, a_max, right):
                         a_max = a
-                        #print 'MAX', a_max
                         p_max = p
                 finally:
                     p_next = p.other_link(p_last)
@@ -395,9 +430,12 @@ class SolChart(Chart):
 
     def __find_point(self, point):
         i = bisect_left(self.points, point)
-        if i != len(self.points) and self.points[i] == point:
-            return self.points[i]
-        else:
+        try:
+            if self.points[i] == point:
+                return self.points[i]
+            else:
+                return None
+        except IndexError:
             return None
     
     def __connect(self):
@@ -414,8 +452,31 @@ class SolChart(Chart):
                         if p2 is None:
                             p2 = ChartPoint(poly_part.p2)
                             insort(self.points, p2)
-                        p1.links.append(p2)
-                        p2.links.append(p1)
+                        p1.set_link(p2)
+                        p2.set_link(p1)
+        for point in self.points:
+            if point.is_degenerate():
+                _log.info('Removed degenerate point: %s' % str(point))
+        _log.info('Connected map with %d points' % len(self.points))
+
+    def __setup_sections(self):
+        self.sections = []
+        for point in self.points:
+            if point.section < 0:
+                point.section = len(self.sections)
+                for connected_point in trace_poly(point, True):
+                    connected_point.section = len(self.sections)
+                for connected_point in trace_poly(point, False):
+                    if connected_point.section >= 0:
+                        break
+                    # If we ended up here, this is an open polygon: 
+                    # reassign "point" so "point" becomes a tail
+                    # of the open polygon
+                    point = connected_point
+                    point.section = len(self.sections)
+                self.sections.append(point)
+        _log.info('Found %d sections in map' % len(self.sections))
+
 
     def save_to_kml(self, filename):
         filedir, file = os.path.split(filename)

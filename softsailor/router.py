@@ -9,8 +9,13 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
+import logging
+
 from route import Route
 from utils import angle_diff, pos_to_str
+
+_log = logging.getLogger('softsailor.router')
+
 
 class Router(object):
     def __init__(self, *args, **kwargs):
@@ -25,7 +30,6 @@ class Router(object):
         except KeyError:
             self.boat = None
 
-        self.construct_legs()
 
     def valid_route(self, route, targets=None):
         if targets is None:
@@ -52,21 +56,24 @@ class Router(object):
     def construct_legs(self):
         self.legs = []
         for i, course_leg in enumerate(self.course.legs):
-            outers = self.chart.find_paths(course_leg)
+            _log.info('Finding paths for course leg: %d' % i)
+            nohitlegs = self.chart.find_paths(course_leg)
             routes = []
-            for outer in outers:
-                route = Route(outer)
+            for j, nohitleg in enumerate(nohitlegs):
+                route = Route(nohitleg)
                 if self.valid_route(route, (course_leg.p1, course_leg.p2)):
+                    _log.info('Adding valid route: %d' % j)
                     routes.append(route)
                 else:
-                    pass
-                    #print "Route not valid"
+                    _log.info('Ignoring invalid route: %d' % j)
+
             routes.sort(key=lambda r: r.length)
             for j in xrange(len(routes) - 2, -1, -1):
                 if routes[j] == routes[j + 1]:
+                    _log.info('Deleting duplicate route: %d' % (j + 1))
                     del routes[j]
             if not routes:
-                raise Exception('Failed to find route on leg %d' % i + 1)
+                raise Exception('Failed to find route on leg %d' % (i + 1))
             self.legs.append(routes)
 
     @property
