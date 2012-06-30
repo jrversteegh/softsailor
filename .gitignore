@@ -1,2 +1,5 @@
 *.pyc
 *.kml
+*.log
+tools/*.xml
+tools/*.txt
