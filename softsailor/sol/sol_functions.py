@@ -32,10 +32,10 @@ __sol_wind_instance = None
 __sol_chart_instance = None
 __sol_course_instance = None
 
-def get_settings():
+def get_settings(race_file=None):
     global __sol_settings_instance
     if __sol_settings_instance == None:
-        __sol_settings_instance = Settings()
+        __sol_settings_instance = Settings(race_file)
     return __sol_settings_instance
 
 def get_chart():

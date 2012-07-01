@@ -6,6 +6,7 @@ import testing_helper
 from softsailor.utils import *
 from softsailor.sol.sol_chart import *
 from softsailor.sol.sol_course import *
+from softsailor.sol.sol_functions import *
 from softsailor.router import *
 
 from courses import *
@@ -22,12 +23,21 @@ class TestRouter(unittest.TestCase):
         course.save_to_kml('estonia_course.kml')
         router = Router(chart=chart, boat=None, course=course)
         router.construct_legs()
-        router.course.save_to_kml('router_course.kml')
+        router.course.save_to_kml('estonia_router.kml')
         for i, leg in enumerate(router.legs):
             for j, rt in enumerate(leg):
                 rt.save_to_kml('router_leg_%d_%d.kml' % (i, j))
                 if j > 4:
                     break
+
+    @unittest.skipIf(testing_helper.offline, "Can't get map tiles offline")
+    def testBrittany(self):
+        sts = get_settings('Breizh_Lightning_2012.xml')
+        chrt = get_chart()
+        crs = get_course()
+        rtr = Router(chart=chrt, boat=None, course=crs)
+        rtr.construct_legs()
+
 
 
 if __name__ == '__main__':

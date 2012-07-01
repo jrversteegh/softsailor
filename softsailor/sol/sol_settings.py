@@ -24,14 +24,19 @@ class Settings:
     token = ''
     host = ''
     race = 0
-    race_url = ''
+    race_uri = ''
     boat = ''
     weather = ''
     chart = ''
-    def __init__(self):
+    def __init__(self, *args):
         self.polar_data = PolarData()
-        self.load_file()
-        self.load_race()
+        if len(args) > 0:
+            self.load_race(args[0])
+            # Set the default host for loading maps and weather
+            self.host = 'race.sailport.se'
+        else:
+            self.load_file()
+            self.load_race()
 
     def load_file(self):
         config = ConfigParser()
@@ -43,12 +48,14 @@ class Settings:
         self.host = config.get('SOL', 'host')
         self.token = config.get('SOL', 'token')
         self.race = config.get('SOL', 'race')
-        self.race_url = '/webclient/auth_raceinfo_' + str(self.race) + '.xml'
+        self.race_uri = '/webclient/auth_raceinfo_' + str(self.race) + '.xml'
         
-    def load_race(self):
-        uri = self.race_url + '?token=' + self.token
-        self.dom = fetch_sol_document(self.host, uri)
-        #print dom.toxml("utf-8")
+    def load_race(self, uri=None):
+        if uri is None:
+            uri = self.race_uri + '?token=' + self.token
+            self.dom = fetch_sol_document(self.host, uri)
+        else:
+            self.dom = fetch_sol_document_from_url(uri)
         root = self.dom.childNodes[0]
         self.boat = get_child_text_value(root, 'boaturl')
         if self.boat == '':
@@ -70,12 +77,12 @@ class Settings:
             self.area[1] = deg_to_rad(float(maxlat))
             self.area[2] = deg_to_rad(float(minlon))
             self.area[3] = deg_to_rad(float(maxlon))
-        self.opponents = 'http://' + self.host + \
-            get_child_text_value(root, 'url') + '?token=' + self.token
-        self.traces = 'http://' + self.host + \
-            get_child_text_value(root, 'traceUrl') + '?token=' + self.token
         self.load_polars(get_element(root, 'vpp'))
         self.load_course(get_element(root, 'course'))
+        self.opponents_url = 'http://' + self.host + \
+            get_child_text_value(root, 'url') + '?token=' + self.token
+        self.traces_url = 'http://' + self.host + \
+            get_child_text_value(root, 'traceUrl') + '?token=' + self.token
 
     def load_course(self, course):
         self.course = []
