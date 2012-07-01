@@ -6,7 +6,7 @@ This script makes the configured sol boat follow the supplied route
 Author: Jaap Versteegh <j.r.versteegh@gmail.com>
 """
 
-import time
+from time import sleep
 import sys
 import os
 from datetime import datetime, timedelta
@@ -61,11 +61,11 @@ logged = datetime.utcnow()
 
 while sailor.sail():
     print "Waypoint      : ", navigator.active_index
-    print "  Location    : ", pos_to_str(navigator.active_waypoint)
-    bearing = navigator.active_waypoint - boat.position
+    print "  Location    : ", pos_to_str(navigator.active_leg[1])
+    bearing = navigator.active_leg[1] - boat.position
     print "  Bearing     : ", ang_to_str(bearing[0])
     print "  Distance    : ", dst_to_str(bearing[1])
-    print "  Comment     : ", navigator.active_waypoint.comment
+    print "  Comment     : ", navigator.active_leg[1].comment
     print "  CTE         : ", dst_to_str(navigator.get_cross_track())
     print "---"
     print "Boat time     : ", boat.situation.time.strftime(time_format)
@@ -88,6 +88,6 @@ while sailor.sail():
         updater.save_log("track_log")
         sailor.save_log("sail_log")
         logged = datetime.utcnow()
-    time.sleep(10)
+    sleep(10)
 
 print "Route completed!"
