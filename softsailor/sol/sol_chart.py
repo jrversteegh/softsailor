@@ -39,6 +39,8 @@ def poly_intersect(poly, line):
 def trace_poly(point, first=True):
     if first:
         p = point.link1
+        if p is None:
+            p = point.link2
     else:
         p = point.link2
     last_p = point
@@ -62,8 +64,18 @@ class ChartPoint(Position):
             super(ChartPoint, self).__init__(args[0][0], args[0][1])
         else:
             super(ChartPoint, self).__init__()
+        self.links = []
+
+    @property
+    def first(self):
+        if self.link1 is None:
+            return self.link2
+        else:
+            return self.link1
+
 
     def other_link(self, point):
+        '''Provided link "point", provide the link on the other side'''
         if point is self.link1:
             return self.link2
         elif point is self.link2:
@@ -72,6 +84,7 @@ class ChartPoint(Position):
             raise ChartPointException('Parameter "point" should be one of the two links')
 
     def set_link(self, point):
+        '''Link to other chart point to form a polygon'''
         if self.link1 is None:
             self.link1 = point
         elif self.link2 is None:
@@ -85,7 +98,8 @@ class ChartPoint(Position):
                     self.link1 = self.link3
                     del self.link3
                 except AttributeError:
-                    self.link1 = None
+                    self.link1 = self.link2
+                    self.link2 = None
             elif point is self.link2:
                 self.link2 = None
             else:
@@ -103,6 +117,8 @@ class ChartPoint(Position):
                     self.link1 = point
 
     def is_degenerate(self):
+        '''Return whether the point is a loner or part of a 
+        degenerate polygon segment'''
         return self.link1 == self.link2
 
 
@@ -224,7 +240,6 @@ class SolChart(Chart):
 
         dom.unlink()
         self.__connect()
-        self.__setup_sections()
 
     def load_tile_dom(self, host, lati, loni):
         loni %= tile_cell_count[self.tiles]
@@ -284,7 +299,6 @@ class SolChart(Chart):
                 dom.unlink()
 
         self.__connect()
-        self.__setup_sections()
 
     def __intersects(self, line):
         result = []
@@ -348,7 +362,7 @@ class SolChart(Chart):
             # We didn't hit anything :)
             return [[Position(line.p1), Position(line.p2)]]
 
-        _log.debug('routing line %s - %s around %s' % ( 
+        _log.debug('Routing line %s - %s around %s' % ( 
             str(line.p1), str(line.p2), str(intersect)))
 
         # We're hitting so set up left and right around as
@@ -459,7 +473,7 @@ class SolChart(Chart):
                 _log.info('Removed degenerate point: %s' % str(point))
         _log.info('Connected map with %d points' % len(self.points))
 
-    def __setup_sections(self):
+    def setup_sections(self):
         self.sections = []
         for point in self.points:
             if point.section < 0:
@@ -474,9 +488,20 @@ class SolChart(Chart):
                     # of the open polygon
                     point = connected_point
                     point.section = len(self.sections)
+                point.linked = False
                 self.sections.append(point)
         _log.info('Found %d sections in map' % len(self.sections))
 
+    def set_sections_orientation(self, point_on_water):
+        # Determine the orientation of each section
+        for section in self.sections:
+            l = Line(section, section.first)
+            # Create a point just right of the first segment
+            p = section + l.v * 0.5 + Vector(l.v.a + 0.5 * math.pi, 1)
+            l = Line(point_on_water, p)
+            intersects = self.__intersects(l)
+            section.orientation = len(intersects) % 2
+        
 
     def save_to_kml(self, filename):
         filedir, file = os.path.split(filename)
