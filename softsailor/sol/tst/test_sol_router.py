@@ -12,10 +12,12 @@ from softsailor.router import *
 from courses import *
 
 setup_log('test_sol_router', logging.DEBUG)
+_log = logging.getLogger('softsailor.sol.tst.test_sol_router')
 
 class TestRouter(unittest.TestCase):
-    @unittest.skipIf(testing_helper.offline, "Can't get map tiles offline")
+    @unittest.skipIf(testing_helper.offline or True, "Can't get map tiles offline")
     def testPB3(self):
+        _log.info('******** PB3 test ********')
         chart = SolChart()
         chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 28))
         chart.save_to_kml('estonia_chart.kml')
@@ -32,6 +34,7 @@ class TestRouter(unittest.TestCase):
 
     @unittest.skipIf(testing_helper.offline, "Can't get map tiles offline")
     def testBrittany(self):
+        _log.info('******** Brittany test ********')
         sts = get_settings('Breizh_Lightning_2012.xml')
         chrt = get_chart()
         crs = get_course()

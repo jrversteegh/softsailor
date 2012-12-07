@@ -33,6 +33,26 @@ class TestPath(unittest.TestCase):
         self.assertTrue(p1 > p2)
         self.assertFalse(p1 < p2)
 
+    def test_similarity(self):
+        p1 = Position(0.88, 0.88)
+        p2a = Position(0.900001, 1.0)
+        p2b = Position(0.900000, 1.0)
+        p3 = Position(1.0, 1.0)
+        l = Line(p2a, p2b)
+        self.assertTrue(l.v.r < 10)
+        l1 = [p1, p2a, p3]
+        l2 = [p1, p2b, p3]
+        p1 = Path(l1)
+        p2 = Path(l1)
+        p3 = Path(l2)
+        self.assertEquals(p1, p2)
+        self.assertNotEquals(p1, p3)
+        self.assertTrue(p1.similar(p2))
+        self.assertTrue(p2.similar(p1))
+        self.assertTrue(p1.similar(p3))
+        self.assertTrue(p3.similar(p1))
+
+
     def test_segments(self):
         i = 0
         l = 0

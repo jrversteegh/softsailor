@@ -9,6 +9,8 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
+import logging
+_log = logging.getLogger('softsailor.sol.sol_settings')
 from ConfigParser import ConfigParser
 
 from softsailor.utils import *
@@ -29,6 +31,7 @@ class Settings:
     weather = ''
     chart = ''
     def __init__(self, *args):
+        _log.debug('Constructing settings')
         self.polar_data = PolarData()
         if len(args) > 0:
             self.load_race(args[0])
@@ -41,6 +44,7 @@ class Settings:
     def load_file(self):
         config = ConfigParser()
         config_file = get_config_dir() + '/solconfig'
+        _log.info('Reading settings from: %s' % config_file)
         files_read = config.read(config_file)
         if len(files_read) < 1:
             raise SettingsNotFound(config_file)
@@ -53,8 +57,10 @@ class Settings:
     def load_race(self, uri=None):
         if uri is None:
             uri = self.race_uri + '?token=' + self.token
+            _log.info('Load race from: %s on %s' % (str(uri), self.host))
             self.dom = fetch_sol_document(self.host, uri)
         else:
+            _log.info('Load race from: %s' % str(uri))
             self.dom = fetch_sol_document_from_url(uri)
         root = self.dom.childNodes[0]
         self.boat = get_child_text_value(root, 'boaturl')

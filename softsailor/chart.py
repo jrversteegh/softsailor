@@ -11,15 +11,21 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 from heapq import *
 import functools
+import logging
 
 from datetime import datetime
-from geofun import Line, Position
+from bisect import bisect_left
+
 import kmlbase
 import kmldom
+
+from geofun import Line, Position
 
 from softsailor.route import Route
 from softsailor.utils import *
 from softsailor.classes import Path
+
+_log = logging.getLogger('softsailor.chart')
 
 class Chart(object):
     def hit(self, line):
@@ -57,23 +63,31 @@ class Chart(object):
         last_path = None
         while len(result) < max_paths and len(paths) > 0:
             best = 1E8
-            c += 1
             path = heappop(paths)
             #path.save_to_kml('path_%.4d.kml' % c)
             # Don't consider paths that are longer than twice the best result
-            if path.length > 2 * best:
+            l = path.length
+            if last_path is not None:
+                l_last = last_path.length
+            else:
+                l_last = 0
+            _log.debug('Considering path with length: %f last was %f' % (l, l_last))
+            if l > 3 * best:
+                _log.debug('Ditching path because it''s too long')
                 continue
 
-            if path == last_path:
-                print "Path duplicate"
+            if path.similar(last_path):
+                _log.debug('Ditching path similar to last')
                 continue
             last_path = path
 
             # We'll have to stop at some point, when we have a valid result at
             # least
-            if len(result) > 0 and c > 512:
+            if len(result) > 0 and c > 1024:
+                _log.debug('Stopping find_paths because of maximum iters')
                 break
 
+            c += 1
             path_clear = True
             for i, segment in enumerate(path.segments):
                 if i < path.clear_upto:
@@ -96,14 +110,16 @@ class Chart(object):
             if path_clear:
                 while clean_path(path):
                     pass
+                index = bisect_left(result, path)
                 try:
                     # Avoid duplicates
-                    result.index(path)
-                except ValueError:
-                    if path.length < best:
-                        best = path.length 
+                    if not path.similar(result[index]) and \
+                            (index == 0 or not path.similar(result[index - 1])):
+                        result.insert(index, path)
+                except IndexError:
                     result.append(path)
+                if path.length < best:
+                    best = path.length 
 
-        result.sort()
         return result
 

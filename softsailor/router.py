@@ -65,6 +65,7 @@ class Router(object):
                     _log.info('Adding valid route: %d' % j)
                     routes.append(route)
                 else:
+                    route.save_to_kml('invalid_route_%d.kml' % j)
                     _log.info('Ignoring invalid route: %d' % j)
 
             routes.sort(key=lambda r: r.length)

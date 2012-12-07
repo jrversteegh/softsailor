@@ -62,6 +62,7 @@ def fetch_sol_document_from_url(url, cached=False):
         raise BadToken(str(bt) + '. Url: %s' % url)
 
 def fetch_sol_document(host, uri):
+    _log.debug('Fetching %s from %s' % (uri, host))
     conn = HTTPConnection(host, timeout=4)
     conn.request("GET", uri)
     conn.sock.settimeout(4)

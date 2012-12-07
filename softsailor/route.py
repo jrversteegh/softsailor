@@ -70,18 +70,6 @@ class Route(Path):
         result = Route(self)
         result += value
         return result
-
-    def __eq__(self, value):
-        if value is None:
-            return False
-        if len(self) != len(value):
-            return False
-        if not floats_equal(self.length, value.length):
-            return False
-        for wp1, wp2 in zip(self, value):
-            if not (wp1 == wp2):
-                return False
-        return True
                       
     @property
     def waypoints(self):

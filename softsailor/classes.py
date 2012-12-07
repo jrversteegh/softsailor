@@ -100,13 +100,25 @@ class Path(list):
                 yield Line(prev_p, p)
             prev_p = p
 
+    def similar(self, other):
+        if other is None:
+            return False
+        if len(self) != len(other):
+            return False
+        for p1, p2 in zip(self, other):
+            l = Line(p1, p2)
+            # When points are more that 10m apart, consider them different
+            if l.v.r > 20:
+                return False
+        return True
+
     def __eq__(self, other):
         if other is None:
             return False
         if len(self) != len(other):
             return False
-        for i in xrange(len(self)):
-            if self[i] != other[i]:
+        for p1, p2 in zip(self, other):
+            if p1 != p2:
                 return False
         return True
 
