@@ -32,9 +32,6 @@ def get_config_dir():
     config_path = os.path.realpath(script_path + '/../etc')
     return config_path
 
-def timedelta_to_seconds(td):
-    return td.days * 86400 + td.seconds + td.microseconds * 1E-6
-
 def encoded(func):
     def decorated(*args, **kwargs):
         if kwargs.has_key('uni'):

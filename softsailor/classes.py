@@ -20,14 +20,22 @@ from geofun import Line, Position
 
 from softsailor.utils import *
 
-class Logable(object):
+class Object(object):
     def __init__(self, *args, **kwargs):
-        super(Logable, self).__init__()
+        super(Object, self).__init__()
+
+class Logable(Object):
+    '''Base class for data loggers'''
+    def __init__(self, *args, **kwargs):
+        super(Logable, self).__init__(*args, **kwargs)
         self._log_data = []
         self.fmtrs = []
 
     def log(self, log_str, *record_fields):
-        self._log_data.append((datetime.utcnow(), log_str, record_fields))
+        self.add(datetime.utcnow(), log_str, *record_fields)
+
+    def add(self, date_time, log_str, *record_fields):
+        self._log_data.append((date_time, log_str, record_fields))
         while len(self.fmtrs) < len(record_fields):
             self.fmtrs.append(str)
 
@@ -51,9 +59,14 @@ class Logable(object):
     def records(self):
         return self._log_data
 
-class PolarData(object):
+    @property
+    def data(self):
+        for rec in self._log_data:
+            yield rec[2]
+
+class PolarData(Object):
     def __init__(self, *args, **kwargs):
-        super(PolarData, self).__init__()
+        super(PolarData, self).__init__(*args, **kwargs)
         self.speeds = []
         self.angles = []
         # Data is organized as list of speeds per angle

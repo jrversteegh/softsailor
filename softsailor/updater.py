@@ -125,7 +125,7 @@ class SimUpdater(BoatUpdater):
                 boat.heading - math.copysign(performance[0], boat.wind_angle))
 
         vog = boat.motion.velocity + boat.condition.current
-        boat.position += vog * timedelta_to_seconds(self.timestep)
+        boat.position += vog * self.timestep.total_seconds()
         boat.time += self.timestep
         super(SimUpdater, self).update()
 

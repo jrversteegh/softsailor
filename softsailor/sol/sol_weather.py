@@ -87,8 +87,7 @@ class Weather:
         self.datetimes.append(target_time)
         if target_time < self.start_datetime:
             self.start_datetime = target_time
-        self.reltimes.append(
-                 timedelta_to_seconds(target_time - self.start_datetime))
+        self.reltimes.append((target_time - self.start_datetime).total_seconds())
         u_text = get_child_text_value(frame, 'U')
         v_text = get_child_text_value(frame, 'V')
         u_rows = u_text.split(';')
