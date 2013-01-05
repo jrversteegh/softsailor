@@ -73,58 +73,6 @@ class TestWind(unittest.TestCase):
         self.weather = None
 
 
-    def testUpdateSlices(self):
-        self.wind.update_slices(0.4, 0.12, 10800)
-        self.assertEqual(0.25, self.wind.grid_slice[0, 0, 0, 0])
-        self.assertEqual(0.50, self.wind.grid_slice[0, 1, 0, 0])
-        self.assertEqual(0.1, self.wind.grid_slice[1, 0, 0, 0])
-        self.assertEqual(0.0, self.wind.grid_slice[2, 0, 0, 0])
-
-        self.assertEqual(3, self.wind.u_slice[0, 0, 0])
-        self.assertEqual(4, self.wind.u_slice[1, 1, 0])
-
-        self.assertEqual(5, self.wind.u_slice[0, 1, 1])
-        self.assertEqual(6, self.wind.u_slice[1, 0, 1])
-        self.assertEqual(7, self.wind.u_slice[1, 1, 1])
-
-        self.assertEqual(3, self.wind.v_slice[0, 0, 0])
-        self.assertEqual(-3, self.wind.v_slice[1, 0, 0])
-
-    def testGetFracs(self):
-        fracs = self.wind.get_fracs(0.4, 0.12, 32400) 
-        self.assertAlmostEqual(0.6, fracs[0], 8)
-        self.assertAlmostEqual(0.2, fracs[1], 8)
-        self.assertAlmostEqual(0.5, fracs[2], 8)
-
-    def testEvaluateCubic(self):
-        self.wind.update_slices(0.375, 0.15, 10800)
-        self.wind.basefuncs = basefuncs_cubic
-        self.wind.u_slice = np.array([[[1, 0],[0, 0]],[[0, 0],[0, 0]]])
-        self.wind.du_slice = np.array([[[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
-                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
-                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
-        self.assertAlmostEqual(0.125, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
-        self.assertAlmostEqual(1.0, self.wind.evaluate(0, 0, 0)[0], 8)
-        self.wind.u_slice = np.array([[[0, 0],[0, 0]],[[0, 0],[0, 0]]])
-        self.wind.du_slice = np.array([[[[1, 0],[0, 0]],[[0, 0],[0, 0]]],
-                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
-                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
-        self.assertAlmostEqual(0.03125, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
-
-    def testEvaluateLinear(self):
-        self.wind.update_slices(0.375, 0.15, 10800)
-        self.wind.u_slice = np.array([[[1, 0],[0, 0]],[[0, 0],[0, 0]]])
-        self.wind.du_slice = np.array([[[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
-                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
-                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
-        self.assertAlmostEqual(0.125, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
-        self.assertAlmostEqual(1.0, self.wind.evaluate(0, 0, 0)[0], 8)
-        self.wind.u_slice = np.array([[[0, 0],[0, 0]],[[0, 0],[0, 0]]])
-        self.wind.du_slice = np.array([[[[1, 0],[0, 0]],[[0, 0],[0, 0]]],
-                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
-                                       [[[0, 0],[0, 0]],[[0, 0],[0, 0]]]])
-        self.assertAlmostEqual(0.0, self.wind.evaluate(0.5, 0.5, 0.5)[0], 8)
-
     def testGet(self):
         t = datetime.utcnow() + timedelta(hours = 8)
         wind = self.wind.get((0.375, 0.1), t)
