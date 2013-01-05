@@ -35,7 +35,10 @@ __sol_course_instance = None
 def get_settings(race_file=None):
     global __sol_settings_instance
     if __sol_settings_instance == None:
-        __sol_settings_instance = Settings(race_file)
+        if race_file is None:
+            __sol_settings_instance = Settings()
+        else:
+            __sol_settings_instance = Settings(race_file)
     return __sol_settings_instance
 
 def get_chart():

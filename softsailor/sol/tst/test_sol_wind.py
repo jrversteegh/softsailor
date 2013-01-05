@@ -61,7 +61,7 @@ class FakeWeather:
         self.reltime_n = len(self.reltimes)
 
     def update_when_required(self):
-        pass
+        return True
 
 class TestWind(unittest.TestCase):
     def setUp(self):
@@ -103,7 +103,7 @@ class TestWind(unittest.TestCase):
 
     def testEvaluateCubic(self):
         self.wind.update_slices(0.375, 0.15, 10800)
-        self.wind.base_funcs = base_funcs_cubic
+        self.wind.basefuncs = basefuncs_cubic
         self.wind.u_slice = np.array([[[1, 0],[0, 0]],[[0, 0],[0, 0]]])
         self.wind.du_slice = np.array([[[[0, 0],[0, 0]],[[0, 0],[0, 0]]],
                                        [[[0, 0],[0, 0]],[[0, 0],[0, 0]]],

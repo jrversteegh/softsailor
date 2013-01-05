@@ -25,6 +25,9 @@ import os
 class BadToken(Exception):
     pass
 
+class ConnectionFailed(Exception):
+    pass
+
 def read_sol_document(handle, cache_file=None):
     data = handle.read()
     if data.find('Bad token') >= 0:
@@ -63,10 +66,13 @@ def fetch_sol_document_from_url(url, cached=False):
 
 def fetch_sol_document(host, uri):
     _log.debug('Fetching %s from %s' % (uri, host))
-    conn = HTTPConnection(host, timeout=4)
-    conn.request("GET", uri)
-    conn.sock.settimeout(4)
-    resp = conn.getresponse()
+    try:
+        conn = HTTPConnection(host, timeout=4)
+        conn.request("GET", uri)
+        conn.sock.settimeout(4)
+        resp = conn.getresponse()
+    except Exception as e:
+        raise ConnectionFailed('Connection %s/%s failed: %s' % (host, uri, str(e)))
     try:
         return read_sol_document(resp)
     except BadToken as bt:

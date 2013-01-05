@@ -18,29 +18,14 @@ from softsailor.wind import *
 
 
 class SolWind(GriddedWind):
-    def __init__(self, weather, base_funcs = base_funcs_linear):
-        self.weather = weather
-        self._last_verification = datetime.utcnow()
-        self.update_grid()
-        self.base_funcs = base_funcs
-
-    def get(self, position, time):
-        self.update_weather()
-        reltime = (time - self.weather.start_datetime).total_seconds()
-        lat = position[0]
-        if self.weather.lon_max >= math.pi:
-            lon = normalize_angle_2pi(position[1])
-        else:
-            lon = position[1]
-        fracs = self.get_fracs(lat, lon, reltime)
-        uv = self.evaluate(*fracs)
-        d, s = rectangular_to_polar(uv)
-        # Wind direction points opposite to wind speed vector, so add pi
-        return normalize_angle_2pi(d + math.pi), s
+    def __init__(self, *args, **kwargs):
+        self.weather = args[0]
+        super(SolWind, self).__init__(*args, **kwargs)
+        self._last_verification = datetime(1970, 1, 1, 0, 0)
+        self.update()
 
     def update(self):
         self.update_weather()
-
 
     def update_weather(self):
         now = datetime.utcnow() 
@@ -54,6 +39,7 @@ class SolWind(GriddedWind):
         self.grid_slice = None
         weather = self.weather
         self.lon_2pi = weather.lon_max >= pi
+        self.start = weather.start_datetime
         self.grid = np.mgrid[weather.lat_min: weather.lat_max: weather.lat_n * 1j,
                              weather.lon_min: weather.lon_max: weather.lon_n * 1j,
                              0: weather.reltime_n]
@@ -65,7 +51,7 @@ class SolWind(GriddedWind):
                     assert(k == tim)
                     grid[2,i,j,k] = weather.reltimes[k]
 
-        self.init_values_arrays()
+        self.init_value_arrays()
 
         for i, frame in enumerate(weather.frames):
             a = np.array(frame)

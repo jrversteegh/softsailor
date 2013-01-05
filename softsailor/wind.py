@@ -13,6 +13,7 @@ from math import pi
 from datetime import datetime, timedelta
 import numpy as np
 from classes import Object
+from utils import *
 
 def basefuncs_linear(laf, lof, tif, i, j, k):
     return ((1 - (laf + (1 - 2 * laf) * i)) * \
@@ -51,7 +52,6 @@ class Wind(Object):
 
 class GriddedWind(Wind):
     '''Base class for 3D grid based wind objects'''
-    basefuncs = basefuncs_linear
     grid_slice = None
     u_slice = None
     v_slice = None
@@ -61,14 +61,12 @@ class GriddedWind(Wind):
                      # of [-pi, pi>
 
     def __init__(self, *args, **kwargs):
-        super(GriddedWind, Self).__init__(*args, **kwargs)
+        super(GriddedWind, self).__init__(*args, **kwargs)
         try:
             # Interpolating function for grid cube
             self.basefuncs = kwargs['basefuncs']
         except KeyError:
-            pass
-        # min,max,step,stride for lat,lon,t
-        self.ranges[[0.0 for i in range(4)] for j in range(3)]
+            self.basefuncs = basefuncs_linear
         # Start datetime of data. Times are relative from this datetime
         try:
             self.start = kwargs['start']
@@ -97,9 +95,9 @@ class GriddedWind(Wind):
         # Implement in descendant classes that rely on e.g. live or localized data
 
     def get_indices(self, lat, lon, tim):
-        lat_i = np.searchsorted(self.grid[0,:,0,0], lat)
-        lon_i = np.searchsorted(self.grid[1,0,:,0], lon)
-        tim_i = np.searchsorted(self.grid[2,0,0,:], tim)
+        lat_i = np.searchsorted(self.grid[0,:,0,0], lat, side='righ') - 1
+        lon_i = np.searchsorted(self.grid[1,0,:,0], lon, side='right') - 1
+        tim_i = np.searchsorted(self.grid[2,0,0,:], tim, side='right') - 1
         return (lat_i, lon_i, tim_i)
 
     def update_slices(self, lat, lon, tim):
@@ -148,14 +146,19 @@ class GriddedWind(Wind):
     def init_value_arrays(self):
         '''Initialize u, du, v, dv arrays'''
         # Assumes the grid has been setup
-        self.u = np.zeros_like(grid[0])
-        self.du = np.zeros_like(grid)
+        self.u = np.zeros_like(self.grid[0])
+        self.du = np.zeros_like(self.grid)
 
-        self.v = np.zeros_like(grid[0])
-        self.dv = np.zeros_like(grid)
+        self.v = np.zeros_like(self.grid[0])
+        self.dv = np.zeros_like(self.grid)
 
     def calc_gradients(self):
         self.du[:,:,:,:] = np.gradient(self.u)
         self.dv[:,:,:,:] = np.gradient(self.v)
 
 
+class InterpolledWind(GriddedWind):
+    pass
+
+class SplinedWind(GriddedWind):
+    pass
