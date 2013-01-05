@@ -11,9 +11,74 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 from math import pi
 from datetime import datetime, timedelta
+
 import numpy as np
+from scipy.ndimage.interpolation import spline_filter, map_coordinates
+
 from classes import Object
 from utils import *
+
+
+class Wind(Object):
+    '''Basic prototype for wind object'''
+    def get(self, position, time = None):
+        """Get wind direction at position an time"""
+        # Default is a 5m/s southerly wind
+        return pi, 5.0
+
+class GriddedWind(Wind):
+    '''Base class for 3D grid based wind objects'''
+    lon_2pi = False  # Indicates whether longitude grid is [0, 2pi> instead
+                     # of [-pi, pi>
+
+    def __init__(self, *args, **kwargs):
+        super(GriddedWind, self).__init__(*args, **kwargs)
+        # Start datetime of data. Times are relative from this datetime
+        try:
+            self.start = kwargs['start']
+        except KeyError:
+            self.start = datetime(1970, 1, 1, 0, 0)
+        # Initialize with a worldwide forever grid
+        self.grid = np.mgrid[-pi:pi:3j, -pi:pi:3j, 0.0:1E10:11j]
+        self.init_value_arrays()
+
+    def get(self, position, time):
+        self.update()
+        t = (time - self.start).total_seconds()
+        lat = position[0]
+        if self.lon_2pi:
+            lon = normalize_angle_2pi(position[1])
+        else:
+            lon = position[1]
+        uv = self.get_uv(lat, lon, t)
+        d, s = rectangular_to_polar(uv)
+        # Wind direction points opposite to wind speed vector, so add pi
+        return normalize_angle_2pi(d + math.pi), s
+
+    def get_uv(self, lat, lon, t):
+        # Implement in descendant classes
+        return 5.0, 0
+
+    def update(self):
+        '''Check and update data'''
+        # Implement in descendant classes that rely on e.g. live or localized data
+        # and setup grid mesh and u an v arrays
+        pass
+
+    def init_value_arrays(self):
+        '''Initialize u, v arrays'''
+        # Assumes the grid has been setup
+        self.u = np.zeros_like(self.grid[0])
+        self.v = np.zeros_like(self.grid[0])
+
+    def update_coefficients(self):
+        '''
+        Routine to update fixed calculation coefficients after values have
+        been set or updated
+        '''
+        # Implement in descendant classes
+        pass
+
 
 def basefuncs_linear(laf, lof, tif, i, j, k):
     return ((1 - (laf + (1 - 2 * laf) * i)) * \
@@ -43,56 +108,28 @@ cube_corners = (
     (1, 1, 0),
     (1, 1, 1),)
 
-class Wind(Object):
-    '''Basic prototype for wind object'''
-    def get(self, position, time = None):
-        """Get wind direction at position an time"""
-        # Default is a 5m/s southerly wind
-        return pi, 5.0
-
-class GriddedWind(Wind):
-    '''Base class for 3D grid based wind objects'''
+class InterpolledWind(GriddedWind):
     grid_slice = None
     u_slice = None
     v_slice = None
     du_slice = None
     dv_slice = None
-    lon_2pi = False  # Indicates whether longitude grid is [0, 2pi> instead
-                     # of [-pi, pi>
 
     def __init__(self, *args, **kwargs):
-        super(GriddedWind, self).__init__(*args, **kwargs)
         try:
             # Interpolating function for grid cube
             self.basefuncs = kwargs['basefuncs']
         except KeyError:
             self.basefuncs = basefuncs_linear
-        # Start datetime of data. Times are relative from this datetime
-        try:
-            self.start = kwargs['start']
-        except KeyError:
-            self.start = datetime(1970, 1, 1, 0, 0)
-        # Initialize with a worldwide forever grid
-        self.grid = np.mgrid[-pi:pi:3j, -pi:pi:3j, 0.0:1E10:11j]
-        self.init_value_arrays()
+        super(InterpolledWind, self).__init__(*args, **kwargs)
 
-    def get(self, position, time):
-        self.update()
-        t = (time - self.start).total_seconds()
-        lat = position[0]
-        if self.lon_2pi:
-            lon = normalize_angle_2pi(position[1])
-        else:
-            lon = position[1]
+    def get_uv(self, lat, lon, t):
         fracs = self.get_fracs(lat, lon, t)
-        uv = self.evaluate(*fracs)
-        d, s = rectangular_to_polar(uv)
-        # Wind direction points opposite to wind speed vector, so add pi
-        return normalize_angle_2pi(d + math.pi), s
+        return self.evaluate(*fracs)
 
-    def update(self):
-        '''Check and update data'''
-        # Implement in descendant classes that rely on e.g. live or localized data
+    def calc_gradients(self):
+        self.du[:,:,:,:] = np.gradient(self.u)
+        self.dv[:,:,:,:] = np.gradient(self.v)
 
     def get_indices(self, lat, lon, tim):
         lat_i = np.searchsorted(self.grid[0,:,0,0], lat, side='righ') - 1
@@ -113,20 +150,13 @@ class GriddedWind(Wind):
         if self.grid_slice == None:
             self.update_slices(lat, lon, tim)
             
-        lat_step = self.grid_slice[0, 1, 0, 0] - self.grid_slice[0, 0, 0, 0]
-        lon_step = self.grid_slice[1, 0, 1, 0] - self.grid_slice[1, 0, 0, 0]
-        tim_step = self.grid_slice[2, 0, 0, 1] - self.grid_slice[2, 0, 0, 0]
-        lat_frac = (lat - self.grid_slice[0,0,0,0]) / lat_step
-        lon_frac = (lon - self.grid_slice[1,0,0,0]) / lon_step
-        tim_frac = (tim - self.grid_slice[2,0,0,0]) / tim_step
-
-        if lat_frac < 0 or lat_frac > 1 or \
-                lon_frac < 0 or lon_frac > 1 or \
-                tim_frac < 0 or tim_frac > 1:
-            self.update_slices(lat, lon, tim)
-            return self.get_fracs(lat, lon, tim)
-        else:
-            return lat_frac, lon_frac, tim_frac
+        steps = self.grid_slice[:, 1, 1, 1] - self.grid_slice[:, 0, 0, 0]
+        fracs = ((lat, lon, tim) - self.grid_slice[:,0,0,0]) / steps
+        for frac in fracs:
+            if frac < 0 or frac > 1:
+                self.update_slices(lat, lon, tim)
+                return self.get_fracs(lat, lon, tim)
+        return fracs 
 
     def evaluate(self, laf, lof, tif):
         u = 0
@@ -146,19 +176,28 @@ class GriddedWind(Wind):
     def init_value_arrays(self):
         '''Initialize u, du, v, dv arrays'''
         # Assumes the grid has been setup
-        self.u = np.zeros_like(self.grid[0])
+        GriddedWind.init_value_arrays(self)
         self.du = np.zeros_like(self.grid)
-
-        self.v = np.zeros_like(self.grid[0])
         self.dv = np.zeros_like(self.grid)
 
-    def calc_gradients(self):
-        self.du[:,:,:,:] = np.gradient(self.u)
-        self.dv[:,:,:,:] = np.gradient(self.v)
+    def update_coefficients(self):
+        self.calc_gradients()
 
-
-class InterpolledWind(GriddedWind):
-    pass
 
 class SplinedWind(GriddedWind):
-    pass
+    def update_coefficients(self):
+        self.calc_splinecoeffs()
+
+    def calc_splinecoeffs(self):
+        self.u_coeffs = spline_filter(self.u)
+        self.v_coeffs = spline_filter(self.v)
+        self.p0 = self.grid[:,0,0,0]
+        self.inv_dp = 1. / (self.grid[:,1,1,1] - self.p0)
+
+    def get_uv(self, lat, lon, t):
+        # map_coordinates wants columns, so we have transpose and make the
+        # coords array two dimensional
+        coords = (((lat, lon, t) - self.p0) * self.inv_dp)[:,np.newaxis]
+        u = map_coordinates(self.u_coeffs, coords, prefilter=False, mode='nearest')
+        v = map_coordinates(self.v_coeffs, coords, prefilter=False, mode='nearest')
+        return u, v

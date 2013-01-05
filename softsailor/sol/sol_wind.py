@@ -17,7 +17,7 @@ from softsailor.utils import *
 from softsailor.wind import *
 
 
-class SolWind(GriddedWind):
+class SolWind(InterpolledWind):
     def __init__(self, *args, **kwargs):
         self.weather = args[0]
         super(SolWind, self).__init__(*args, **kwargs)
@@ -60,5 +60,5 @@ class SolWind(GriddedWind):
             self.u[:,:,i] = u
             self.v[:,:,i] = v
         
-        self.calc_gradients()
+        self.update_coefficients()
 

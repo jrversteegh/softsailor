@@ -72,11 +72,6 @@ class TestWind(unittest.TestCase):
         self.wind = None
         self.weather = None
 
-    def testGetIndices(self):
-        indices = self.wind.get_indices(0.4, 0.12, 36000)
-        self.assertEqual(1, indices[0])
-        self.assertEqual(2, indices[1])
-        self.assertEqual(1, indices[2])
 
     def testUpdateSlices(self):
         self.wind.update_slices(0.4, 0.12, 10800)
