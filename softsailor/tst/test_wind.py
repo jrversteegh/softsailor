@@ -22,10 +22,33 @@ v = 10 * (1 - grid[1] - grid[0] * grid[1]) + 0.0001 * grid[2]
 
 class TestBasefuncs(unittest.TestCase):
     def testLinear(self):
-        pass
+        s = 0
+        for i, j, k in cube_corners:
+            f = basefuncs_linear(0.5, 0.5, 0.5, i, j, k) 
+            for v in f:
+                s += v
+        self.assertAlmostEqual(1., s, places=8) 
+
 
     def testCubic(self):
-        pass
+        s = 0
+        for c in cube_corners:
+            f = basefuncs_cubic(0.5, 0.5, 0.5, c[0], c[1], c[2]) 
+            for i, v in enumerate(f):
+                s += v
+        self.assertAlmostEqual(1., s, places=8) 
+        s = 0
+        for c in cube_corners:
+            f = basefuncs_cubic(0.5, 0.5, 0.5, c[0], c[1], c[2]) 
+            for i, v in enumerate(f):
+                if i > 0:
+                    if c[i - 1]:
+                        s -= v
+                    else:
+                        s += v
+                else:
+                    s += v
+        self.assertAlmostEqual(1.75, s, places=8) 
 
 class WindSetup(object):
     def doSetup(self):
@@ -53,8 +76,8 @@ class WindSetup(object):
 
 
 class TestInterpolledWind(unittest.TestCase, WindSetup):
-    d_acc = 0.1
-    s_acc = 0.2
+    d_acc = 0.01
+    s_acc = 0.02
     def setUp(self):
         self.wind = InterpolledWind(basefuncs=basefuncs_cubic)
         self.doSetup()

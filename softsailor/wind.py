@@ -93,9 +93,9 @@ def basefuncs_cubic(laf, lof, tif, i, j, k):
     lab = 1 - 3 * laf**2 + 2 * laf**3
     lob = 1 - 3 * lof**2 + 2 * lof**3
     tib = 1 - 3 * tif**2 + 2 * tif**3
-    la = laf * (1 - laf)**2 * (1 - lof) * (1 - tif)
-    lo = lof * (1 - lof)**2 * (1 - laf) * (1 - tif)
-    ti = tif * (1 - tif)**2 * (1 - laf) * (1 - lof)
+    la = (1 - 2 * i) * laf * (1 - laf)**2 * (1 - lof) * (1 - tif)
+    lo = (1 - 2 * j) * lof * (1 - lof)**2 * (1 - laf) * (1 - tif)
+    ti = (1 - 2 * k) * tif * (1 - tif)**2 * (1 - laf) * (1 - lof)
     return lab * lob * tib, la, lo, ti
 
 cube_corners = (
