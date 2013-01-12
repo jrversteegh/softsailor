@@ -32,23 +32,22 @@ class GribWind(InterpolledWind):
                 pass
         super(GribWind, self).__init__(*args, **kwargs)
 
-    def get_uv(self, lat, lon, t):
-        u, v = super(GribWind, self).get_uv(lat, lon, t)
-        # u and v are inverted in grib
-        return v, u
-
     def update(self):
         self.update_from_file()
 
     def update_from_file(self, filename=''):
         if filename:
             self._filename = filename
-        if self._filename and os.path.isfile(self._filename):
-            self._load_from(self._filename)
-            self._filedate = os.path.getmtime(self._filename)
+            self._filedate = 0
+        if self._filename:
+            if not os.path.isfile(self._filename):
+                raise Exception('Grib file doesn''t exist: %s' % self._filename)
+            fdate = os.path.getmtime(self._filename)
+            if fdate != self._filedate:
+                self._load_from(self._filename)
+                self._filedate = fdate
 
     def _load_from(self, filename):
-        self.grid_slice = None
         grb = pg.open(filename)
         # Dictionary with data with time as key and a dictionary with properties
         # as values
@@ -61,11 +60,13 @@ class GribWind(InterpolledWind):
             except KeyError:
                 d = {'fcst': fcst}
                 data[t] = d
-            # Handle u and v messages
-            if msg.paramId in [131, 165]:
-                self._add_data(d, 'u', msg, fcst)
-            elif msg.paramId in [132, 166]:
+            # Handle u and v messages, mind that u and v in grib are 
+            # inverted, because the grib definition is u -> y direction(east)
+            # v -> x direction(north)
+            if msg.paramId in [131, 165]:  # U component (surface or 10m)
                 self._add_data(d, 'v', msg, fcst)
+            elif msg.paramId in [132, 166]: # V component (surface or 10m)
+                self._add_data(d, 'u', msg, fcst)
             else:
                 pass
         self._arrays_from_data(data)
@@ -103,6 +104,8 @@ class GribWind(InterpolledWind):
         dct[key] = np.array(msg.values) * unitf
        
     def _arrays_from_data(self, data):
+        # Clear any calculation state
+        self.clear()
         # Setup grid shape and init value arrays
         shape = self._data_shape(data)
         self.grid = np.zeros((3,) + shape)
@@ -123,6 +126,9 @@ class GribWind(InterpolledWind):
 
         # Set time coordinates of the mesh
         self.grid[2,:,:] = secs
+
+        # Update calculation coefficients
+        self.update_coefficients()
             
 
 

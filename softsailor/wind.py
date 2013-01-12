@@ -80,6 +80,10 @@ class GriddedWind(Wind):
         # Implement in descendant classes
         pass
 
+    def clear(self):
+        '''Clear any calculation state'''
+        pass
+
 
 def basefuncs_linear(laf, lof, tif, i, j, k):
     return ((1 - (laf + (1 - 2 * laf) * i)) * \
@@ -183,6 +187,9 @@ class InterpolledWind(GriddedWind):
 
     def update_coefficients(self):
         self.calc_gradients()
+
+    def clear(self):
+        self.grid_slice = None
 
 
 class SplinedWind(GriddedWind):
