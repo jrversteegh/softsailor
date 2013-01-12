@@ -22,6 +22,11 @@ test: $(TEST_TARGETS)
 test_list:
 	@echo "$(TEST_TARGETS)"
 
+.PHONY: install
+install: 
+		@python setup.py build
+		@sudo python setup.py install
+
 .PHONY: clean
 clean: 
 		@rm -f $(CLEAN_TARGETS)
