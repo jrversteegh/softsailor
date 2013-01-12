@@ -41,6 +41,7 @@ class GriddedWind(Wind):
         # Initialize with a worldwide forever grid
         self.grid = np.mgrid[-pi:pi:3j, -pi:pi:3j, 0.0:1E10:11j]
         self.init_value_arrays()
+        self.update()
 
     def get(self, position, time):
         self.update()
@@ -135,7 +136,7 @@ class InterpolledWind(GriddedWind):
         lat_i = np.searchsorted(self.grid[0,:,0,0], lat, side='righ') - 1
         lon_i = np.searchsorted(self.grid[1,0,:,0], lon, side='right') - 1
         tim_i = np.searchsorted(self.grid[2,0,0,:], tim, side='right') - 1
-        return (lat_i, lon_i, tim_i)
+        return lat_i, lon_i, tim_i
 
     def update_slices(self, lat, lon, tim):
         la, lo, ti = self.get_indices(lat, lon, tim)

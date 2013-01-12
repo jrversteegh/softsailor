@@ -32,6 +32,11 @@ class GribWind(InterpolledWind):
                 pass
         super(GribWind, self).__init__(*args, **kwargs)
 
+    def get_uv(self, lat, lon, t):
+        u, v = super(GribWind, self).get_uv(lat, lon, t)
+        # u and v are inverted in grib
+        return v, u
+
     def update(self):
         self.update_from_file()
 
@@ -43,25 +48,26 @@ class GribWind(InterpolledWind):
             self._filedate = os.path.getmtime(self._filename)
 
     def _load_from(self, filename):
+        self.grid_slice = None
         grb = pg.open(filename)
         # Dictionary with data with time as key and a dictionary with properties
         # as values
         data = {}
         for msg in grb:
-            fcst = timedelta(hours=msg.unitOfTimeRange * msg.P2)
+            fcst = timedelta(hours=msg.unitOfTimeRange * msg.P1)
             t = msg.analDate + fcst
             try:
                 d = data[t]
             except KeyError:
                 d = {'fcst': fcst}
                 data[t] = d
-                # Handle u and v messages
-                if msg.paramId in [131, 165]:
-                    self._add_data(d, 'u', fcst)
-                elif msg.paramId in [132, 166]:
-                    self._add_data(d, 'v', fcst)
-                else:
-                    pass
+            # Handle u and v messages
+            if msg.paramId in [131, 165]:
+                self._add_data(d, 'u', msg, fcst)
+            elif msg.paramId in [132, 166]:
+                self._add_data(d, 'v', msg, fcst)
+            else:
+                pass
         self._arrays_from_data(data)
 
     def _data_shape(self, data):
@@ -76,17 +82,25 @@ class GribWind(InterpolledWind):
         return (las, los, ts)
 
 
-    def _add_data(self, dct, key, fcst):
+    def _add_data(self, dct, key, msg, fcst):
         try:
             vals = dct[key]
             # The values already exist. Only get new once in
             # case the forecast offset is less i.e. the data is newer
-            if fcts > dct['fcst']:
+            if fcst > dct['fcst']:
                 return
         except KeyError:
             pass # Expected
-        dct['grid'] = np.array(msg.latlons())
-        dct[key] = np.array(msg.values)
+        dct['grid'] = np.array(msg.latlons()) * (math.pi / 180.)
+        if msg.units == 'm s**-1':
+            unitf = 1.
+        elif msg.units == 'knots':
+            unitf = 1852. / 3600.
+        elif msg.units == 'km h**-1':
+            unitf = 1000. / 3600.
+        else:
+            raise Exception('Unexpected unit for wind speed: %s' % msg.units)
+        dct[key] = np.array(msg.values) * unitf
        
     def _arrays_from_data(self, data):
         # Setup grid shape and init value arrays
