@@ -14,8 +14,8 @@ class TestBoatWind(unittest.TestCase):
         boat = SailBoat()
         fetch_boat(boat)
         settings = Settings()
-        performance = Performance(polar_data=settings.polar_data)
-        settings.polar_data.save_to_file('polar_data.txt')
+        performance = Performance(polars=settings.polars)
+        settings.polars.save_to_file('polar_data.txt')
 
         speed = performance.get_speed(boat.relative_wind)
         bs = ms_to_kn(boat.motion.speed)

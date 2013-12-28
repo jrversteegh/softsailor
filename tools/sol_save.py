@@ -11,7 +11,7 @@ import sys, os
 import logging
 
 # Add softsailor to the python path
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from softsailor.utils import setup_log
 setup_log('sol_save', logging.DEBUG)

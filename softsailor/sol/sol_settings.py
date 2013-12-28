@@ -32,7 +32,6 @@ class Settings:
     chart = ''
     def __init__(self, *args):
         _log.debug('Constructing settings')
-        self.polars = Polars()
         if len(args) > 0:
             self.load_race(args[0])
             # Set the default host for loading maps and weather
@@ -101,19 +100,21 @@ class Settings:
         
 
     def load_polars(self, vpp):
-        speed_text = get_child_text_value(vpp, "tws_splined")
-        angle_text = get_child_text_value(vpp, "twa_splined")
-        boat_speed_text = get_child_text_value(vpp, "bs_splined")
+        speeds = get_child_text_value(vpp, "tws_splined")
+        angles = get_child_text_value(vpp, "twa_splined")
+        boat_speeds = get_child_text_value(vpp, "bs_splined")
 
-        self.polar_data.speeds = list(to_float(speed_text.split(' ')))
-        self.polar_data.angles = list(deg_to_rad(angle_text.split(' ')))
-        boat_speeds_per_angle = boat_speed_text.split(';')
+        wss = list(to_float(speeds.split()))
+        was = list(deg_to_rad(angles.split()))
+        vs = [kn_to_ms(bs.split()) for bs in boat_speeds.split(';') if bs]
         
-        self.polar_data.data = []
+        self.polars = Polars(wss=wss, was=was, vs=vs)
+        '''
         for boat_speeds in boat_speeds_per_angle:
             if boat_speeds.strip() != '':
-                self.polar_data.data.append( \
+                self.polars.data.append( \
                         list(kn_to_ms(boat_speeds.split(' '))))
+                '''
 
     def save_to_file(self, filename):
         with open(filename, 'w') as f:
