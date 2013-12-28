@@ -11,10 +11,11 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 from bisect import bisect
 import math
+import numpy as np
+from scipy import interpolate
 
 from softsailor.utils import *
 from softsailor.polars import Polars
-from scipy import interpolate
 
 class Performance(object):
 

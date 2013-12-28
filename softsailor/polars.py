@@ -47,7 +47,10 @@ class Polars(Object):
 
 
     def _update_splines(self):
-        self._cfs = interpolate.bisplrep(self._mesh[0], self._mesh[1], self._data, s=1.0)
+        size = min(len(self.angles), len(self.speeds))
+        smoothing = size - 0.5 * math.sqrt(2 * size)
+        self._cfs = interpolate.bisplrep(self._mesh[0], self._mesh[1],
+                                         self._data, s=smoothing)
 
     def save_to_file(self, filename=None):
         angles, windspeeds = self._data.shape
@@ -89,6 +92,6 @@ class Polars(Object):
     def speeds(self):
         return self._mesh[0][0,:]
 
-    def get(self, angle, windspeed):
-        angle = math.fabs(angle)
-        return interpolate.bisplev(windspeed, angle, self._cfs)
+    def get(self, angles, windspeed):
+        angles = np.fabs(angles)
+        return interpolate.bisplev(windspeed, angles, self._cfs)
