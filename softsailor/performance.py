@@ -11,16 +11,15 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
 import math
 
-from classes import PolarData
 
 class Performance(object):
     def __init__(self, *args, **kwargs):
         super(Performance, self).__init__()
         if len(args) > 0:
-            self.polar_data = args[0]
+            self.polars = args[0]
         else:
             try:
-                self.polar_data = kwargs['polar_data']
+                self.polars = kwargs['polars']
             except KeyError:
                 pass
 

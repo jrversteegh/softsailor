@@ -14,7 +14,7 @@ _log = logging.getLogger('softsailor.sol.sol_settings')
 from ConfigParser import ConfigParser
 
 from softsailor.utils import *
-from softsailor.classes import PolarData
+from softsailor.polars import Polars
 
 from sol_xmlutil import *
 from geofun import Position
@@ -32,7 +32,7 @@ class Settings:
     chart = ''
     def __init__(self, *args):
         _log.debug('Constructing settings')
-        self.polar_data = PolarData()
+        self.polars = Polars()
         if len(args) > 0:
             self.load_race(args[0])
             # Set the default host for loading maps and weather

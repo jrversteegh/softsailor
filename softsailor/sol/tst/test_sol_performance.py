@@ -2,7 +2,6 @@ import unittest
 import math
 import testing_helper
 
-from softsailor.classes import PolarData
 
 from softsailor.sol.sol_settings import Settings
 from softsailor.sol.sol_performance import Performance
