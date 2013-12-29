@@ -104,17 +104,15 @@ class Settings:
         angles = get_child_text_value(vpp, "twa_splined")
         boat_speeds = get_child_text_value(vpp, "bs_splined")
 
+        # For some curious reason the windspeeds appear to be in m/s...
         wss = list(to_float(speeds.split()))
+        # Want angles in radians, so convert
         was = list(deg_to_rad(angles.split()))
+        # ... while the boat speeds are provided in knots! WTF?
         vs = [kn_to_ms(bs.split()) for bs in boat_speeds.split(';') if bs]
         
         self.polars = Polars(wss=wss, was=was, vs=vs)
-        '''
-        for boat_speeds in boat_speeds_per_angle:
-            if boat_speeds.strip() != '':
-                self.polars.data.append( \
-                        list(kn_to_ms(boat_speeds.split(' '))))
-                '''
+
 
     def save_to_file(self, filename):
         with open(filename, 'w') as f:

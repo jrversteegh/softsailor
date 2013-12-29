@@ -18,7 +18,6 @@ from classes import Object
 from utils import *
 
 class Polars(Object):
-    _filename = ''
     def __init__(self, *args, **kwargs):
         super(Polars, self).__init__(*args, **kwargs)
         self._mesh = None
@@ -52,21 +51,25 @@ class Polars(Object):
         self._cfs = interpolate.bisplrep(self._mesh[0], self._mesh[1],
                                          self._data, s=smoothing)
 
+
     def save_to_file(self, filename=None):
-        angles, windspeeds = self._data.shape
         if not filename:
             filename = self._filename
-        f = open(filename, "w")
-        for i in range(angles):
-            angle = self._mesh[1][i, 0]
-            f.write('%.2f' % rad_to_deg(angle) + ':')
-            for j in range(windspeeds):
-                windspeed = self._mesh[0][0, j]
-                boatspeed = self._data[i, j]
-                f.write(' %.2f:%.2f' % (ms_to_kn(windspeed),
-                                        ms_to_kn(boatspeed)))
+        with open(filename, "w") as f:
+            f.write('# Wind speeds\n')
+            for speed in self.speeds:
+                f.write(' %.2f' % ms_to_kn(speed))
             f.write("\n")
-        f.close()
+            f.write('# Wind angles\n')
+            for angle in self.angles:
+                f.write(' %.2f' % rad_to_deg(angle))
+            f.write("\n")
+            f.write('# Boat speeds\n')
+            for r in self.data:
+                for c in r:
+                    f.write(' %.2f' % ms_to_kn(c))
+                f.write("\n")
+
 
     def load_from_file(self, filename=None):
         if not filename:
@@ -75,6 +78,7 @@ class Polars(Object):
         f = open(filename, "r")
         f.close()
         self._update_splines()
+
 
     @property
     def mesh(self):
@@ -92,6 +96,8 @@ class Polars(Object):
     def speeds(self):
         return self._mesh[0][0,:]
 
-    def get(self, angles, windspeed):
+    def get(self, angles, windspeed=None):
+        if windspeed is None:
+            angles, windspeed = angles
         angles = np.fabs(angles)
         return interpolate.bisplev(windspeed, angles, self._cfs)
