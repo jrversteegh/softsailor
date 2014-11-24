@@ -32,3 +32,5 @@ clean:
 		@rm -f $(CLEAN_TARGETS)
 		@find . -iname "*.pyc" -exec rm -f {} \; 
 			
+vr:
+	python3 vr.py
