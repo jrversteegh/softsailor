@@ -1,0 +1,5 @@
+[VR]
+host=vvor.virtualregatta.com
+user=XXXXXX
+key=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+service=/core/Service/ServiceCaller.php?service=
