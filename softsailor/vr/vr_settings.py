@@ -41,6 +41,7 @@ class Settings:
             self.load_course()
             self.load_polars()
 
+
     def load_file(self):
         config = ConfigParser()
         config_file = get_config_dir() + '/vrconfig'
@@ -73,19 +74,21 @@ class Settings:
         if self.vpp_url == '':
             raise Exception('Failed to find vpp url')
         self.vpp_coeff = get_child_float_value(root, 'VPPCoeff')
-        self.wind_resolution = get_child_float_value(root, 'PRECISION_VENTS')
-        self.wind_block_size = get_child_float_value(root, 'TAILLE_ZONE_VENTS')
+        self.wind_resolution = float(get_child_text_value(root, 'PRECISION_VENTS'))
+        self.wind_block_size = int(get_child_text_value(root, 'TAILLE_ZONE_VENTS'))
 
     def load_course(self):
         uri = self.service + 'GetCourse'
         dom = fetch_vr_document(self.host, uri)
         root = dom.childNodes[0]
-        sails = get_elements(root, 'sails')
+        sails = get_element(root, 'sails')
+        sails = get_elements(sails, 'sail')
         for sail in sails:
             ident = sail.getAttribute('id')
             name = sail.getAttribute('name')
             self.sails[ident] = name
-        parcours = get_elements(root, 'parcoursList')[-1]
+        parcours = get_element(root, 'parcoursList')
+        parcours = get_elements(root, 'parcours')[-1]
         start = get_element(parcours, 'start')
         finish = get_element(parcours, 'stop')
         checkpoints = get_element(parcours, 'checkpoints')
@@ -93,11 +96,12 @@ class Settings:
         def point_elem_to_position(elem):
             lat = elem.getAttribute('latitude')
             lon = elem.getAttribute('longitude')
-            print lat, lon
             lat = deg_to_rad(float(lat))
             lon = deg_to_rad(float(lon))
             return Position(lat, lon)
 
+        self.start = start.getAttribute('town')
+        self.finish = finish.getAttribute('town')
         self.course = []
         self.course.append(point_elem_to_position(start))
         for waypoint in waypoints:
@@ -109,7 +113,7 @@ class Settings:
     def load_polars(self):
         self.polars = {}
         for sn in self.sails.keys():
-            polar_file = self.vpp_url + '/vpp_1_%s.csv' % sn
+            polar_file = self.vpp_url + 'vpp_1_%s.csv' % sn
             polar = Polars(filename=polar_file, smoothing=False, degree=1)
             self.polars[sn] = polar
 

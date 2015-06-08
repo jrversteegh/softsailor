@@ -13,12 +13,12 @@ __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 from softsailor.utils import *
 from softsailor.world import world
 
-from sol_settings import Settings
-from sol_xmlutil import *
-from sol_wind import *
-from sol_weather import *
-from sol_chart import SolChart
-from sol_course import SolCourse
+from vr_settings import Settings
+from vr_utils import *
+from vr_wind import *
+from vr_weather import *
+from vr_chart import Chart
+from vr_course import Course
 
 from datetime import datetime
 
