@@ -10,6 +10,10 @@ __contact__ = "j.r.versteegh@gmail.com"
 __version__ = "0.1"
 __license__ = "GPLv3, No Warranty. See 'LICENSE'"
 
+import hashlib
+import urllib2
+import random
+
 from softsailor.utils import *
 from softsailor.world import world
 
@@ -58,20 +62,85 @@ def get_chart():
 
 def get_wind():
     global __vr_wind_instance
-    if __sol_vr_instance is None:
+    if __vr_wind_instance is None:
         weather = Weather()
         weather.load(get_settings())
-        __vr_wind_instance = VrWind(weather)
+        __vr_wind_instance = Wind(weather)
     return __vr_wind_instance
 
 def get_course():
     global __vr_course_instance
     if __vr_course_instance is None:
         settings = get_settings()
-        __vr_course_instance = VrCourse(settings.course, 
+        __vr_course_instance = Course(settings.course, 
                                           settings.finish_radius, 
                                           get_chart()) 
     return __vr_course_instance
+
+def request(serv, req, xtra=''):
+    qry = ''
+    chk = serv
+    for k, v in req:
+        qry += '&%s=%s' % (k, v)
+        chk += '%s' % v
+    chk += xtra
+    chk = hashlib.sha1(chk.encode('latin-1')).hexdigest()
+    url = 'http://%s%s%s%s&checksum=%s' % (host, service, serv, qry, chk)
+    return urllib2.urlopen(url).read()
+
+def login():
+    req = ('AuthLoginXml',
+           (
+               ('id_user', user),
+               ('pass', key),
+           ),
+           'vr2010',
+          )
+    data = request(*req)
+    return data
+
+def get_user():
+    req = ('GetUser', 
+           ( 
+               ('id_user', user), 
+               ('lang', 'EN'), 
+               ('light', '1'), 
+               ('auto', '1'), 
+               ('clientVersion', '5.2.26'), 
+           ), 
+          ) 
+    data = request(*req, xtra=key) 
+    return data
+
+velems = ['dz7',   # PlayerManager 
+          'ez4d',  # _-Zx  
+          '4',     # GetUserWrapper  
+          '4s',    # WindManager(2)  
+          'fifç',  # initAfterLoad 
+          '50',    # ZoomSelector.init 
+          '50',    # ZoomSelector.init (called twice) 
+         ] 
+
+def id_generator(size=20, chars=string.ascii_letters + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+def update(angle, sail):
+    rnd = id_generator()
+    req = ('Update',
+           (
+               ('id_user', user),
+               ('cap', str(hdg)),
+               ('voile', str(sail)),
+               ('r', rnd),
+           ),
+          )
+    x = ''.join(velems)
+    x = x.encode('latin-1')
+    x = hashlib.sha1(x).hexdigest()
+    x = key + x
+    data = request(*req, xtra=x)
+
 
 def fetch_boat(boat):
     """Fetches the online data for boat"""
