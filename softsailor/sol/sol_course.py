@@ -14,12 +14,12 @@ from softsailor.route import Waypoint
 from softsailor.course import *
 from geofun import Vector, Position, Line
 
-class SolMark(Mark):
+class Mark(Mark):
     target_vector = Vector()
 
-class SolCourse(Course):
+class Course(Course):
     def __init__(self, *args, **kwargs):
-        super(SolCourse, self).__init__()
+        super(Course, self).__init__()
         chart = None
         if len(args) > 0:
             waypoints = args[0]
@@ -50,7 +50,7 @@ class SolCourse(Course):
         # Enrich waypoints to turn them into marks 
         for i in range(1, len(waypoints) - 1):
             prev = Position(waypoints[i - 1][0], waypoints[i - 1][1])
-            mark = SolMark(waypoints[i][0], waypoints[i][1])
+            mark = Mark(waypoints[i][0], waypoints[i][1])
             nxt = Position(waypoints[i + 1][0], waypoints[i + 1][1])
             v1 = mark - prev
             v2 = nxt - mark

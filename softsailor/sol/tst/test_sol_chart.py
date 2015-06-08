@@ -51,7 +51,7 @@ class TestFuncs(unittest.TestCase):
 
 class TestChart(unittest.TestCase):
     def setUp(self):
-        self.chart = SolChart()
+        self.chart = Chart()
 
     @unittest.skipIf(mapbroken, "Don't test because of broken map")
     @unittest.skipIf(testing_helper.offline, "Requires sailonline connection")

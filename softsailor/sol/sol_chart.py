@@ -152,7 +152,7 @@ tile_cell_count = {'c': 360 / 45,
                    'i': 360 / 2, 
                    'l': 360 / 10}
 
-class SolChart(Chart):
+class Chart(Chart):
     @property
     def lat_range(self):
         return self.maxlat - self.minlat

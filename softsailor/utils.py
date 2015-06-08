@@ -17,6 +17,7 @@ from xml.dom.minidom import parseString, getDOMImplementation
 import kmlbase
 import kmldom
 import kmlengine
+import numpy
 from itertools import chain
 
 from geofun import Line, Position, Vector
@@ -50,7 +51,7 @@ def array_func(func):
         else:
             arg = args[0]
             t = type(arg)
-            if t == str or t == unicode:
+            if t == str or t == unicode or t == numpy.ndarray:
                 return func(arg)
             else:
                 try:

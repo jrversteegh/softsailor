@@ -19,7 +19,7 @@ def two_float(str1, str2):
     return (float(str1), float(str2))
 
 class Weather:
-    def __init__(self):
+    def __init__(self, settings=None):
         self.lat_min = 0
         self.lat_max = 0
         self.lat_range = 0
@@ -38,7 +38,7 @@ class Weather:
         self.clear_frames()
 
         self._url = ''
-        self._settings = None
+        self._settings = settings
 
     def clear_frames(self):
         self.frames = []

@@ -111,7 +111,7 @@ class Settings:
         # ... while the boat speeds are provided in knots! WTF?
         vs = [kn_to_ms(bs.split()) for bs in boat_speeds.split(';') if bs]
         
-        self.polars = Polars(wss=wss, was=was, vs=vs)
+        self.polars = Polars(wind_speeds=wss, wind_angles=was, boat_speeds=vs)
 
 
     def save_to_file(self, filename):

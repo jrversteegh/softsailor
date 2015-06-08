@@ -51,8 +51,8 @@ class TestPerformance(unittest.TestCase):
         self.assertAlmostEqual(v12[3], v224, delta=0.05)
 
     def testCompareWithPolarAtMesh(self):
-        a = polars.angles[50]
-        w = polars.speeds[20]
+        a = polars.wind_angles[50]
+        w = polars.wind_speeds[20]
         s = polars._data[50, 20]
         v1 = polars.get(a, w)
         v2 = perf.get((a, w))[1]

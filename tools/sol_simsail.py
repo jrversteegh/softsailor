@@ -32,12 +32,12 @@ from softsailor.route import *
 from softsailor.navigator import *
 
 import softsailor.sol.sol_world
-from softsailor.sol.sol_boat import SolBoat
-from softsailor.sol.sol_updater import SolSimUpdater
+from softsailor.sol.sol_boat import Boat
+from softsailor.sol.sol_updater import SimUpdater
 from softsailor.controller import BoatController
 from softsailor.sol.sol_functions import *
 
-boat = SolBoat()
+boat = Boat()
 chart = get_chart()
 print "Map min lat: ", rad_to_deg(chart.minlat)
 print "Map max lat: ", rad_to_deg(chart.maxlat)
@@ -50,7 +50,7 @@ print "Route:"
 print route
 route.save_to_kml('active_route.kml')
 controller = BoatController(boat)
-updater = SolSimUpdater(boat)
+updater = SimUpdater(boat)
 # Set boat at start of route
 boat.position = route[0]
 navigator = Navigator(boat=boat, route=route)

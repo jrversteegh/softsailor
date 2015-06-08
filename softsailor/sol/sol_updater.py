@@ -15,12 +15,12 @@ from sol_functions import fetch_boat
 
 from datetime import timedelta
 
-class SolUpdater(BoatUpdater):
+class Updater(BoatUpdater):
     def update(self):
         fetch_boat(self.boat)
-        super(SolUpdater, self).update()
+        super(Updater, self).update()
 
-class SolSimUpdater(SimUpdater):
+class SimUpdater(SimUpdater):
     """
     Simulation updater that implements approximation of SOL
     performance penalty by fast forwarding the boat clock
@@ -28,7 +28,7 @@ class SolSimUpdater(SimUpdater):
     prev_wind_angle = None
     penalty_multiplier = 1.0
     def update(self):
-        super(SolSimUpdater, self).update()
+        super(SimUpdater, self).update()
         wind_angle = self.boat.wind_angle
         if self.prev_wind_angle is not None:
             penalty = abs(wind_angle - self.prev_wind_angle) 

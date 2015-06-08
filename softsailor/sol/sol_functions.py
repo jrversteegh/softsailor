@@ -17,8 +17,8 @@ from sol_settings import Settings
 from sol_xmlutil import *
 from sol_wind import *
 from sol_weather import *
-from sol_chart import SolChart
-from sol_course import SolCourse
+from sol_chart import Chart
+from sol_course import Course
 
 from datetime import datetime
 
@@ -44,7 +44,7 @@ def get_settings(race_file=None):
 def get_chart():
     global __sol_chart_instance
     if __sol_chart_instance is None:
-        __sol_chart_instance = SolChart()
+        __sol_chart_instance = Chart()
         settings = get_settings()
         if settings.chart != '':
             __sol_chart_instance.load(get_settings().chart)
@@ -61,14 +61,14 @@ def get_wind():
     if __sol_wind_instance is None:
         weather = Weather()
         weather.load(get_settings())
-        __sol_wind_instance = SolWind(weather)
+        __sol_wind_instance = Wind(weather)
     return __sol_wind_instance
 
 def get_course():
     global __sol_course_instance
     if __sol_course_instance is None:
         settings = get_settings()
-        __sol_course_instance = SolCourse(settings.course, 
+        __sol_course_instance = Course(settings.course, 
                                           settings.finish_radius, 
                                           get_chart()) 
     return __sol_course_instance

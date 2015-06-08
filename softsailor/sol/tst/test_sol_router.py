@@ -18,10 +18,10 @@ class TestRouter(unittest.TestCase):
     @unittest.skipIf(testing_helper.offline or True, "Can't get map tiles offline")
     def testPB3(self):
         _log.info('******** PB3 test ********')
-        chart = SolChart()
+        chart = Chart()
         chart.load_tiles('race.sailport.se', 'h', deg_to_rad(57, 60, 22, 28))
         chart.save_to_kml('estonia_chart.kml')
-        course = SolCourse(gen_waypoints_pb3_2011(), 200, chart)
+        course = Course(gen_waypoints_pb3_2011(), 200, chart)
         course.save_to_kml('estonia_course.kml')
         router = Router(chart=chart, boat=None, course=course)
         router.construct_legs()

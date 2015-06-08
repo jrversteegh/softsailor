@@ -13,11 +13,11 @@ from geofun import Position, Vector
 
 class TestCourse(unittest.TestCase):
     def setUp(self):
-        chart = SolChart()
+        chart = Chart()
         dirname = os.path.dirname(os.path.abspath(__file__))
         chart.load(dirname + '/Gbr_Gtb.xml')
         waypoints = gen_waypoints()
-        self.crs = SolCourse(waypoints, 1000, chart)
+        self.crs = Course(waypoints, 1000, chart)
 
     def testOrientation(self):
         self.assertFalse(self.crs.marks[0].to_port)
@@ -34,12 +34,12 @@ class TestCourse(unittest.TestCase):
         self.crs.save_to_kml(dirname + '/course.kml')
 
 class TestCourse2(unittest.TestCase):
-    chart = SolChart()
+    chart = Chart()
     if not testing_helper.offline:
         chart.load_tiles('node1.sailonline.org', 'h', deg_to_rad(57, 60, 22, 28))
     def setUp(self):
         waypoints = gen_waypoints_pb3_2011()
-        self.crs = SolCourse(waypoints, 1000, self.chart)
+        self.crs = Course(waypoints, 1000, self.chart)
 
     @unittest.skipIf(testing_helper.offline, "Can't load maptiles offline")
     def testOrientation(self):

@@ -66,7 +66,7 @@ class FakeWeather:
 class TestWind(unittest.TestCase):
     def setUp(self):
         self.weather = FakeWeather()
-        self.wind = SolWind(self.weather)
+        self.wind = Wind(self.weather)
 
     def tearDown(self):
         self.wind = None

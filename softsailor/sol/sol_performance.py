@@ -44,8 +44,8 @@ class Performance(object):
             relative_wind: 2 item array with absolute wind angle relative to
             boat heading and absolute wind speed .
         """
-        angles = self.polars.angles
-        speeds = self.polars.speeds
+        angles = self.polars.wind_angles
+        speeds = self.polars.wind_speeds
         data = self.polars.data
         coeffs = self.spline_coeffs
 
@@ -92,7 +92,7 @@ class Performance(object):
     def get_optimal_angles(self, wind_speed):
         """Return wind angles for min and max VMG at wind_speed"""
         opt_angles = [0, 0]
-        speeds = self.polars.speeds
+        speeds = self.polars.wind_speeds
         speed_j = bisect(speeds, wind_speed)
         speed_i = speed_j - 1
         speed_range = speeds[speed_j] - speeds[speed_i]
@@ -108,10 +108,10 @@ class Performance(object):
         # Determine max and min VMG wind angles for all wind speeds in
         # polar diagram data
         self.opt_angles = []
-        for speed in self.polars.speeds:
+        for speed in self.polars.wind_speeds:
             opt_angles = [0, math.pi]
             opt_vmgs = [0, 0]
-            for angle in self.polars.angles:
+            for angle in self.polars.wind_angles:
                 boat_perf = self.get((angle, speed))
                 course_angle = angle + boat_perf[0]
                 boat_speed = boat_perf[1]
@@ -128,8 +128,8 @@ class Performance(object):
     def __calc_spline_coeffs(self):
         # Determine spline coefficients for interpolation of polar diagram data
         self.spline_coeffs = []
-        angles = self.polars.angles
-        speeds = self.polars.speeds
+        angles = self.polars.wind_angles
+        speeds = self.polars.wind_speeds
         data = self.polars.data
         for i, angle in enumerate(angles):
             coeffs_list = []

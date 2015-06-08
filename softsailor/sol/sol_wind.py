@@ -17,11 +17,11 @@ from softsailor.utils import *
 from softsailor.wind import *
 
 
-class SolWind(InterpolledWind):
+class Wind(InterpolledWind):
     def __init__(self, *args, **kwargs):
         self.weather = args[0]
         self._last_verification = datetime(1970, 1, 1, 0, 0)
-        super(SolWind, self).__init__(*args, **kwargs)
+        super(Wind, self).__init__(*args, **kwargs)
 
     def update(self):
         self.update_weather()
